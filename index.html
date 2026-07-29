@@ -862,7 +862,7 @@
             const followupsHtml = m.followups.length > 0
                 ? `<div class="followup-timeline">${m.followups.map(f => `
                     <div class="followup-item">
-                        <div class="fi-date">&#128197; ${f.date} ${f.attendees ? ' &nbsp;&#128101; ' + f.attendees : ''}</div>
+                        <div class="fi-date">&#128197; ${f.date} ${f.attendees ? ' &nbsp;&#128101; ' + f.attendees : ''}${f.link ? ' &nbsp;<a href="' + escapeHtml(f.link) + '" target="_blank" style="color:var(--primary); font-size:13px;">🔗 飞书文档</a>' : ''}</div>
                         <div class="minutes-content-box">${escapeHtml(f.notes || '暂无记录')}</div>
                     </div>
                 `).join('')}</div>`
@@ -1288,6 +1288,7 @@
         // ==================== Minutes Upload ====================
         let extractedOPLs = [];
         let extractedAttendees = '';
+        let currentFeishuUrl = '';
 
         function openMinutesUpload() {
             document.getElementById('minutesStep1').classList.add('active');
@@ -1299,6 +1300,7 @@
             document.getElementById('minutesContent').value = '';
             extractedOPLs = [];
             extractedAttendees = '';
+            currentFeishuUrl = '';
             document.getElementById('feishuUrlWarning').style.display = 'none';
             document.getElementById('feishuLoadSuccess').style.display = 'none';
             document.getElementById('minutesUploadModal').classList.add('active');
@@ -1370,6 +1372,7 @@
 
                     if (/^https?:\/\/[^\s]*feishu\.cn\//.test(val) && val.split('\n').length <= 3 && val.length < 200) {
                         // User pasted a feishu URL - auto-fetch content
+                        currentFeishuUrl = val;  // Save the feishu URL
                         warning.style.display = 'none';
                         success.style.display = 'none';
 
@@ -1430,6 +1433,7 @@
             // Detect if user pasted a feishu URL - fetch content in real-time
             if (/^https?:\/\/[^\s]*feishu\.cn\//.test(content) && content.split('\n').length <= 3 && content.length < 200) {
                 // Show loading state and fetch
+                currentFeishuUrl = content;  // Save the feishu URL
                 showToast('正在从飞书获取文档内容...');
                 try {
                     const data = await fetchFeishuDocument(content);
@@ -1721,7 +1725,7 @@
             if (!meetingId && newMeetingName) {
                 meetingId = 'M' + String(store.meetings.length + 1).padStart(3, '0');
                 store.meetings.push({
-                    id: meetingId, name: newMeetingName, docUrl: '', depts: [],
+                    id: meetingId, name: newMeetingName, docUrl: currentFeishuUrl || '', depts: [],
                     frequency: 'adhoc', createdAt: new Date().toISOString().split('T')[0], followups: []
                 });
                 addActivity(`创建了会议主题：${newMeetingName}`);
@@ -1754,8 +1758,13 @@
                     id: fid,
                     date: date,
                     notes: content,  // 全文保存，不截断
-                    attendees: extractedAttendees || ''
+                    attendees: extractedAttendees || '',
+                    link: currentFeishuUrl || ''
                 });
+                // Update meeting's docUrl if it has a feishu link and didn't have one before
+                if (currentFeishuUrl && !meeting.docUrl) {
+                    meeting.docUrl = currentFeishuUrl;
+                }
             }
 
             // Activity logs
