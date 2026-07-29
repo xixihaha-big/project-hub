@@ -1358,7 +1358,16 @@
         }
 
         // ==================== Persistence ====================
+        const DATA_VERSION = 'v3-cn';
         function loadStore() {
+            const ver = localStorage.getItem('project-hub-version');
+            if (ver !== DATA_VERSION) {
+                // 版本不匹配，清除旧数据，重新生成中文示例
+                localStorage.removeItem('project-hub-data');
+                localStorage.setItem('project-hub-version', DATA_VERSION);
+                initSampleData();
+                return;
+            }
             const saved = localStorage.getItem('project-hub-data');
             if (saved) {
                 store = JSON.parse(saved);
