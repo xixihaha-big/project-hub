@@ -774,6 +774,116 @@
             color: var(--text-muted);
         }
         .action-btn:hover { background: #f1f5f9; color: var(--text); }
+
+        /* Minutes Upload Modal */
+        .modal-wide {
+            max-width: 750px;
+        }
+
+        .minutes-textarea {
+            min-height: 200px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .parsed-results {
+            margin-top: 16px;
+        }
+
+        .parsed-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .parsed-section-title .count-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .extracted-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .extracted-card .ec-desc {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding-right: 30px;
+        }
+
+        .extracted-card .ec-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .extracted-card .ec-fields .ec-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .extracted-card .ec-fields .ec-field label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .extracted-card .ec-fields .ec-field input,
+        .extracted-card .ec-fields .ec-field select {
+            padding: 5px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 12px;
+            background: #fff;
+        }
+
+        .extracted-card .ec-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .extracted-card .ec-remove:hover {
+            background: var(--danger-light);
+        }
+
+        .minutes-step {
+            display: none;
+        }
+
+        .minutes-step.active {
+            display: block;
+        }
+
+        .parse-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -828,6 +938,7 @@
                 </div>
                 <div class="topbar-right">
                     <button class="btn btn-sm" onclick="exportAllCSV()">导出 CSV</button>
+                    <button class="btn btn-success btn-sm" onclick="openMinutesUpload()">上传会议纪要</button>
                     <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ 快速添加</button>
                 </div>
             </header>
@@ -1158,6 +1269,53 @@
             </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('quickAdd')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minutes Upload Modal -->
+    <div class="modal-overlay" id="minutesUploadModal">
+        <div class="modal modal-wide">
+            <h3>上传会议纪要</h3>
+
+            <!-- Step 1: Input -->
+            <div class="minutes-step active" id="minutesStep1">
+                <div class="form-group">
+                    <label>所属项目 *</label>
+                    <select id="minutesProject" onchange="updateMinutesMeetings()">
+                        <option value="">选择项目...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>会议主题 *</label>
+                    <select id="minutesMeeting">
+                        <option value="">选择或输入会议主题...</option>
+                    </select>
+                    <input type="text" id="minutesNewMeeting" placeholder="或输入新的会议主题名称" style="margin-top:6px;">
+                </div>
+                <div class="form-group">
+                    <label>会议日期 *</label>
+                    <input type="date" id="minutesDate">
+                </div>
+                <div class="form-group">
+                    <label>会议纪要内容 *</label>
+                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴会议纪要文本...&#10;&#10;系统将自动识别其中的问题项和风险项。&#10;支持的格式：&#10;- 问题: / Issue: / TODO: / Action Item:&#10;- 风险: / Risk:&#10;- 包含「需要」「问题」「缺陷」「风险」等关键词的行&#10;- @姓名 或 负责人:XXX 标记负责人&#10;- 日期格式如 2025-08-01 或 8月1日"></textarea>
+                    <div class="parse-hint">提示：粘贴完整会议纪要后，点击「智能解析」自动提取问题项和风险项。</div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
+                    <button class="btn btn-primary" onclick="parseMinutes()">智能解析</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Preview & Confirm -->
+            <div class="minutes-step" id="minutesStep2">
+                <div class="parsed-results" id="parsedResults"></div>
+                <div class="form-actions">
+                    <button class="btn" onclick="backToMinutesInput()">返回修改</button>
+                    <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
+                    <button class="btn btn-primary" onclick="confirmMinutesImport()">确认添加</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1839,6 +1997,386 @@
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             link.click();
+        }
+
+        // ==================== Minutes Upload ====================
+        let extractedOPLs = [];
+        let extractedRisks = [];
+
+        function openMinutesUpload() {
+            // Reset to step 1
+            document.getElementById('minutesStep1').classList.add('active');
+            document.getElementById('minutesStep2').classList.remove('active');
+            // Populate project select
+            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('minutesProject').innerHTML = '<option value="">选择项目...</option>' + options;
+            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择会议主题...</option>';
+            document.getElementById('minutesNewMeeting').value = '';
+            document.getElementById('minutesDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('minutesContent').value = '';
+            extractedOPLs = [];
+            extractedRisks = [];
+            document.getElementById('minutesUploadModal').classList.add('active');
+        }
+
+        function updateMinutesMeetings() {
+            const projectId = document.getElementById('minutesProject').value;
+            const meetings = store.meetings.filter(m => m.projectId === projectId);
+            const options = meetings.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择已有会议主题...</option>' + options;
+        }
+
+        function parseMinutes() {
+            const projectId = document.getElementById('minutesProject').value;
+            const meetingId = document.getElementById('minutesMeeting').value;
+            const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
+            const date = document.getElementById('minutesDate').value;
+            const content = document.getElementById('minutesContent').value.trim();
+
+            if (!projectId) { showToast('请选择所属项目'); return; }
+            if (!meetingId && !newMeetingName) { showToast('请选择或输入会议主题'); return; }
+            if (!date) { showToast('请选择会议日期'); return; }
+            if (!content) { showToast('请粘贴会议纪要内容'); return; }
+
+            // Parse the content
+            extractedOPLs = [];
+            extractedRisks = [];
+
+            const lines = content.split('\n');
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                let isOPL = false;
+                let isRisk = false;
+
+                // Check for OPL patterns
+                if (/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i.test(line)) {
+                    isOPL = true;
+                } else if (/^-\s*\[\s*\]/.test(line)) {
+                    isOPL = true;
+                } else if (/^(风险[:：]|Risk[:：])/i.test(line)) {
+                    isRisk = true;
+                }
+
+                // Keyword-based detection if not already matched
+                if (!isOPL && !isRisk) {
+                    const oplKeywords = ['需要', '问题', '缺陷', '不合格', '待确认', '待解决', '跟进'];
+                    const riskKeywords = ['风险', '可能', '延期', '延迟', '不确定', '短缺', '供应'];
+
+                    const hasOPLKeyword = oplKeywords.some(kw => line.includes(kw));
+                    const hasRiskKeyword = riskKeywords.some(kw => line.includes(kw));
+
+                    if (hasRiskKeyword && !hasOPLKeyword) {
+                        isRisk = true;
+                    } else if (hasOPLKeyword && !hasRiskKeyword) {
+                        isOPL = true;
+                    } else if (hasOPLKeyword && hasRiskKeyword) {
+                        // If both, classify based on stronger signals
+                        if (line.includes('风险')) isRisk = true;
+                        else isOPL = true;
+                    }
+                }
+
+                if (isOPL || isRisk) {
+                    // Extract description (remove prefixes)
+                    let desc = line.replace(/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：]|风险[:：]|Risk[:：]|-\s*\[\s*\]\s*)/i, '').trim();
+
+                    // Extract owner
+                    let owner = '';
+                    const ownerMatch = desc.match(/@(\S+)/) || desc.match(/负责人[:：]\s*(\S+)/) || desc.match(/责任人[:：]\s*(\S+)/);
+                    if (ownerMatch) {
+                        owner = ownerMatch[1];
+                        desc = desc.replace(ownerMatch[0], '').trim();
+                    }
+
+                    // Extract due date
+                    let dueDate = '';
+                    const dateMatch1 = desc.match(/(\d{4}-\d{2}-\d{2})/);
+                    const dateMatch2 = desc.match(/(\d{1,2})月(\d{1,2})[日号]/);
+                    const dateMatch3 = desc.match(/截止[:：]?\s*(\d{4}-\d{2}-\d{2})/);
+                    const dateMatch4 = desc.match(/截止[:：]?\s*(\d{1,2})月(\d{1,2})[日号]/);
+
+                    if (dateMatch3) {
+                        dueDate = dateMatch3[1];
+                        desc = desc.replace(dateMatch3[0], '').trim();
+                    } else if (dateMatch4) {
+                        const year = new Date().getFullYear();
+                        dueDate = `${year}-${String(dateMatch4[1]).padStart(2,'0')}-${String(dateMatch4[2]).padStart(2,'0')}`;
+                        desc = desc.replace(dateMatch4[0], '').trim();
+                    } else if (dateMatch1) {
+                        dueDate = dateMatch1[1];
+                        desc = desc.replace(dateMatch1[0], '').trim();
+                    } else if (dateMatch2) {
+                        const year = new Date().getFullYear();
+                        dueDate = `${year}-${String(dateMatch2[1]).padStart(2,'0')}-${String(dateMatch2[2]).padStart(2,'0')}`;
+                        desc = desc.replace(dateMatch2[0], '').trim();
+                    }
+
+                    // Extract priority
+                    let priority = 'Medium';
+                    if (/紧急|重要|高优先/.test(line)) priority = 'High';
+                    else if (/低优先|不紧急/.test(line)) priority = 'Low';
+
+                    // Extract category
+                    let category = 'Other';
+                    if (isOPL) {
+                        if (/设计|Design/i.test(line)) category = 'Design';
+                        else if (/工艺|Process/i.test(line)) category = 'Process';
+                        else if (/材料|Material/i.test(line)) category = 'Material';
+                        else if (/质量|Quality/i.test(line)) category = 'Quality';
+                        else if (/测试|Test/i.test(line)) category = 'Test';
+                        else if (/生产|Production/i.test(line)) category = 'Production';
+                    } else {
+                        if (/技术|Technical/i.test(line)) category = 'Technical';
+                        else if (/进度|Schedule|延期|延迟/i.test(line)) category = 'Schedule';
+                        else if (/质量|Quality/i.test(line)) category = 'Quality';
+                        else if (/供应|Supply/i.test(line)) category = 'Supply Chain';
+                        else if (/成本|Cost/i.test(line)) category = 'Cost';
+                        else if (/资源|Resource/i.test(line)) category = 'Resource';
+                    }
+
+                    // Clean up description
+                    desc = desc.replace(/[,，;；]\s*$/, '').trim();
+                    if (!desc) continue;
+
+                    if (isOPL) {
+                        extractedOPLs.push({ desc, owner, dueDate, priority, category });
+                    } else {
+                        extractedRisks.push({ desc, owner, dueDate, level: priority, category });
+                    }
+                }
+            }
+
+            // Show step 2 with results
+            renderParsedResults();
+            document.getElementById('minutesStep1').classList.remove('active');
+            document.getElementById('minutesStep2').classList.add('active');
+        }
+
+        function renderParsedResults() {
+            let html = '';
+
+            // OPL section
+            html += `<div class="parsed-section-title">问题项 (OPL) <span class="count-badge">${extractedOPLs.length} 项</span></div>`;
+            if (extractedOPLs.length === 0) {
+                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">未识别到问题项</div>';
+            } else {
+                extractedOPLs.forEach((item, idx) => {
+                    html += `
+                    <div class="extracted-card" id="opl-card-${idx}">
+                        <button class="ec-remove" onclick="removeExtractedItem('opl', ${idx})" title="移除">&times;</button>
+                        <div class="ec-desc">
+                            <input type="text" value="${escapeHtml(item.desc)}" onchange="extractedOPLs[${idx}].desc=this.value" style="width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:500;">
+                        </div>
+                        <div class="ec-fields">
+                            <div class="ec-field">
+                                <label>负责人</label>
+                                <input type="text" value="${escapeHtml(item.owner)}" onchange="extractedOPLs[${idx}].owner=this.value" placeholder="未指定">
+                            </div>
+                            <div class="ec-field">
+                                <label>截止日期</label>
+                                <input type="date" value="${item.dueDate}" onchange="extractedOPLs[${idx}].dueDate=this.value">
+                            </div>
+                            <div class="ec-field">
+                                <label>优先级</label>
+                                <select onchange="extractedOPLs[${idx}].priority=this.value">
+                                    <option value="High" ${item.priority==='High'?'selected':''}>高</option>
+                                    <option value="Medium" ${item.priority==='Medium'?'selected':''}>中</option>
+                                    <option value="Low" ${item.priority==='Low'?'selected':''}>低</option>
+                                </select>
+                            </div>
+                            <div class="ec-field">
+                                <label>类别</label>
+                                <select onchange="extractedOPLs[${idx}].category=this.value">
+                                    <option value="Design" ${item.category==='Design'?'selected':''}>设计</option>
+                                    <option value="Process" ${item.category==='Process'?'selected':''}>工艺</option>
+                                    <option value="Material" ${item.category==='Material'?'selected':''}>材料</option>
+                                    <option value="Quality" ${item.category==='Quality'?'selected':''}>质量</option>
+                                    <option value="Test" ${item.category==='Test'?'selected':''}>测试</option>
+                                    <option value="Production" ${item.category==='Production'?'selected':''}>生产</option>
+                                    <option value="Other" ${item.category==='Other'?'selected':''}>其他</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            // Risk section
+            html += `<div class="parsed-section-title" style="margin-top:20px;">风险项 (Risk) <span class="count-badge">${extractedRisks.length} 项</span></div>`;
+            if (extractedRisks.length === 0) {
+                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">未识别到风险项</div>';
+            } else {
+                extractedRisks.forEach((item, idx) => {
+                    html += `
+                    <div class="extracted-card" id="risk-card-${idx}">
+                        <button class="ec-remove" onclick="removeExtractedItem('risk', ${idx})" title="移除">&times;</button>
+                        <div class="ec-desc">
+                            <input type="text" value="${escapeHtml(item.desc)}" onchange="extractedRisks[${idx}].desc=this.value" style="width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:500;">
+                        </div>
+                        <div class="ec-fields">
+                            <div class="ec-field">
+                                <label>负责人</label>
+                                <input type="text" value="${escapeHtml(item.owner)}" onchange="extractedRisks[${idx}].owner=this.value" placeholder="未指定">
+                            </div>
+                            <div class="ec-field">
+                                <label>截止日期</label>
+                                <input type="date" value="${item.dueDate}" onchange="extractedRisks[${idx}].dueDate=this.value">
+                            </div>
+                            <div class="ec-field">
+                                <label>风险级别</label>
+                                <select onchange="extractedRisks[${idx}].level=this.value">
+                                    <option value="High" ${item.level==='High'?'selected':''}>高</option>
+                                    <option value="Medium" ${item.level==='Medium'?'selected':''}>中</option>
+                                    <option value="Low" ${item.level==='Low'?'selected':''}>低</option>
+                                </select>
+                            </div>
+                            <div class="ec-field">
+                                <label>类别</label>
+                                <select onchange="extractedRisks[${idx}].category=this.value">
+                                    <option value="Technical" ${item.category==='Technical'?'selected':''}>技术</option>
+                                    <option value="Schedule" ${item.category==='Schedule'?'selected':''}>进度</option>
+                                    <option value="Quality" ${item.category==='Quality'?'selected':''}>质量</option>
+                                    <option value="Supply Chain" ${item.category==='Supply Chain'?'selected':''}>供应链</option>
+                                    <option value="Cost" ${item.category==='Cost'?'selected':''}>成本</option>
+                                    <option value="Resource" ${item.category==='Resource'?'selected':''}>资源</option>
+                                    <option value="Other" ${item.category==='Other'?'selected':''}>其他</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
+                html += '<div style="text-align:center; padding:20px; color:var(--text-muted);">未能从文本中识别出问题项或风险项。<br>请检查内容格式或返回修改。</div>';
+            }
+
+            document.getElementById('parsedResults').innerHTML = html;
+        }
+
+        function removeExtractedItem(type, index) {
+            if (type === 'opl') {
+                extractedOPLs.splice(index, 1);
+            } else {
+                extractedRisks.splice(index, 1);
+            }
+            renderParsedResults();
+        }
+
+        function backToMinutesInput() {
+            document.getElementById('minutesStep2').classList.remove('active');
+            document.getElementById('minutesStep1').classList.add('active');
+        }
+
+        function confirmMinutesImport() {
+            const projectId = document.getElementById('minutesProject').value;
+            let meetingId = document.getElementById('minutesMeeting').value;
+            const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
+            const date = document.getElementById('minutesDate').value;
+            const content = document.getElementById('minutesContent').value.trim();
+
+            // If new meeting name provided, create the meeting first
+            if (!meetingId && newMeetingName) {
+                meetingId = 'M' + String(store.meetings.length + 1).padStart(3, '0');
+                store.meetings.push({
+                    id: meetingId,
+                    name: newMeetingName,
+                    projectId: projectId,
+                    docUrl: '',
+                    depts: [],
+                    frequency: 'adhoc',
+                    createdAt: new Date().toISOString().split('T')[0],
+                    followups: []
+                });
+                addActivity(`创建了会议主题：${newMeetingName}`, 'meeting', projectId);
+            }
+
+            if (!meetingId) { showToast('请选择或创建会议主题'); return; }
+
+            let oplCount = 0;
+            let riskCount = 0;
+
+            // Add OPL items
+            extractedOPLs.forEach(item => {
+                if (!item.desc) return;
+                const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
+                store.opls.push({
+                    id,
+                    desc: item.desc,
+                    projectId,
+                    category: item.category || 'Other',
+                    owner: item.owner || '待指定',
+                    dueDate: item.dueDate || '',
+                    priority: item.priority || 'Medium',
+                    status: 'Open',
+                    action: '',
+                    result: '',
+                    createdAt: new Date().toISOString().split('T')[0]
+                });
+                oplCount++;
+            });
+
+            // Add Risk items
+            extractedRisks.forEach(item => {
+                if (!item.desc) return;
+                const id = 'RISK-' + String(store.risks.length + 1).padStart(3, '0');
+                store.risks.push({
+                    id,
+                    desc: item.desc,
+                    projectId,
+                    category: item.category || 'Other',
+                    level: item.level || 'Medium',
+                    owner: item.owner || '待指定',
+                    dueDate: item.dueDate || '',
+                    status: 'Open',
+                    mitigation: '',
+                    createdAt: new Date().toISOString().split('T')[0]
+                });
+                riskCount++;
+            });
+
+            // Add meeting minutes as followup
+            const meeting = store.meetings.find(m => m.id === meetingId);
+            if (meeting) {
+                const fid = 'F' + String(Date.now()).slice(-6);
+                meeting.followups.unshift({
+                    id: fid,
+                    date: date,
+                    notes: content.substring(0, 500) + (content.length > 500 ? '...' : ''),
+                    attendees: ''
+                });
+            }
+
+            // Activity logs
+            if (oplCount > 0) {
+                addActivity(`从会议纪要导入了 ${oplCount} 个问题项`, 'opl', projectId);
+            }
+            if (riskCount > 0) {
+                addActivity(`从会议纪要导入了 ${riskCount} 个风险项`, 'risk', projectId);
+            }
+            addActivity(`上传了会议纪要（${date}）`, 'meeting', projectId);
+
+            saveStore();
+            closeModal('minutesUpload');
+
+            const totalItems = oplCount + riskCount;
+            showToast(`导入成功！添加了 ${oplCount} 个问题项和 ${riskCount} 个风险项`);
+
+            // Refresh current page
+            if (currentPage === 'dashboard') renderDashboard();
+            else if (currentPage === 'meetings') renderMeetings();
+            else if (currentPage === 'opl') renderOPL();
+            else if (currentPage === 'risk') renderRisk();
+            updateCounts();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML.replace(/"/g, '&quot;');
         }
 
         // Close modals on overlay click
