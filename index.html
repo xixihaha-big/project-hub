@@ -2008,6 +2008,7 @@
         // ==================== Minutes Upload ====================
         let extractedOPLs = [];
         let extractedRisks = [];
+        let extractedAttendees = '';
 
         function openMinutesUpload() {
             // Reset to step 1
@@ -2047,6 +2048,34 @@
             // Parse the content - enhanced for Feishu meeting minutes format
             extractedOPLs = [];
             extractedRisks = [];
+
+            // ===== Extract attendees (参会人员) from content =====
+            extractedAttendees = '';
+            const attendeesPatterns = [
+                /参会人员[：:]\s*(.+)/,
+                /参会人[：:]\s*(.+)/,
+                /与会人员[：:]\s*(.+)/,
+                /出席[：:]\s*(.+)/
+            ];
+            for (const pat of attendeesPatterns) {
+                const m = content.match(pat);
+                if (m) {
+                    // Clean up: remove cite tags, extract names
+                    let raw = m[1];
+                    // Extract user-name from cite tags
+                    const citeNames = [];
+                    const citeRegex = /user-name="([^"]+)"/g;
+                    let cm;
+                    while ((cm = citeRegex.exec(raw)) !== null) {
+                        citeNames.push(cm[1]);
+                    }
+                    // Also extract plain text names (external participants like 顾锐(外部))
+                    raw = raw.replace(/<cite[^>]*><\/cite>/g, '').replace(/<[^>]+>/g, '');
+                    const plainNames = raw.split(/[,，、\s]+/).map(n => n.replace(/\(外部\)|\（外部\）/g, '').trim()).filter(n => n && n.length >= 2 && n.length <= 10 && !/^\d/.test(n) && !/其他/.test(n) && !/名外部/.test(n));
+                    extractedAttendees = [...citeNames, ...plainNames].filter((v, i, a) => a.indexOf(v) === i).join(', ');
+                    break;
+                }
+            }
 
             const lines = content.split('\n');
 
@@ -2478,7 +2507,7 @@
                     id: fid,
                     date: date,
                     notes: content.substring(0, 500) + (content.length > 500 ? '...' : ''),
-                    attendees: ''
+                    attendees: extractedAttendees || ''
                 });
             }
 
