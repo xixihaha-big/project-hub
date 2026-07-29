@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.2
+                数据本地保存 &middot; BMU代工厂管理 v2.3
             </div>
         </aside>
 
@@ -432,9 +432,19 @@
             <!-- Page: OPL -->
             <div class="page-content" id="page-opl" style="display:none;">
                 <div class="stats-grid" id="oplStats"></div>
-                <div class="card">
+                <!-- Tab switcher -->
+                <div style="display:flex; gap:0; margin-bottom:20px; border-bottom:2px solid var(--border);">
+                    <div class="opl-tab active" id="oplTabOpen" onclick="switchOPLTab('open')" style="padding:10px 20px; cursor:pointer; font-size:14px; font-weight:600; border-bottom:2px solid var(--primary); margin-bottom:-2px; color:var(--primary);">
+                        进行中 <span id="oplTabOpenCount" style="background:var(--warning-light);color:#b45309;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;">0</span>
+                    </div>
+                    <div class="opl-tab" id="oplTabClosed" onclick="switchOPLTab('closed')" style="padding:10px 20px; cursor:pointer; font-size:14px; font-weight:500; color:var(--text-muted); margin-bottom:-2px;">
+                        已关闭存档 <span id="oplTabClosedCount" style="background:var(--success-light);color:#047857;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;">0</span>
+                    </div>
+                </div>
+                <!-- Active OPL (Open / In Progress) -->
+                <div class="card" id="oplActiveCard">
                     <div class="card-header">
-                        <span class="card-title">问题清单</span>
+                        <span class="card-title">待处理 / 进行中</span>
                         <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ 新建问题</button>
                     </div>
                     <div class="card-body">
@@ -444,7 +454,6 @@
                                 <option value="">所有状态</option>
                                 <option value="Open">待处理</option>
                                 <option value="In Progress">进行中</option>
-                                <option value="Closed">已关闭</option>
                             </select>
                             <select id="oplPriorityFilter" onchange="renderOPL()">
                                 <option value="">所有优先级</option>
@@ -454,6 +463,19 @@
                             </select>
                         </div>
                         <div class="table-container" id="oplTable"></div>
+                    </div>
+                </div>
+                <!-- Archived OPL (Closed) -->
+                <div class="card" id="oplClosedCard" style="display:none;">
+                    <div class="card-header">
+                        <span class="card-title">已关闭存档</span>
+                        <span style="font-size:12px; color:var(--text-muted);">已完成的问题项归档记录</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <input type="text" placeholder="搜索已关闭问题..." id="oplClosedSearch" oninput="renderOPL()">
+                        </div>
+                        <div class="table-container" id="oplClosedTable"></div>
                     </div>
                 </div>
             </div>
@@ -651,7 +673,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v5-bmu';
+        const DATA_VERSION = 'v6-bmu-clean';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -673,43 +695,9 @@
         }
 
         function initSampleData() {
-            store.meetings = [
-                {
-                    id: 'M001', name: 'APQP周评审',
-                    docUrl: '',
-                    depts: ['EE', 'ME', 'DQE', 'PCBA工艺', 'PM'],
-                    frequency: 'weekly', createdAt: '2025-07-01',
-                    followups: [
-                        { id: 'F001', date: '2025-07-21', notes: '1. 讨论了PCB拼板方案和SMT DFM检查结果\n2. BOM一致性确认完成\n3. 泰科料重信息待获取\n\n待办：\n- 崔江红跟进泰科料重数据\n- 李晴天确认CAMDS提交进度', attendees: '张三, 李四, 王五, 崔江红' },
-                        { id: 'F002', date: '2025-07-14', notes: '1. 评审了BOM一致性和元器件变更\n2. 供应商交付进度更新\n3. 工艺验证计划确认', attendees: '张三, 赵六, 钱七' }
-                    ]
-                },
-                {
-                    id: 'M002', name: '代工厂工艺对接',
-                    docUrl: '', depts: ['ME', 'DQE', '代工厂'],
-                    frequency: 'biweekly', createdAt: '2025-07-10',
-                    followups: [
-                        { id: 'F003', date: '2025-07-18', notes: '与代工厂确认了SMT贴片工艺参数：\n1. 回流焊温度曲线已优化\n2. 钢网开孔尺寸调整为1:1.05\n3. 首件检验SOP已更新\n\n问题：部分物料来料包装不符合自动化上料要求，需协调供应商整改。', attendees: '李四, 钱七, 代工厂张工' }
-                    ]
-                }
-            ];
-
-            store.opls = [
-                { id: 'OPL-001', desc: 'PCB拼板散热问题需重新评估', category: 'Design', owner: '张三', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: '重新进行热仿真分析', createdAt: '2025-07-21' },
-                { id: 'OPL-002', desc: 'SMT DFM检查发现焊盘间距不合规', category: 'Process', owner: '李四', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: '修改PCB布局', createdAt: '2025-07-14' },
-                { id: 'OPL-003', desc: '泰科料重获取：推动获取泰科一颗料的准确重量信息', category: 'Material', owner: '崔江红', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: '联系泰科供应商', createdAt: '2025-07-21' },
-                { id: 'OPL-004', desc: '来料包装不符合自动化上料要求', category: 'Process', owner: '钱七', dueDate: '2025-07-25', priority: 'Medium', status: 'Open', action: '协调供应商整改包装规格', createdAt: '2025-07-18' },
-                { id: 'OPL-005', desc: 'EMC预测试辐射超标', category: 'Test', owner: '王五', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: '增加屏蔽和滤波措施', createdAt: '2025-07-21' }
-            ];
-
-            store.activities = [
-                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC预测试辐射超标' },
-                { time: '2025-07-21 10:00', content: '添加了会议跟进（APQP周评审 7月21日）' },
-                { time: '2025-07-18 15:00', content: '创建了 OPL-004：来料包装问题' },
-                { time: '2025-07-18 14:30', content: '添加了会议跟进（代工厂工艺对接 7月18日）' },
-                { time: '2025-07-14 11:00', content: '创建了 OPL-002：焊盘间距不合规' }
-            ];
-
+            store.meetings = [];
+            store.opls = [];
+            store.activities = [];
             saveStore();
         }
 
@@ -869,22 +857,53 @@
         }
 
         // ==================== OPL ====================
+        let oplCurrentTab = 'open'; // 'open' or 'closed'
+
+        function switchOPLTab(tab) {
+            oplCurrentTab = tab;
+            const tabOpen = document.getElementById('oplTabOpen');
+            const tabClosed = document.getElementById('oplTabClosed');
+            const cardActive = document.getElementById('oplActiveCard');
+            const cardClosed = document.getElementById('oplClosedCard');
+            if (tab === 'open') {
+                tabOpen.style.borderBottom = '2px solid var(--primary)';
+                tabOpen.style.color = 'var(--primary)';
+                tabOpen.style.fontWeight = '600';
+                tabClosed.style.borderBottom = '2px solid transparent';
+                tabClosed.style.color = 'var(--text-muted)';
+                tabClosed.style.fontWeight = '500';
+                cardActive.style.display = 'block';
+                cardClosed.style.display = 'none';
+            } else {
+                tabClosed.style.borderBottom = '2px solid var(--success)';
+                tabClosed.style.color = '#047857';
+                tabClosed.style.fontWeight = '600';
+                tabOpen.style.borderBottom = '2px solid transparent';
+                tabOpen.style.color = 'var(--text-muted)';
+                tabOpen.style.fontWeight = '500';
+                cardActive.style.display = 'none';
+                cardClosed.style.display = 'block';
+            }
+            renderOPL();
+        }
+
         function renderOPL() {
             const search = (document.getElementById('oplSearch').value || '').toLowerCase();
             const statusFilter = document.getElementById('oplStatusFilter').value;
             const priorityFilter = document.getElementById('oplPriorityFilter').value;
+            const closedSearch = (document.getElementById('oplClosedSearch')?.value || '').toLowerCase();
 
-            let filtered = store.opls;
-            if (search) filtered = filtered.filter(o => o.desc.toLowerCase().includes(search) || o.owner.toLowerCase().includes(search));
-            if (statusFilter) filtered = filtered.filter(o => o.status === statusFilter);
-            if (priorityFilter) filtered = filtered.filter(o => o.priority === priorityFilter);
+            // Split into active and closed
+            const activeOPLs = store.opls.filter(o => o.status !== 'Closed');
+            const closedOPLs = store.opls.filter(o => o.status === 'Closed');
 
-            const total = filtered.length;
-            const open = filtered.filter(o => o.status === 'Open').length;
-            const inProg = filtered.filter(o => o.status === 'In Progress').length;
-            const closed = filtered.filter(o => o.status === 'Closed').length;
-            const overdue = filtered.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
-            const onTime = filtered.filter(o => o.status === 'Closed' && o.closedAt && new Date(o.closedAt) <= new Date(o.dueDate)).length;
+            // Stats (always show totals)
+            const total = store.opls.length;
+            const open = store.opls.filter(o => o.status === 'Open').length;
+            const inProg = store.opls.filter(o => o.status === 'In Progress').length;
+            const closed = closedOPLs.length;
+            const overdue = activeOPLs.filter(o => o.dueDate && new Date(o.dueDate) < new Date()).length;
+            const onTime = closedOPLs.filter(o => o.closedAt && o.dueDate && new Date(o.closedAt) <= new Date(o.dueDate)).length;
             const onTimeRate = closed > 0 ? Math.round(onTime / closed * 100) : '-';
 
             document.getElementById('oplStats').innerHTML = `
@@ -896,22 +915,27 @@
                 <div class="stat-card"><div class="stat-label">按时完成率</div><div class="stat-value">${onTimeRate}${onTimeRate !== '-' ? '%' : ''}</div></div>
             `;
 
-            const rows = filtered.map(o => {
+            // Update tab counts
+            document.getElementById('oplTabOpenCount').textContent = activeOPLs.length;
+            document.getElementById('oplTabClosedCount').textContent = closedOPLs.length;
+
+            // ---- Render Active OPL Table ----
+            let filteredActive = activeOPLs;
+            if (search) filteredActive = filteredActive.filter(o => o.desc.toLowerCase().includes(search) || o.owner.toLowerCase().includes(search));
+            if (statusFilter) filteredActive = filteredActive.filter(o => o.status === statusFilter);
+            if (priorityFilter) filteredActive = filteredActive.filter(o => o.priority === priorityFilter);
+
+            const activeRows = filteredActive.map(o => {
                 const statusClass = o.status === 'In Progress' ? 'inprogress' : o.status.toLowerCase();
                 const priorityClass = o.priority.toLowerCase();
-                const isOverdue = o.status !== 'Closed' && new Date(o.dueDate) < new Date();
+                const isOverdue = o.dueDate && new Date(o.dueDate) < new Date();
                 const extCount = (o.extensions && o.extensions.length) || 0;
                 let dueDateDisplay = '';
-                if (o.status === 'Closed' && o.closedAt) {
-                    const onTime = new Date(o.closedAt) <= new Date(o.dueDate);
-                    dueDateDisplay = `<span style="text-decoration:${onTime?'none':'line-through'}; color:${onTime?'var(--success)':'var(--text-muted)'};">${o.dueDate}</span>`;
-                    if (!onTime) dueDateDisplay += `<br><span style="font-size:11px; color:var(--warning);">实际：${o.closedAt}</span>`;
-                    if (onTime) dueDateDisplay += `<br><span style="font-size:11px; color:var(--success);">✓ 按时完成</span>`;
-                } else if (isOverdue) {
+                if (isOverdue) {
                     const days = Math.ceil((new Date() - new Date(o.dueDate)) / (1000*60*60*24));
                     dueDateDisplay = `<span style="color:var(--danger); font-weight:600;">${o.dueDate}</span><br><span style="font-size:11px; color:var(--danger);">逾期${days}天</span>`;
                 } else {
-                    dueDateDisplay = o.dueDate;
+                    dueDateDisplay = o.dueDate || '<span style="color:var(--text-muted);">未设置</span>';
                 }
                 if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">已延期${extCount}次</span>`;
                 return `<tr>
@@ -927,7 +951,7 @@
                             <option value="" disabled selected>操作</option>
                             <option value="Open">设为待处理</option>
                             <option value="In Progress">进行中</option>
-                            <option value="Closed">关闭</option>
+                            <option value="Closed">关闭并存档</option>
                             <option value="延期">申请延期</option>
                             <option value="delete">删除</option>
                         </select>
@@ -937,8 +961,53 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止/完成日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无问题项</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                </table>
+            `;
+
+            // ---- Render Closed/Archived OPL Table ----
+            let filteredClosed = closedOPLs;
+            if (closedSearch) filteredClosed = filteredClosed.filter(o => o.desc.toLowerCase().includes(closedSearch) || o.owner.toLowerCase().includes(closedSearch));
+
+            const closedRows = filteredClosed.map(o => {
+                const priorityClass = o.priority.toLowerCase();
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                let dueDateDisplay = '';
+                if (o.closedAt && o.dueDate) {
+                    const onTimeFlag = new Date(o.closedAt) <= new Date(o.dueDate);
+                    dueDateDisplay = `<span style="color:${onTimeFlag?'var(--success)':'var(--text-muted)'};">${o.dueDate}</span>`;
+                    if (onTimeFlag) {
+                        dueDateDisplay += `<br><span style="font-size:11px; color:var(--success);">✓ 按时完成</span>`;
+                    } else {
+                        dueDateDisplay += `<br><span style="font-size:11px; color:var(--warning);">实际完成：${o.closedAt}</span>`;
+                    }
+                } else {
+                    dueDateDisplay = o.dueDate || '-';
+                }
+                if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">延期${extCount}次</span>`;
+                return `<tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td style="max-width:280px;">${o.desc}</td>
+                    <td>${categoryCN(o.category)}</td>
+                    <td><span class="owner-tag">${o.owner}</span></td>
+                    <td style="min-width:100px;">${dueDateDisplay}</td>
+                    <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
+                    <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
+                    <td>
+                        <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
+                            <option value="" disabled selected>操作</option>
+                            <option value="Open">重新打开</option>
+                            <option value="delete">删除</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('oplClosedTable').innerHTML = `
+                <table>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -959,17 +1028,23 @@
                     opl.status = value;
                     if (value === 'Closed') {
                         opl.closedAt = new Date().toISOString().split('T')[0];
-                        const due = new Date(opl.dueDate);
+                        const due = opl.dueDate ? new Date(opl.dueDate) : null;
                         const closed = new Date(opl.closedAt);
-                        if (closed <= due) {
-                            addActivity(`${id} 已按时关闭（完成日期：${opl.closedAt}）`);
-                        } else {
+                        if (due && closed <= due) {
+                            addActivity(`${id} 已按时关闭并存档（完成日期：${opl.closedAt}）`);
+                        } else if (due) {
                             const days = Math.ceil((closed - due) / (1000*60*60*24));
-                            addActivity(`${id} 已关闭，逾期${days}天（截止：${opl.dueDate}，完成：${opl.closedAt}）`);
+                            addActivity(`${id} 已关闭并存档，逾期${days}天（截止：${opl.dueDate}，完成：${opl.closedAt}）`);
+                        } else {
+                            addActivity(`${id} 已关闭并存档（完成日期：${opl.closedAt}）`);
                         }
+                        showToast(`${id} 已关闭，已移入「已关闭存档」`);
                     } else {
                         if (oldStatus === 'Closed') { opl.closedAt = ''; }
                         addActivity(`${id} 状态变更为${statusCN(value)}`);
+                        if (oldStatus === 'Closed') {
+                            showToast(`${id} 已重新打开，已移回「进行中」`);
+                        }
                     }
                 }
             }
