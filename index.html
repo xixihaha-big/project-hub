@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.0
+                数据本地保存 &middot; BMU代工厂管理 v2.1
             </div>
         </aside>
 
@@ -1067,6 +1067,13 @@
             if (!date) { showToast('请选择会议日期'); return; }
             if (!content) { showToast('请粘贴会议纪要内容'); return; }
 
+            // Debug: log content info
+            console.log('[parseMinutes] Content length:', content.length);
+            console.log('[parseMinutes] First 200 chars:', content.substring(0, 200));
+            console.log('[parseMinutes] Has checkbox:', /\- \[ \]/.test(content));
+            console.log('[parseMinutes] Has ✅:', /✅/.test(content));
+            console.log('[parseMinutes] Has 待办:', /待办/.test(content));
+
             extractedOPLs = [];
             extractedAttendees = '';
 
@@ -1095,19 +1102,23 @@
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                // Section detection
+                // Section detection - broad matching for various paste formats
                 const isHeading = /^#{1,3}\s/.test(line) || /^\*\*[^*]+\*\*$/.test(line);
-                const isSectionLike = /^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/.test(line) ||
-                    /^(待办|任务|跟进|核心议题|落地策略|总结|共识|补充)/.test(line);
+                const isSectionLike = /^[🎉🧾✅🪜📋⚠️🔥💡📌]/.test(line) ||
+                    /^(待办|任务|跟进|核心议题|落地策略|总结|共识|补充|智能章节)/.test(line);
 
                 if (isHeading || isSectionLike) {
                     const headingText = line.replace(/^#{1,3}\s*/, '').replace(/\*\*/g, '').replace(/^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/, '').trim();
                     todoSection = /待办|任务|跟进|Action|TODO|行动项/.test(headingText);
+                    // If entering a non-todo section, turn off todoSection
+                    if (!todoSection && (isHeading || isSectionLike)) todoSection = false;
                     continue;
                 }
 
-                // Markdown checkbox
-                const checkboxMatch = line.match(/^[-*]\s*\[[\sx]*\]\s*(.+)/);
+                // Markdown checkbox (multiple formats: - [ ], ☐, □, ◻)
+                const checkboxMatch = line.match(/^[-*]\s*\[[\sx]*\]\s*(.+)/) ||
+                    line.match(/^[☐□◻◯○]\s*(.+)/) ||
+                    line.match(/^[-*•·]\s*[☐□◻◯○]\s*(.+)/);
                 if (checkboxMatch) {
                     const parsed = parseItemContent(checkboxMatch[1]);
                     if (parsed) extractedOPLs.push(parsed);
@@ -1117,8 +1128,9 @@
                 // In todo section
                 if (todoSection) {
                     let itemText = line.replace(/^[-*•·]\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
-                    if (itemText.length > 5 && !isHeading && !/^[>]/.test(line)) {
-                        if (!/由.*生成|可能不准确|人工调整/.test(itemText)) {
+                    // Skip quote lines, AI disclaimer lines, empty short lines
+                    if (itemText.length > 5 && !/^[>]/.test(line) && !/^>/.test(itemText)) {
+                        if (!/由.*生成|可能不准确|人工调整|点击此处|反馈群/.test(itemText)) {
                             const parsed = parseItemContent(itemText);
                             if (parsed) extractedOPLs.push(parsed);
                         }
@@ -1244,7 +1256,9 @@
             html += `<div class="parsed-section-title">识别到的问题项 (OPL) <span class="count-badge">${extractedOPLs.length} 项</span></div>`;
 
             if (extractedOPLs.length === 0) {
-                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px; padding:20px; text-align:center;">未识别到问题项。会议纪要内容仍会完整保存为会议记录。</div>';
+                const rawContent = document.getElementById('minutesContent').value.trim();
+                const firstLines = rawContent.split('\n').filter(l => l.trim()).slice(0, 5).map(l => l.substring(0, 50)).join('<br>');
+                html += `<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px; padding:20px; text-align:center;">未识别到问题项。会议纪要内容仍会完整保存为会议记录。<br><br><details><summary style="cursor:pointer;color:#888;">调试信息</summary><div style="text-align:left;margin-top:8px;font-size:11px;color:#999;word-break:break-all;">内容长度: ${rawContent.length} 字<br>含 ✅: ${/✅/.test(rawContent)}<br>含待办: ${/待办/.test(rawContent)}<br>含 - [ ]: ${/- \\[ \\]/.test(rawContent)}<br>含 @: ${/@/.test(rawContent)}<br>前5行:<br>${firstLines}</div></details></div>`;
             } else {
                 extractedOPLs.forEach((item, idx) => {
                     html += `
