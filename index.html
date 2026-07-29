@@ -98,7 +98,6 @@
 
         .nav-section-title {
             font-size: 11px;
-            text-transform: uppercase;
             letter-spacing: 1px;
             color: #64748b;
             padding: 0 12px;
@@ -367,7 +366,6 @@
             font-size: 12px;
             color: var(--text-secondary);
             font-weight: 500;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
@@ -1375,47 +1373,47 @@
 
         function initSampleData() {
             store.projects = [
-                { id: 'P001', name: 'BMU2.0', desc: 'Battery Management Unit 2.0 Development', color: '#4f46e5', createdAt: '2025-06-01' },
-                { id: 'P002', name: 'BMU2.1', desc: 'Battery Management Unit 2.1 Upgrade', color: '#0891b2', createdAt: '2025-07-01' }
+                { id: 'P001', name: 'BMU2.0', desc: '电池管理单元2.0开发项目', color: '#4f46e5', createdAt: '2025-06-01' },
+                { id: 'P002', name: 'BMU2.1', desc: '电池管理单元2.1升级项目', color: '#0891b2', createdAt: '2025-07-01' }
             ];
 
             store.meetings = [
                 {
-                    id: 'M001', name: 'APQP Weekly Review', projectId: 'P001',
+                    id: 'M001', name: 'APQP周评审', projectId: 'P001',
                     docUrl: 'https://mi-p.feishu.cn/docx/VW62dfpRuoqZVExBZWQchfAgnaf',
-                    depts: ['EE', 'ME', 'DQE', 'PCBA Process', 'PM'],
+                    depts: ['EE', 'ME', 'DQE', 'PCBA工艺', 'PM'],
                     frequency: 'weekly', createdAt: '2025-07-01',
                     followups: [
-                        { id: 'F001', date: '2025-07-21', notes: 'Discussed PCB panel solution and SMT DFM results', attendees: 'Zhang San, Li Si, Wang Wu' },
-                        { id: 'F002', date: '2025-07-14', notes: 'Reviewed BOM consistency and component changes', attendees: 'Zhang San, Zhao Liu, Qian Qi' }
+                        { id: 'F001', date: '2025-07-21', notes: '讨论了PCB拼板方案和SMT DFM检查结果', attendees: '张三, 李四, 王五' },
+                        { id: 'F002', date: '2025-07-14', notes: '评审了BOM一致性和元器件变更', attendees: '张三, 赵六, 钱七' }
                     ]
                 },
                 {
-                    id: 'M002', name: 'Structure Review', projectId: 'P002',
+                    id: 'M002', name: '结构评审', projectId: 'P002',
                     docUrl: '', depts: ['ME', 'DQE'], frequency: 'biweekly',
                     createdAt: '2025-07-10', followups: []
                 }
             ];
 
             store.opls = [
-                { id: 'OPL-001', desc: 'PCB panel thermal issue needs reassessment', projectId: 'P001', category: 'Design', owner: 'Zhang San', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: 'Redo thermal simulation', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-002', desc: 'SMT DFM check found non-compliant pad spacing', projectId: 'P001', category: 'Process', owner: 'Li Si', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: 'Modify PCB layout', result: '', createdAt: '2025-07-14' },
-                { id: 'OPL-003', desc: 'BOM alternative component pending confirmation', projectId: 'P002', category: 'Material', owner: 'Zhao Liu', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: 'Contact supplier for alternatives', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-004', desc: 'Injection molding parameter optimization', projectId: 'P002', category: 'Process', owner: 'Qian Qi', dueDate: '2025-07-25', priority: 'Medium', status: 'Overdue', action: 'Adjust temperature and pressure', result: '', createdAt: '2025-07-07' },
-                { id: 'OPL-005', desc: 'EMC pre-test failed - radiation exceeded', projectId: 'P001', category: 'Test', owner: 'Wang Wu', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: 'Add shielding and filtering', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-006', desc: 'Assembly SOP update required', projectId: 'P001', category: 'Production', owner: 'Li Si', dueDate: '2025-07-20', priority: 'Low', status: 'Closed', action: 'Update SOP v2.0', result: 'Completed and trained', createdAt: '2025-07-01' }
+                { id: 'OPL-001', desc: 'PCB拼板散热问题需重新评估', projectId: 'P001', category: 'Design', owner: '张三', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: '重新进行热仿真分析', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-002', desc: 'SMT DFM检查发现焊盘间距不合规', projectId: 'P001', category: 'Process', owner: '李四', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: '修改PCB布局', result: '', createdAt: '2025-07-14' },
+                { id: 'OPL-003', desc: 'BOM替代元器件待确认', projectId: 'P002', category: 'Material', owner: '赵六', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: '联系供应商获取替代方案', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-004', desc: '注塑成型参数需优化', projectId: 'P002', category: 'Process', owner: '钱七', dueDate: '2025-07-25', priority: 'Medium', status: 'Overdue', action: '调整温度和压力参数', result: '', createdAt: '2025-07-07' },
+                { id: 'OPL-005', desc: 'EMC预测试失败——辐射超标', projectId: 'P001', category: 'Test', owner: '王五', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: '增加屏蔽和滤波措施', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-006', desc: '装配SOP需更新', projectId: 'P001', category: 'Production', owner: '李四', dueDate: '2025-07-20', priority: 'Low', status: 'Closed', action: '更新SOP至v2.0版本', result: '已完成并培训', createdAt: '2025-07-01' }
             ];
 
             store.risks = [
-                { id: 'RISK-001', desc: 'Chip supplier delivery delay risk', projectId: 'P001', category: 'Supply Chain', level: 'High', owner: 'Zhao Liu', dueDate: '2025-08-15', status: 'Open', mitigation: 'Find second supplier, pre-order stock', createdAt: '2025-07-14' },
-                { id: 'RISK-002', desc: 'PCBA line yield below target', projectId: 'P001', category: 'Quality', level: 'Medium', owner: 'Li Si', dueDate: '2025-08-01', status: 'In Progress', mitigation: 'Optimize reflow soldering profile', createdAt: '2025-07-07' },
-                { id: 'RISK-003', desc: 'Project may delay 2 weeks', projectId: 'P002', category: 'Schedule', level: 'High', owner: 'Zhang San', dueDate: '2025-08-20', status: 'Open', mitigation: 'Add resources, parallelize tasks', createdAt: '2025-07-21' },
-                { id: 'RISK-004', desc: 'Insufficient new process validation time', projectId: 'P002', category: 'Technical', level: 'Medium', owner: 'Qian Qi', dueDate: '2025-08-10', status: 'Open', mitigation: 'Accelerate validation, add test batches', createdAt: '2025-07-14' },
-                { id: 'RISK-005', desc: 'Test equipment scheduling conflict', projectId: 'P001', category: 'Resource', level: 'Low', owner: 'Wang Wu', dueDate: '2025-08-05', status: 'Mitigated', mitigation: 'Coordinated time window with other projects', createdAt: '2025-07-07' }
+                { id: 'RISK-001', desc: '芯片供应商交付延期风险', projectId: 'P001', category: 'Supply Chain', level: 'High', owner: '赵六', dueDate: '2025-08-15', status: 'Open', mitigation: '寻找第二供应商，提前备货', createdAt: '2025-07-14' },
+                { id: 'RISK-002', desc: 'PCBA产线良率低于目标', projectId: 'P001', category: 'Quality', level: 'Medium', owner: '李四', dueDate: '2025-08-01', status: 'In Progress', mitigation: '优化回流焊温度曲线', createdAt: '2025-07-07' },
+                { id: 'RISK-003', desc: '项目可能延期2周', projectId: 'P002', category: 'Schedule', level: 'High', owner: '张三', dueDate: '2025-08-20', status: 'Open', mitigation: '增加资源投入，并行推进任务', createdAt: '2025-07-21' },
+                { id: 'RISK-004', desc: '新工艺验证时间不足', projectId: 'P002', category: 'Technical', level: 'Medium', owner: '钱七', dueDate: '2025-08-10', status: 'Open', mitigation: '加快验证节奏，增加试产批次', createdAt: '2025-07-14' },
+                { id: 'RISK-005', desc: '测试设备排期冲突', projectId: 'P001', category: 'Resource', level: 'Low', owner: '王五', dueDate: '2025-08-05', status: 'Mitigated', mitigation: '已协调与其他项目的时间窗口', createdAt: '2025-07-07' }
             ];
 
             store.activities = [
-                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC 预测试失败', type: 'opl', projectId: 'P001' },
+                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC预测试失败', type: 'opl', projectId: 'P001' },
                 { time: '2025-07-21 10:25', content: '创建了 RISK-003：项目延期风险', type: 'risk', projectId: 'P002' },
                 { time: '2025-07-21 10:00', content: '添加了跟进会议（7月21日）', type: 'meeting', projectId: 'P001' },
                 { time: '2025-07-20 14:00', content: 'OPL-006 状态变更为已关闭', type: 'opl', projectId: 'P001' },
@@ -1967,8 +1965,7 @@
         function fetchMinutesFromFeishu() {
             const url = document.getElementById('followupDocUrl').value.trim();
             if (!url) { showToast('请输入飞书文档链接'); return; }
-            showToast('正在从飞书获取...（需要后端接口）');
-            // In production, this would call a backend API to fetch the document
+            showToast('正在从飞书获取...（需要后端接口支持）');
         }
 
         function exportAllCSV() {
