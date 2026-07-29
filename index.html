@@ -2060,16 +2060,13 @@
             for (const pat of attendeesPatterns) {
                 const m = content.match(pat);
                 if (m) {
-                    // Clean up: remove cite tags, extract names
                     let raw = m[1];
-                    // Extract user-name from cite tags
                     const citeNames = [];
                     const citeRegex = /user-name="([^"]+)"/g;
                     let cm;
                     while ((cm = citeRegex.exec(raw)) !== null) {
                         citeNames.push(cm[1]);
                     }
-                    // Also extract plain text names (external participants like 顾锐(外部))
                     raw = raw.replace(/<cite[^>]*><\/cite>/g, '').replace(/<[^>]+>/g, '');
                     const plainNames = raw.split(/[,，、\s]+/).map(n => n.replace(/\(外部\)|\（外部\）/g, '').trim()).filter(n => n && n.length >= 2 && n.length <= 10 && !/^\d/.test(n) && !/其他/.test(n) && !/名外部/.test(n));
                     extractedAttendees = [...citeNames, ...plainNames].filter((v, i, a) => a.indexOf(v) === i).join(', ');
@@ -2079,57 +2076,66 @@
 
             const lines = content.split('\n');
 
-            // ===== Strategy 1: Structure-based extraction =====
-            // Detect sections by headings
+            // ===== Multi-strategy parsing for Feishu meeting minutes =====
+            // Strategy: identify sections by headings or keywords, then extract items
+
             let currentSection = '';
             let todoSection = false;
             let riskSection = false;
             let consensusSection = false;
+            let summarySection = false;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                // Detect section headings (飞书格式：# 标题, ## 标题, **标题**, 或带 emoji)
-                if (/^#{1,3}\s/.test(line) || /^\*\*[^*]+\*\*$/.test(line)) {
-                    const headingText = line.replace(/^#{1,3}\s*/, '').replace(/\*\*/g, '').trim();
+                // --- Section detection (supports multiple formats) ---
+                // Format 1: Markdown headings: # 标题, ## 标题
+                // Format 2: Bold text as heading: **标题**
+                // Format 3: Emoji + text as heading (common when copying from Feishu): ✅ 待办任务, 🧾 核心议题
+                // Format 4: Plain text section headers: "待办任务与跟进", "核心议题"
+                const isHeading = /^#{1,3}\s/.test(line) || /^\*\*[^*]+\*\*$/.test(line);
+                const isSectionLike = /^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/.test(line) ||
+                    /^(待办|任务|跟进|风险|核心议题|落地策略|总结|共识|补充)/.test(line);
+
+                if (isHeading || isSectionLike) {
+                    const headingText = line.replace(/^#{1,3}\s*/, '').replace(/\*\*/g, '').replace(/^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/, '').trim();
                     todoSection = /待办|任务|跟进|Action|TODO|行动项/.test(headingText);
-                    riskSection = /风险|Risk/.test(headingText);
+                    riskSection = /风险|Risk/.test(headingText) && !/应对|处理|策略/.test(headingText);
                     consensusSection = /共识|决议|结论|策略|落地/.test(headingText);
+                    summarySection = /总结|概述/.test(headingText);
                     currentSection = headingText;
                     continue;
                 }
 
-                // ===== Extract TODO/OPL items =====
-                // Pattern 1: Checkbox format "- [ ] content @person"
-                const checkboxMatch = line.match(/^[-*]\s*\[[\s]*\]\s*(.+)/);
+                // --- Extract TODO/OPL items ---
+
+                // Pattern 1: Markdown checkbox: "- [ ] content @person"
+                const checkboxMatch = line.match(/^[-*]\s*\[[\sx]*\]\s*(.+)/);
                 if (checkboxMatch) {
                     const parsed = parseItemContent(checkboxMatch[1], 'opl');
                     if (parsed) extractedOPLs.push(parsed);
                     continue;
                 }
 
-                // Pattern 2: Inside TODO section, bullet items
-                if (todoSection && /^[-*•]\s+/.test(line)) {
-                    const itemText = line.replace(/^[-*•]\s+/, '').trim();
-                    if (itemText.length > 5) {
-                        const parsed = parseItemContent(itemText, 'opl');
-                        if (parsed) extractedOPLs.push(parsed);
+                // Pattern 2: Plain text todo item (Feishu copy-paste format)
+                // When copied from Feishu, "- [ ] xxx" often becomes just "xxx" or "· xxx" or plain text with @
+                // Detect: lines containing @person AND in/after todo section, OR lines with task-like patterns
+                if (todoSection) {
+                    // Strip bullet markers if any
+                    let itemText = line.replace(/^[-*•·]\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
+                    // Skip sub-headings and short lines
+                    if (itemText.length > 5 && !isHeading && !/^[>]/.test(line)) {
+                        // Skip lines that are clearly notes/hints (like "待办任务由 AI 生成")
+                        if (!/由.*生成|可能不准确|人工调整/.test(itemText)) {
+                            const parsed = parseItemContent(itemText, 'opl');
+                            if (parsed) extractedOPLs.push(parsed);
+                        }
                     }
                     continue;
                 }
 
-                // Pattern 3: Numbered items in todo section
-                if (todoSection && /^\d+[.、)]\s*/.test(line)) {
-                    const itemText = line.replace(/^\d+[.、)]\s*/, '').trim();
-                    if (itemText.length > 5) {
-                        const parsed = parseItemContent(itemText, 'opl');
-                        if (parsed) extractedOPLs.push(parsed);
-                    }
-                    continue;
-                }
-
-                // Pattern 4: Explicit prefix format
+                // Pattern 3: Lines with explicit task format anywhere in the doc
                 if (/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i.test(line)) {
                     const itemText = line.replace(/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i, '').trim();
                     if (itemText.length > 3) {
@@ -2139,7 +2145,8 @@
                     continue;
                 }
 
-                // ===== Extract Risk items =====
+                // --- Extract Risk items ---
+
                 // Pattern 1: Explicit risk prefix
                 if (/^(风险[:：]|Risk[:：])/i.test(line)) {
                     const itemText = line.replace(/^(风险[:：]|Risk[:：])/i, '').trim();
@@ -2150,19 +2157,18 @@
                     continue;
                 }
 
-                // Pattern 2: Inside risk section, bullet items
-                if (riskSection && /^[-*•]\s+/.test(line)) {
-                    const itemText = line.replace(/^[-*•]\s+/, '').trim();
-                    if (itemText.length > 5) {
+                // Pattern 2: Inside risk section
+                if (riskSection) {
+                    let itemText = line.replace(/^[-*•·]\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
+                    if (itemText.length > 5 && !isHeading) {
                         const parsed = parseItemContent(itemText, 'risk');
                         if (parsed) extractedRisks.push(parsed);
                     }
                     continue;
                 }
 
-                // Pattern 3: In consensus/strategy section, look for risk keywords
-                if ((consensusSection || currentSection) && !todoSection) {
-                    // Only match lines with strong risk indicators AND specific actionable context
+                // Pattern 3: Risk keywords in consensus/strategy sections
+                if ((consensusSection || summarySection) && !todoSection) {
                     const strongRiskPatterns = [
                         /存在.*风险/,
                         /风险[较很]?[高大]/,
@@ -2171,13 +2177,14 @@
                         /供应.*风险/,
                         /短缺/,
                         /无法按时/,
-                        /不能满足/
+                        /不能满足/,
+                        /冲突/,
+                        /抛料/
                     ];
                     const isStrongRisk = strongRiskPatterns.some(p => p.test(line));
                     if (isStrongRisk && line.length > 10 && line.length < 200) {
-                        // Avoid duplicate: skip if too similar to existing
-                        const cleanLine = line.replace(/^[-*•\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 20)) || cleanLine.includes(r.desc.substring(0, 20)));
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 15)) || cleanLine.includes(r.desc.substring(0, 15)));
                         if (!isDup) {
                             const parsed = parseItemContent(cleanLine, 'risk');
                             if (parsed) extractedRisks.push(parsed);
@@ -2186,39 +2193,73 @@
                 }
             }
 
-            // ===== Strategy 2: If structure-based found nothing, fall back to keyword scan =====
+            // ===== Strategy 2: If structure-based found nothing, use broader keyword scan =====
             if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
+                // Try to find any lines with @ mentions (likely action items)
+                const atLines = [];
+                const riskLines = [];
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
-                    if (!line || line.length < 8 || line.length > 200) continue;
-                    // Skip headings and metadata
-                    if (/^#{1,3}\s/.test(line) || /^>/.test(line) || /^\*\*[^*]+\*\*$/.test(line)) continue;
+                    if (!line || line.length < 8 || line.length > 300) continue;
+                    if (/^#{1,3}\s/.test(line) || /^>/.test(line)) continue;
 
-                    let isOPL = false;
-                    let isRisk = false;
-
-                    const oplKeywords = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '催办'];
-                    const riskKeywords = ['风险', '延期', '不确定', '短缺', '冲突', '无法到位', '无法按时'];
-
-                    const hasOPLKeyword = oplKeywords.some(kw => line.includes(kw));
-                    const hasRiskKeyword = riskKeywords.some(kw => line.includes(kw));
-
-                    if (hasRiskKeyword && !hasOPLKeyword) isRisk = true;
-                    else if (hasOPLKeyword && !hasRiskKeyword) isOPL = true;
-                    else if (hasOPLKeyword && hasRiskKeyword) {
-                        if (/风险/.test(line)) isRisk = true;
-                        else isOPL = true;
+                    // Lines with @person are likely action items
+                    if (/@[一-龥]{2,4}/.test(line)) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)\[\]x\s]*/, '').trim();
+                        if (cleanLine.length > 5) atLines.push(cleanLine);
+                        continue;
                     }
 
-                    if (isOPL || isRisk) {
-                        const cleanLine = line.replace(/^[-*•\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        const isDup = [...extractedOPLs, ...extractedRisks].some(r => r.desc.includes(cleanLine.substring(0, 20)));
+                    // Keyword-based detection
+                    const oplKws = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '催办', '需尽快', '推动', '协助'];
+                    const riskKws = ['风险', '延期', '不确定', '短缺', '冲突', '无法到位', '无法按时', '抛料', '不满足'];
+
+                    const hasOPL = oplKws.some(kw => line.includes(kw));
+                    const hasRisk = riskKws.some(kw => line.includes(kw));
+
+                    if (hasRisk && !hasOPL) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        if (cleanLine.length > 5) riskLines.push(cleanLine);
+                    } else if (hasOPL) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        if (cleanLine.length > 5) atLines.push(cleanLine);
+                    }
+                }
+
+                // Parse collected lines
+                atLines.forEach(line => {
+                    const isDup = extractedOPLs.some(r => r.desc.includes(line.substring(0, 15)));
+                    if (!isDup) {
+                        const parsed = parseItemContent(line, 'opl');
+                        if (parsed) extractedOPLs.push(parsed);
+                    }
+                });
+                riskLines.forEach(line => {
+                    const isDup = extractedRisks.some(r => r.desc.includes(line.substring(0, 15)));
+                    if (!isDup) {
+                        const parsed = parseItemContent(line, 'risk');
+                        if (parsed) extractedRisks.push(parsed);
+                    }
+                });
+            }
+
+            // ===== Strategy 3: Extract risks from "会议共识" numbered items =====
+            // Feishu meeting notes often have risks embedded in consensus points
+            if (extractedRisks.length === 0) {
+                let inConsensus = false;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (/共识|风险.*应对|风险.*处理/.test(line) && (line.length < 30 || /^[#*]/.test(line))) {
+                        inConsensus = true;
+                        continue;
+                    }
+                    if (inConsensus && /^[#]/.test(line)) { inConsensus = false; continue; }
+                    if (inConsensus && /风险|延期|冲突|无法/.test(line) && line.length > 10 && line.length < 200) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 15)));
                         if (!isDup) {
-                            const parsed = parseItemContent(cleanLine, isOPL ? 'opl' : 'risk');
-                            if (parsed) {
-                                if (isOPL) extractedOPLs.push(parsed);
-                                else extractedRisks.push(parsed);
-                            }
+                            const parsed = parseItemContent(cleanLine, 'risk');
+                            if (parsed) extractedRisks.push(parsed);
                         }
                     }
                 }
@@ -2239,13 +2280,16 @@
             let desc = text.trim();
             if (!desc || desc.length < 3) return null;
 
-            // Remove markdown bold markers
+            // Remove markdown bold markers and cite tags
             desc = desc.replace(/\*\*/g, '');
+            desc = desc.replace(/<cite[^>]*user-name="([^"]+)"[^>]*><\/cite>/g, '@$1');
+            desc = desc.replace(/<[^>]+>/g, '');
 
-            // Extract owner: @name patterns
+            // Extract owner: @name patterns (support multiple @mentions, take first as owner)
             let owner = '';
             const ownerPatterns = [
-                /@([^\s@,，;；。.]+)/,
+                /@([一-龥]{2,4})/,
+                /@([^\s@,，;；。.\d]{2,10})/,
                 /负责人[:：]\s*([^\s,，;；。.]+)/,
                 /责任人[:：]\s*([^\s,，;；。.]+)/
             ];
@@ -2253,7 +2297,8 @@
                 const m = desc.match(pat);
                 if (m) {
                     owner = m[1];
-                    desc = desc.replace(m[0], '').trim();
+                    // Remove all @mentions from description
+                    desc = desc.replace(/@[一-龥]{2,4}/g, '').replace(/@[^\s@,，;；。.\d]{2,10}/g, '').trim();
                     break;
                 }
             }
@@ -2307,6 +2352,8 @@
 
             // Clean up description
             desc = desc.replace(/[,，;；。]\s*$/, '').replace(/^\s*[:：]\s*/, '').trim();
+            // Remove trailing periods and extra spaces
+            desc = desc.replace(/\s{2,}/g, ' ').replace(/[。.]\s*$/, '').trim();
             if (!desc || desc.length < 3) return null;
 
             if (type === 'opl') {
