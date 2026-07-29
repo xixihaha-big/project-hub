@@ -1299,8 +1299,8 @@
                 </div>
                 <div class="form-group">
                     <label>会议纪要内容 *</label>
-                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴会议纪要文本...&#10;&#10;系统将自动识别其中的问题项和风险项。&#10;支持的格式：&#10;- 问题: / Issue: / TODO: / Action Item:&#10;- 风险: / Risk:&#10;- 包含「需要」「问题」「缺陷」「风险」等关键词的行&#10;- @姓名 或 负责人:XXX 标记负责人&#10;- 日期格式如 2025-08-01 或 8月1日"></textarea>
-                    <div class="parse-hint">提示：粘贴完整会议纪要后，点击「智能解析」自动提取问题项和风险项。</div>
+                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴飞书会议纪要内容...&#10;&#10;支持自动识别：&#10;✅ 飞书会议纪要的「待办任务」章节（- [ ] 格式）&#10;✅ 带 @负责人 的行动项&#10;✅ 风险相关描述（含「延期风险」「无法按时」「短缺」等）&#10;✅ 自动提取负责人、截止日期、优先级、类别&#10;&#10;直接从飞书文档复制全文粘贴即可。"></textarea>
+                    <div class="parse-hint">提示：支持飞书会议纪要格式，直接粘贴全文后点击「智能解析」，自动提取待办任务→OPL，风险项→Risk。</div>
                 </div>
                 <div class="form-actions">
                     <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
@@ -2038,121 +2038,247 @@
             if (!date) { showToast('请选择会议日期'); return; }
             if (!content) { showToast('请粘贴会议纪要内容'); return; }
 
-            // Parse the content
+            // Parse the content - enhanced for Feishu meeting minutes format
             extractedOPLs = [];
             extractedRisks = [];
 
             const lines = content.split('\n');
 
+            // ===== Strategy 1: Structure-based extraction =====
+            // Detect sections by headings
+            let currentSection = '';
+            let todoSection = false;
+            let riskSection = false;
+            let consensusSection = false;
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                let isOPL = false;
-                let isRisk = false;
-
-                // Check for OPL patterns
-                if (/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i.test(line)) {
-                    isOPL = true;
-                } else if (/^-\s*\[\s*\]/.test(line)) {
-                    isOPL = true;
-                } else if (/^(风险[:：]|Risk[:：])/i.test(line)) {
-                    isRisk = true;
+                // Detect section headings (飞书格式：# 标题, ## 标题, **标题**, 或带 emoji)
+                if (/^#{1,3}\s/.test(line) || /^\*\*[^*]+\*\*$/.test(line)) {
+                    const headingText = line.replace(/^#{1,3}\s*/, '').replace(/\*\*/g, '').trim();
+                    todoSection = /待办|任务|跟进|Action|TODO|行动项/.test(headingText);
+                    riskSection = /风险|Risk/.test(headingText);
+                    consensusSection = /共识|决议|结论|策略|落地/.test(headingText);
+                    currentSection = headingText;
+                    continue;
                 }
 
-                // Keyword-based detection if not already matched
-                if (!isOPL && !isRisk) {
-                    const oplKeywords = ['需要', '问题', '缺陷', '不合格', '待确认', '待解决', '跟进'];
-                    const riskKeywords = ['风险', '可能', '延期', '延迟', '不确定', '短缺', '供应'];
+                // ===== Extract TODO/OPL items =====
+                // Pattern 1: Checkbox format "- [ ] content @person"
+                const checkboxMatch = line.match(/^[-*]\s*\[[\s]*\]\s*(.+)/);
+                if (checkboxMatch) {
+                    const parsed = parseItemContent(checkboxMatch[1], 'opl');
+                    if (parsed) extractedOPLs.push(parsed);
+                    continue;
+                }
+
+                // Pattern 2: Inside TODO section, bullet items
+                if (todoSection && /^[-*•]\s+/.test(line)) {
+                    const itemText = line.replace(/^[-*•]\s+/, '').trim();
+                    if (itemText.length > 5) {
+                        const parsed = parseItemContent(itemText, 'opl');
+                        if (parsed) extractedOPLs.push(parsed);
+                    }
+                    continue;
+                }
+
+                // Pattern 3: Numbered items in todo section
+                if (todoSection && /^\d+[.、)]\s*/.test(line)) {
+                    const itemText = line.replace(/^\d+[.、)]\s*/, '').trim();
+                    if (itemText.length > 5) {
+                        const parsed = parseItemContent(itemText, 'opl');
+                        if (parsed) extractedOPLs.push(parsed);
+                    }
+                    continue;
+                }
+
+                // Pattern 4: Explicit prefix format
+                if (/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i.test(line)) {
+                    const itemText = line.replace(/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i, '').trim();
+                    if (itemText.length > 3) {
+                        const parsed = parseItemContent(itemText, 'opl');
+                        if (parsed) extractedOPLs.push(parsed);
+                    }
+                    continue;
+                }
+
+                // ===== Extract Risk items =====
+                // Pattern 1: Explicit risk prefix
+                if (/^(风险[:：]|Risk[:：])/i.test(line)) {
+                    const itemText = line.replace(/^(风险[:：]|Risk[:：])/i, '').trim();
+                    if (itemText.length > 3) {
+                        const parsed = parseItemContent(itemText, 'risk');
+                        if (parsed) extractedRisks.push(parsed);
+                    }
+                    continue;
+                }
+
+                // Pattern 2: Inside risk section, bullet items
+                if (riskSection && /^[-*•]\s+/.test(line)) {
+                    const itemText = line.replace(/^[-*•]\s+/, '').trim();
+                    if (itemText.length > 5) {
+                        const parsed = parseItemContent(itemText, 'risk');
+                        if (parsed) extractedRisks.push(parsed);
+                    }
+                    continue;
+                }
+
+                // Pattern 3: In consensus/strategy section, look for risk keywords
+                if ((consensusSection || currentSection) && !todoSection) {
+                    // Only match lines with strong risk indicators AND specific actionable context
+                    const strongRiskPatterns = [
+                        /存在.*风险/,
+                        /风险[较很]?[高大]/,
+                        /可能[导造]成/,
+                        /延期风险/,
+                        /供应.*风险/,
+                        /短缺/,
+                        /无法按时/,
+                        /不能满足/
+                    ];
+                    const isStrongRisk = strongRiskPatterns.some(p => p.test(line));
+                    if (isStrongRisk && line.length > 10 && line.length < 200) {
+                        // Avoid duplicate: skip if too similar to existing
+                        const cleanLine = line.replace(/^[-*•\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 20)) || cleanLine.includes(r.desc.substring(0, 20)));
+                        if (!isDup) {
+                            const parsed = parseItemContent(cleanLine, 'risk');
+                            if (parsed) extractedRisks.push(parsed);
+                        }
+                    }
+                }
+            }
+
+            // ===== Strategy 2: If structure-based found nothing, fall back to keyword scan =====
+            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.length < 8 || line.length > 200) continue;
+                    // Skip headings and metadata
+                    if (/^#{1,3}\s/.test(line) || /^>/.test(line) || /^\*\*[^*]+\*\*$/.test(line)) continue;
+
+                    let isOPL = false;
+                    let isRisk = false;
+
+                    const oplKeywords = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '催办'];
+                    const riskKeywords = ['风险', '延期', '不确定', '短缺', '冲突', '无法到位', '无法按时'];
 
                     const hasOPLKeyword = oplKeywords.some(kw => line.includes(kw));
                     const hasRiskKeyword = riskKeywords.some(kw => line.includes(kw));
 
-                    if (hasRiskKeyword && !hasOPLKeyword) {
-                        isRisk = true;
-                    } else if (hasOPLKeyword && !hasRiskKeyword) {
-                        isOPL = true;
-                    } else if (hasOPLKeyword && hasRiskKeyword) {
-                        // If both, classify based on stronger signals
-                        if (line.includes('风险')) isRisk = true;
+                    if (hasRiskKeyword && !hasOPLKeyword) isRisk = true;
+                    else if (hasOPLKeyword && !hasRiskKeyword) isOPL = true;
+                    else if (hasOPLKeyword && hasRiskKeyword) {
+                        if (/风险/.test(line)) isRisk = true;
                         else isOPL = true;
                     }
-                }
 
-                if (isOPL || isRisk) {
-                    // Extract description (remove prefixes)
-                    let desc = line.replace(/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：]|风险[:：]|Risk[:：]|-\s*\[\s*\]\s*)/i, '').trim();
-
-                    // Extract owner
-                    let owner = '';
-                    const ownerMatch = desc.match(/@(\S+)/) || desc.match(/负责人[:：]\s*(\S+)/) || desc.match(/责任人[:：]\s*(\S+)/);
-                    if (ownerMatch) {
-                        owner = ownerMatch[1];
-                        desc = desc.replace(ownerMatch[0], '').trim();
-                    }
-
-                    // Extract due date
-                    let dueDate = '';
-                    const dateMatch1 = desc.match(/(\d{4}-\d{2}-\d{2})/);
-                    const dateMatch2 = desc.match(/(\d{1,2})月(\d{1,2})[日号]/);
-                    const dateMatch3 = desc.match(/截止[:：]?\s*(\d{4}-\d{2}-\d{2})/);
-                    const dateMatch4 = desc.match(/截止[:：]?\s*(\d{1,2})月(\d{1,2})[日号]/);
-
-                    if (dateMatch3) {
-                        dueDate = dateMatch3[1];
-                        desc = desc.replace(dateMatch3[0], '').trim();
-                    } else if (dateMatch4) {
-                        const year = new Date().getFullYear();
-                        dueDate = `${year}-${String(dateMatch4[1]).padStart(2,'0')}-${String(dateMatch4[2]).padStart(2,'0')}`;
-                        desc = desc.replace(dateMatch4[0], '').trim();
-                    } else if (dateMatch1) {
-                        dueDate = dateMatch1[1];
-                        desc = desc.replace(dateMatch1[0], '').trim();
-                    } else if (dateMatch2) {
-                        const year = new Date().getFullYear();
-                        dueDate = `${year}-${String(dateMatch2[1]).padStart(2,'0')}-${String(dateMatch2[2]).padStart(2,'0')}`;
-                        desc = desc.replace(dateMatch2[0], '').trim();
-                    }
-
-                    // Extract priority
-                    let priority = 'Medium';
-                    if (/紧急|重要|高优先/.test(line)) priority = 'High';
-                    else if (/低优先|不紧急/.test(line)) priority = 'Low';
-
-                    // Extract category
-                    let category = 'Other';
-                    if (isOPL) {
-                        if (/设计|Design/i.test(line)) category = 'Design';
-                        else if (/工艺|Process/i.test(line)) category = 'Process';
-                        else if (/材料|Material/i.test(line)) category = 'Material';
-                        else if (/质量|Quality/i.test(line)) category = 'Quality';
-                        else if (/测试|Test/i.test(line)) category = 'Test';
-                        else if (/生产|Production/i.test(line)) category = 'Production';
-                    } else {
-                        if (/技术|Technical/i.test(line)) category = 'Technical';
-                        else if (/进度|Schedule|延期|延迟/i.test(line)) category = 'Schedule';
-                        else if (/质量|Quality/i.test(line)) category = 'Quality';
-                        else if (/供应|Supply/i.test(line)) category = 'Supply Chain';
-                        else if (/成本|Cost/i.test(line)) category = 'Cost';
-                        else if (/资源|Resource/i.test(line)) category = 'Resource';
-                    }
-
-                    // Clean up description
-                    desc = desc.replace(/[,，;；]\s*$/, '').trim();
-                    if (!desc) continue;
-
-                    if (isOPL) {
-                        extractedOPLs.push({ desc, owner, dueDate, priority, category });
-                    } else {
-                        extractedRisks.push({ desc, owner, dueDate, level: priority, category });
+                    if (isOPL || isRisk) {
+                        const cleanLine = line.replace(/^[-*•\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        const isDup = [...extractedOPLs, ...extractedRisks].some(r => r.desc.includes(cleanLine.substring(0, 20)));
+                        if (!isDup) {
+                            const parsed = parseItemContent(cleanLine, isOPL ? 'opl' : 'risk');
+                            if (parsed) {
+                                if (isOPL) extractedOPLs.push(parsed);
+                                else extractedRisks.push(parsed);
+                            }
+                        }
                     }
                 }
             }
 
             // Show step 2 with results
+            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
+                showToast('未能从会议纪要中识别到问题项或风险项，请检查内容格式');
+                return;
+            }
             renderParsedResults();
             document.getElementById('minutesStep1').classList.remove('active');
             document.getElementById('minutesStep2').classList.add('active');
+        }
+
+        // Helper: parse a single item line and extract owner, date, priority, category
+        function parseItemContent(text, type) {
+            let desc = text.trim();
+            if (!desc || desc.length < 3) return null;
+
+            // Remove markdown bold markers
+            desc = desc.replace(/\*\*/g, '');
+
+            // Extract owner: @name patterns
+            let owner = '';
+            const ownerPatterns = [
+                /@([^\s@,，;；。.]+)/,
+                /负责人[:：]\s*([^\s,，;；。.]+)/,
+                /责任人[:：]\s*([^\s,，;；。.]+)/
+            ];
+            for (const pat of ownerPatterns) {
+                const m = desc.match(pat);
+                if (m) {
+                    owner = m[1];
+                    desc = desc.replace(m[0], '').trim();
+                    break;
+                }
+            }
+
+            // Extract due date
+            let dueDate = '';
+            const datePatterns = [
+                { re: /截止[:：]?\s*(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
+                { re: /(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
+                { re: /(\d{1,2})月(\d{1,2})[日号]前?/, idx: null, full: false },
+                { re: /本周([一二三四五六日天])前?/, idx: null, full: false }
+            ];
+            for (const dp of datePatterns) {
+                const m = desc.match(dp.re);
+                if (m) {
+                    if (dp.full) {
+                        dueDate = m[dp.idx];
+                    } else if (m[1] && m[2]) {
+                        const year = new Date().getFullYear();
+                        dueDate = `${year}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+                    }
+                    desc = desc.replace(m[0], '').trim();
+                    break;
+                }
+            }
+
+            // Extract priority
+            let priority = 'Medium';
+            if (/紧急|重要|高优先|尽快|立即/.test(text)) priority = 'High';
+            else if (/低优先|不紧急|适时/.test(text)) priority = 'Low';
+
+            // Extract category
+            let category = 'Other';
+            if (type === 'opl') {
+                if (/设计|Design|BOM|原理图/i.test(text)) category = 'Design';
+                else if (/工艺|Process|工装|治具|插件|贴片|焊接/i.test(text)) category = 'Process';
+                else if (/材料|Material|物料|备料|来料|导热垫|电容/i.test(text)) category = 'Material';
+                else if (/质量|Quality|AECQ|PPAP|合格/i.test(text)) category = 'Quality';
+                else if (/测试|Test|验证|DVP|DV/i.test(text)) category = 'Test';
+                else if (/生产|Production|排产|量产|产线/i.test(text)) category = 'Production';
+                else if (/供应|供应商|采购|交付/i.test(text)) category = 'Supply Chain';
+            } else {
+                if (/技术|Technical|设计缺陷/i.test(text)) category = 'Technical';
+                else if (/进度|Schedule|延期|延迟|时间.*冲突|无法按时/i.test(text)) category = 'Schedule';
+                else if (/质量|Quality|良率|不良/i.test(text)) category = 'Quality';
+                else if (/供应|Supply|供应商|短缺|缺料|备料/i.test(text)) category = 'Supply Chain';
+                else if (/成本|Cost|费用|预算/i.test(text)) category = 'Cost';
+                else if (/资源|Resource|人力/i.test(text)) category = 'Resource';
+                else if (/工艺|Process|工装|治具|抛料/i.test(text)) category = 'Technical';
+            }
+
+            // Clean up description
+            desc = desc.replace(/[,，;；。]\s*$/, '').replace(/^\s*[:：]\s*/, '').trim();
+            if (!desc || desc.length < 3) return null;
+
+            if (type === 'opl') {
+                return { desc, owner, dueDate, priority, category };
+            } else {
+                return { desc, owner, dueDate, level: priority, category };
+            }
         }
 
         function renderParsedResults() {
