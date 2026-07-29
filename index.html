@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Hub - 项目管理看板</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #6366f1;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== Layout ========== */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #1e293b;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            padding: 0 12px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s;
+            color: #cbd5e1;
+        }
+
+        .nav-item:hover {
+            background: #334155;
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .nav-item .icon {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .nav-item .badge-count {
+            margin-left: auto;
+            background: rgba(255,255,255,0.15);
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .nav-item.active .badge-count {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* Project list in sidebar */
+        .project-list {
+            padding: 0 12px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #94a3b8;
+            transition: all 0.15s;
+        }
+
+        .project-item:hover {
+            background: #334155;
+            color: #fff;
+        }
+
+        .project-item.active {
+            color: #fff;
+            background: #334155;
+        }
+
+        .project-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #334155;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-left h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .topbar-left .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 24px 32px;
+            flex: 1;
+        }
+
+        /* ========== Components ========== */
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+        }
+
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+        .btn-success:hover { opacity: 0.9; color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn-danger:hover { opacity: 0.9; color: #fff; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-ghost { border: none; background: none; color: var(--text-secondary); }
+        .btn-ghost:hover { color: var(--primary); background: var(--primary-light); }
+
+        /* Badges */
+        .badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-open { background: var(--warning-light); color: #b45309; }
+        .badge-inprogress { background: var(--info-light); color: #1d4ed8; }
+        .badge-closed { background: var(--success-light); color: #047857; }
+        .badge-overdue { background: var(--danger-light); color: #b91c1c; }
+        .badge-mitigated { background: #ede9fe; color: #6d28d9; }
+        .badge-accepted { background: #f1f5f9; color: #475569; }
+        .badge-high { background: var(--danger-light); color: #b91c1c; }
+        .badge-medium { background: var(--warning-light); color: #b45309; }
+        .badge-low { background: var(--success-light); color: #047857; }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        tr:hover td { background: #f8fafc; }
+
+        td .owner-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Stat Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 4px;
+            color: var(--text);
+        }
+
+        .stat-card .stat-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-card.danger .stat-value { color: var(--danger); }
+        .stat-card.warning .stat-value { color: var(--warning); }
+        .stat-card.success .stat-value { color: var(--success); }
+        .stat-card.info .stat-value { color: var(--info); }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 7px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--card-bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .filter-bar input { width: 220px; }
+
+        /* Project Cards Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .project-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .project-card .pc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .project-card .pc-color {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .project-card .pc-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .project-card .pc-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .project-card .pc-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .project-card .pc-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Meeting List */
+        .meeting-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .meeting-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .meeting-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .meeting-card .mc-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .meeting-card .mc-project {
+            font-size: 11px;
+            color: var(--primary);
+            background: var(--primary-light);
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .meeting-card .mc-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .meeting-card .mc-followups {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--info);
+            background: var(--info-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* Meeting Detail */
+        .meeting-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .followup-timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .followup-timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .followup-item {
+            position: relative;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .followup-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 18px;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .followup-item .fi-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .followup-item .fi-notes {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .followup-item .fi-attendees {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 28px;
+            width: 92%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 2000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show { transform: translateX(0); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .es-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state .es-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .empty-state .es-desc {
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            .page-content { padding: 16px; }
+            .topbar { padding: 12px 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .projects-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Tabs inside page */
+        .page-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .page-tab {
+            padding: 7px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .page-tab:hover { color: var(--text); }
+        .page-tab.active { background: var(--card-bg); color: var(--text); box-shadow: var(--shadow); }
+
+        /* Action dropdown */
+        .actions-cell { position: relative; }
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+        .action-btn:hover { background: #f1f5f9; color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1><span class="logo">P</span> Project Hub</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <div class="nav-item active" onclick="navigateTo('dashboard')">
+                        <span class="icon">&#9632;</span> Dashboard
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <div class="nav-item" onclick="navigateTo('meetings')">
+                        <span class="icon">&#128197;</span> Meetings
+                        <span class="badge-count" id="meetingCount">0</span>
+                    </div>
+                    <div class="nav-item" onclick="navigateTo('opl')">
+                        <span class="icon">&#9888;</span> OPL
+                        <span class="badge-count" id="oplCount">0</span>
+                    </div>
+                    <div class="nav-item" onclick="navigateTo('risk')">
+                        <span class="icon">&#9889;</span> Risk
+                        <span class="badge-count" id="riskCount">0</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Projects</div>
+                    <div class="project-list" id="sidebarProjectList"></div>
+                    <div class="nav-item" onclick="openModal('project')" style="margin-top:8px; color:#64748b; font-size:12px;">
+                        <span class="icon">+</span> Add Project
+                    </div>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                Data saved locally &middot; Project Hub v1.0
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h2 id="pageTitle">Dashboard</h2>
+                    <span class="breadcrumb" id="pageBreadcrumb"></span>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-sm" onclick="exportAllCSV()">Export CSV</button>
+                    <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ Quick Add</button>
+                </div>
+            </header>
+
+            <!-- Page: Dashboard -->
+            <div class="page-content" id="page-dashboard">
+                <div class="stats-grid" id="dashboardStats"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Recent Activity</span>
+                        </div>
+                        <div class="card-body" id="recentActivity"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Overdue Items</span>
+                        </div>
+                        <div class="card-body" id="overdueItems"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 24px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Projects</span>
+                            <button class="btn btn-sm btn-primary" onclick="openModal('project')">+ New Project</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="projects-grid" id="projectsGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Meetings -->
+            <div class="page-content" id="page-meetings" style="display:none;">
+                <div class="filter-bar">
+                    <input type="text" placeholder="Search meetings..." id="meetingSearch" oninput="renderMeetings()">
+                    <select id="meetingProjectFilter" onchange="renderMeetings()">
+                        <option value="">All Projects</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openModal('meeting')">+ New Meeting Topic</button>
+                </div>
+                <div class="meeting-list-grid" id="meetingListGrid"></div>
+                <!-- Meeting Detail View -->
+                <div id="meetingDetailView" style="display:none;"></div>
+            </div>
+
+            <!-- Page: OPL -->
+            <div class="page-content" id="page-opl" style="display:none;">
+                <div class="stats-grid" id="oplStats"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">OPL List</span>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ New OPL</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <input type="text" placeholder="Search..." id="oplSearch" oninput="renderOPL()">
+                            <select id="oplStatusFilter" onchange="renderOPL()">
+                                <option value="">All Status</option>
+                                <option value="Open">Open</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Overdue">Overdue</option>
+                            </select>
+                            <select id="oplProjectFilter" onchange="renderOPL()">
+                                <option value="">All Projects</option>
+                            </select>
+                            <select id="oplPriorityFilter" onchange="renderOPL()">
+                                <option value="">All Priority</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="table-container" id="oplTable"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Risk -->
+            <div class="page-content" id="page-risk" style="display:none;">
+                <div class="stats-grid" id="riskStats"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Risk List</span>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('risk')">+ New Risk</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <input type="text" placeholder="Search..." id="riskSearch" oninput="renderRisk()">
+                            <select id="riskStatusFilter" onchange="renderRisk()">
+                                <option value="">All Status</option>
+                                <option value="Open">Open</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Mitigated">Mitigated</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Accepted">Accepted</option>
+                            </select>
+                            <select id="riskProjectFilter" onchange="renderRisk()">
+                                <option value="">All Projects</option>
+                            </select>
+                            <select id="riskLevelFilter" onchange="renderRisk()">
+                                <option value="">All Levels</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="table-container" id="riskTable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- New Project Modal -->
+    <div class="modal-overlay" id="projectModal">
+        <div class="modal">
+            <h3>New Project</h3>
+            <div class="form-group">
+                <label>Project Name *</label>
+                <input type="text" id="projectName" placeholder="e.g. BMU2.0">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="projectDesc" placeholder="Brief project description..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Color</label>
+                <select id="projectColor">
+                    <option value="#4f46e5">Indigo</option>
+                    <option value="#0891b2">Teal</option>
+                    <option value="#ea580c">Orange</option>
+                    <option value="#16a34a">Green</option>
+                    <option value="#dc2626">Red</option>
+                    <option value="#7c3aed">Purple</option>
+                    <option value="#0284c7">Blue</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('project')">Cancel</button>
+                <button class="btn btn-primary" onclick="createProject()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Meeting Modal -->
+    <div class="modal-overlay" id="meetingModal">
+        <div class="modal">
+            <h3>New Meeting Topic</h3>
+            <div class="form-group">
+                <label>Meeting Name *</label>
+                <input type="text" id="meetingName" placeholder="e.g. Weekly APQP Review">
+            </div>
+            <div class="form-group">
+                <label>Project *</label>
+                <select id="meetingProject"></select>
+            </div>
+            <div class="form-group">
+                <label>Frequency</label>
+                <select id="meetingFrequency">
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="adhoc">Ad-hoc</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Feishu Doc URL</label>
+                <input type="url" id="meetingDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
+            </div>
+            <div class="form-group">
+                <label>Departments</label>
+                <input type="text" id="meetingDepts" placeholder="Comma separated, e.g. EE, ME, DQE">
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('meeting')">Cancel</button>
+                <button class="btn btn-primary" onclick="createMeeting()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New OPL Modal -->
+    <div class="modal-overlay" id="oplModal">
+        <div class="modal">
+            <h3>New OPL Item</h3>
+            <div class="form-group">
+                <label>Description *</label>
+                <textarea id="oplDesc" placeholder="Describe the issue..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Project *</label>
+                <select id="oplProject"></select>
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="oplCategory">
+                    <option value="Design">Design</option>
+                    <option value="Process">Process</option>
+                    <option value="Material">Material</option>
+                    <option value="Quality">Quality</option>
+                    <option value="Test">Test</option>
+                    <option value="Production">Production</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Owner *</label>
+                <input type="text" id="oplOwner" placeholder="Person responsible">
+            </div>
+            <div class="form-group">
+                <label>Due Date *</label>
+                <input type="date" id="oplDueDate">
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="oplPriority">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Action Plan</label>
+                <textarea id="oplAction" placeholder="Proposed solution..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('opl')">Cancel</button>
+                <button class="btn btn-primary" onclick="createOPL()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Risk Modal -->
+    <div class="modal-overlay" id="riskModal">
+        <div class="modal">
+            <h3>New Risk Item</h3>
+            <div class="form-group">
+                <label>Risk Description *</label>
+                <textarea id="riskDesc" placeholder="Describe the risk..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Project *</label>
+                <select id="riskProject"></select>
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="riskCategory">
+                    <option value="Technical">Technical</option>
+                    <option value="Schedule">Schedule</option>
+                    <option value="Quality">Quality</option>
+                    <option value="Supply Chain">Supply Chain</option>
+                    <option value="Cost">Cost</option>
+                    <option value="Resource">Resource</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Risk Level</label>
+                <select id="riskLevel">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Owner *</label>
+                <input type="text" id="riskOwner" placeholder="Person responsible">
+            </div>
+            <div class="form-group">
+                <label>Target Close Date *</label>
+                <input type="date" id="riskDueDate">
+            </div>
+            <div class="form-group">
+                <label>Mitigation Plan</label>
+                <textarea id="riskMitigation" placeholder="How to mitigate..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('risk')">Cancel</button>
+                <button class="btn btn-primary" onclick="createRisk()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Follow-up Modal -->
+    <div class="modal-overlay" id="followupModal">
+        <div class="modal">
+            <h3>Add Follow-up Meeting</h3>
+            <div class="form-group">
+                <label>Date *</label>
+                <input type="date" id="followupDate">
+            </div>
+            <div class="form-group">
+                <label>Feishu Minutes URL</label>
+                <input type="url" id="followupDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
+            </div>
+            <div class="form-group">
+                <label>Meeting Notes</label>
+                <textarea id="followupNotes" placeholder="Key decisions and action items..." style="min-height:120px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Attendees</label>
+                <input type="text" id="followupAttendees" placeholder="Comma separated names">
+            </div>
+            <input type="hidden" id="followupMeetingId">
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('followup')">Cancel</button>
+                <button class="btn btn-success" onclick="fetchMinutesFromFeishu()">Fetch from Feishu</button>
+                <button class="btn btn-primary" onclick="createFollowup()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add Modal -->
+    <div class="modal-overlay" id="quickAddModal">
+        <div class="modal">
+            <h3>Quick Add</h3>
+            <div class="page-tabs" style="margin-bottom:16px;">
+                <div class="page-tab active" onclick="switchQuickTab('opl')">OPL</div>
+                <div class="page-tab" onclick="switchQuickTab('risk')">Risk</div>
+                <div class="page-tab" onclick="switchQuickTab('meeting')">Meeting</div>
+            </div>
+            <div id="quickAddContent">
+                <p style="color:var(--text-secondary); font-size:13px;">Choose the type above, then fill in the corresponding form.</p>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('quickAdd')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== Data Store ====================
+        let store = {
+            projects: [],
+            meetings: [],
+            opls: [],
+            risks: [],
+            activities: []
+        };
+
+        let currentPage = 'dashboard';
+        let currentMeetingDetail = null;
+        let currentProjectFilter = '';
+
+        // ==================== Persistence ====================
+        function loadStore() {
+            const saved = localStorage.getItem('project-hub-data');
+            if (saved) {
+                store = JSON.parse(saved);
+            } else {
+                initSampleData();
+            }
+        }
+
+        function saveStore() {
+            localStorage.setItem('project-hub-data', JSON.stringify(store));
+        }
+
+        function initSampleData() {
+            store.projects = [
+                { id: 'P001', name: 'BMU2.0', desc: 'Battery Management Unit 2.0 Development', color: '#4f46e5', createdAt: '2025-06-01' },
+                { id: 'P002', name: 'BMU2.1', desc: 'Battery Management Unit 2.1 Upgrade', color: '#0891b2', createdAt: '2025-07-01' }
+            ];
+
+            store.meetings = [
+                {
+                    id: 'M001', name: 'APQP Weekly Review', projectId: 'P001',
+                    docUrl: 'https://mi-p.feishu.cn/docx/VW62dfpRuoqZVExBZWQchfAgnaf',
+                    depts: ['EE', 'ME', 'DQE', 'PCBA Process', 'PM'],
+                    frequency: 'weekly', createdAt: '2025-07-01',
+                    followups: [
+                        { id: 'F001', date: '2025-07-21', notes: 'Discussed PCB panel solution and SMT DFM results', attendees: 'Zhang San, Li Si, Wang Wu' },
+                        { id: 'F002', date: '2025-07-14', notes: 'Reviewed BOM consistency and component changes', attendees: 'Zhang San, Zhao Liu, Qian Qi' }
+                    ]
+                },
+                {
+                    id: 'M002', name: 'Structure Review', projectId: 'P002',
+                    docUrl: '', depts: ['ME', 'DQE'], frequency: 'biweekly',
+                    createdAt: '2025-07-10', followups: []
+                }
+            ];
+
+            store.opls = [
+                { id: 'OPL-001', desc: 'PCB panel thermal issue needs reassessment', projectId: 'P001', category: 'Design', owner: 'Zhang San', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: 'Redo thermal simulation', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-002', desc: 'SMT DFM check found non-compliant pad spacing', projectId: 'P001', category: 'Process', owner: 'Li Si', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: 'Modify PCB layout', result: '', createdAt: '2025-07-14' },
+                { id: 'OPL-003', desc: 'BOM alternative component pending confirmation', projectId: 'P002', category: 'Material', owner: 'Zhao Liu', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: 'Contact supplier for alternatives', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-004', desc: 'Injection molding parameter optimization', projectId: 'P002', category: 'Process', owner: 'Qian Qi', dueDate: '2025-07-25', priority: 'Medium', status: 'Overdue', action: 'Adjust temperature and pressure', result: '', createdAt: '2025-07-07' },
+                { id: 'OPL-005', desc: 'EMC pre-test failed - radiation exceeded', projectId: 'P001', category: 'Test', owner: 'Wang Wu', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: 'Add shielding and filtering', result: '', createdAt: '2025-07-21' },
+                { id: 'OPL-006', desc: 'Assembly SOP update required', projectId: 'P001', category: 'Production', owner: 'Li Si', dueDate: '2025-07-20', priority: 'Low', status: 'Closed', action: 'Update SOP v2.0', result: 'Completed and trained', createdAt: '2025-07-01' }
+            ];
+
+            store.risks = [
+                { id: 'RISK-001', desc: 'Chip supplier delivery delay risk', projectId: 'P001', category: 'Supply Chain', level: 'High', owner: 'Zhao Liu', dueDate: '2025-08-15', status: 'Open', mitigation: 'Find second supplier, pre-order stock', createdAt: '2025-07-14' },
+                { id: 'RISK-002', desc: 'PCBA line yield below target', projectId: 'P001', category: 'Quality', level: 'Medium', owner: 'Li Si', dueDate: '2025-08-01', status: 'In Progress', mitigation: 'Optimize reflow soldering profile', createdAt: '2025-07-07' },
+                { id: 'RISK-003', desc: 'Project may delay 2 weeks', projectId: 'P002', category: 'Schedule', level: 'High', owner: 'Zhang San', dueDate: '2025-08-20', status: 'Open', mitigation: 'Add resources, parallelize tasks', createdAt: '2025-07-21' },
+                { id: 'RISK-004', desc: 'Insufficient new process validation time', projectId: 'P002', category: 'Technical', level: 'Medium', owner: 'Qian Qi', dueDate: '2025-08-10', status: 'Open', mitigation: 'Accelerate validation, add test batches', createdAt: '2025-07-14' },
+                { id: 'RISK-005', desc: 'Test equipment scheduling conflict', projectId: 'P001', category: 'Resource', level: 'Low', owner: 'Wang Wu', dueDate: '2025-08-05', status: 'Mitigated', mitigation: 'Coordinated time window with other projects', createdAt: '2025-07-07' }
+            ];
+
+            store.activities = [
+                { time: '2025-07-21 10:30', content: 'Created OPL-005: EMC pre-test failed', type: 'opl', projectId: 'P001' },
+                { time: '2025-07-21 10:25', content: 'Created RISK-003: Project delay risk', type: 'risk', projectId: 'P002' },
+                { time: '2025-07-21 10:00', content: 'Added meeting follow-up (Jul 21)', type: 'meeting', projectId: 'P001' },
+                { time: '2025-07-20 14:00', content: 'OPL-006 status changed to Closed', type: 'opl', projectId: 'P001' },
+                { time: '2025-07-14 11:00', content: 'Created RISK-001: Chip delivery risk', type: 'risk', projectId: 'P001' }
+            ];
+
+            saveStore();
+        }
+
+        // ==================== Navigation ====================
+        function navigateTo(page, options) {
+            currentPage = page;
+            document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
+            document.getElementById('page-' + page).style.display = 'block';
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event && event.target && event.target.closest('.nav-item') && event.target.closest('.nav-item').classList.add('active');
+
+            const titles = { dashboard: 'Dashboard', meetings: 'Meetings', opl: 'OPL', risk: 'Risk' };
+            document.getElementById('pageTitle').textContent = titles[page] || page;
+            document.getElementById('pageBreadcrumb').textContent = '';
+
+            if (page === 'dashboard') renderDashboard();
+            else if (page === 'meetings') { renderMeetings(); document.getElementById('meetingDetailView').style.display = 'none'; document.getElementById('meetingListGrid').style.display = 'grid'; }
+            else if (page === 'opl') renderOPL();
+            else if (page === 'risk') renderRisk();
+        }
+
+        // ==================== Dashboard ====================
+        function renderDashboard() {
+            const openOPL = store.opls.filter(o => o.status !== 'Closed').length;
+            const overdueOPL = store.opls.filter(o => o.status === 'Overdue' || (o.status !== 'Closed' && new Date(o.dueDate) < new Date())).length;
+            const openRisk = store.risks.filter(r => !['Closed', 'Mitigated', 'Accepted'].includes(r.status)).length;
+            const highRisk = store.risks.filter(r => r.level === 'High' && r.status === 'Open').length;
+
+            document.getElementById('dashboardStats').innerHTML = `
+                <div class="stat-card info">
+                    <div class="stat-label">Open OPL</div>
+                    <div class="stat-value">${openOPL}</div>
+                    <div class="stat-detail">${store.opls.length} total items</div>
+                </div>
+                <div class="stat-card ${overdueOPL > 0 ? 'danger' : 'success'}">
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">${overdueOPL}</div>
+                    <div class="stat-detail">items past due date</div>
+                </div>
+                <div class="stat-card ${highRisk > 0 ? 'warning' : 'success'}">
+                    <div class="stat-label">Open Risk</div>
+                    <div class="stat-value">${openRisk}</div>
+                    <div class="stat-detail">${highRisk} high priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Projects</div>
+                    <div class="stat-value">${store.projects.length}</div>
+                    <div class="stat-detail">${store.meetings.length} meeting topics</div>
+                </div>
+            `;
+
+            // Recent activity
+            const actHtml = store.activities.slice(0, 8).map(a => `
+                <div style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
+                    <span style="font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:110px;">${a.time}</span>
+                    <span style="font-size:13px;">${a.content}</span>
+                </div>
+            `).join('');
+            document.getElementById('recentActivity').innerHTML = actHtml || '<div class="empty-state"><div class="es-desc">No activity yet</div></div>';
+
+            // Overdue
+            const overdueItems = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
+            const overdueRisks = store.risks.filter(r => !['Closed','Mitigated','Accepted'].includes(r.status) && new Date(r.dueDate) < new Date());
+            const allOverdue = [
+                ...overdueItems.map(o => ({ id: o.id, desc: o.desc, owner: o.owner, due: o.dueDate, type: 'OPL' })),
+                ...overdueRisks.map(r => ({ id: r.id, desc: r.desc, owner: r.owner, due: r.dueDate, type: 'Risk' }))
+            ].sort((a, b) => new Date(a.due) - new Date(b.due));
+
+            const overdueHtml = allOverdue.slice(0, 6).map(item => `
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
+                    <span class="badge badge-overdue">${item.type}</span>
+                    <span style="font-size:13px; flex:1;">${item.desc}</span>
+                    <span class="owner-tag">${item.owner}</span>
+                    <span style="font-size:11px; color:var(--danger);">${item.due}</span>
+                </div>
+            `).join('');
+            document.getElementById('overdueItems').innerHTML = overdueHtml || '<div class="empty-state"><div class="es-desc">No overdue items</div></div>';
+
+            // Projects grid
+            renderProjectsGrid();
+            updateSidebarProjects();
+            updateCounts();
+        }
+
+        function renderProjectsGrid() {
+            const html = store.projects.map(p => {
+                const oplCount = store.opls.filter(o => o.projectId === p.id && o.status !== 'Closed').length;
+                const riskCount = store.risks.filter(r => r.projectId === p.id && !['Closed','Mitigated','Accepted'].includes(r.status)).length;
+                const meetingCount = store.meetings.filter(m => m.projectId === p.id).length;
+                return `
+                    <div class="project-card" onclick="filterByProject('${p.id}')">
+                        <div class="pc-header">
+                            <div>
+                                <div class="pc-name">${p.name}</div>
+                                <div class="pc-desc">${p.desc || 'No description'}</div>
+                            </div>
+                            <div class="pc-color" style="background:${p.color}">${p.name.charAt(0)}</div>
+                        </div>
+                        <div class="pc-stats">
+                            <span><strong>${oplCount}</strong> open OPL</span>
+                            <span><strong>${riskCount}</strong> active risks</span>
+                            <span><strong>${meetingCount}</strong> meetings</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('projectsGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128193;</div><div class="es-title">No projects yet</div><div class="es-desc">Create your first project to get started</div></div>';
+        }
+
+        function updateSidebarProjects() {
+            const html = store.projects.map(p => `
+                <div class="project-item ${currentProjectFilter === p.id ? 'active' : ''}" onclick="filterByProject('${p.id}')">
+                    <span class="project-dot" style="background:${p.color}"></span>
+                    ${p.name}
+                </div>
+            `).join('');
+            document.getElementById('sidebarProjectList').innerHTML = html;
+        }
+
+        function updateCounts() {
+            document.getElementById('meetingCount').textContent = store.meetings.length;
+            document.getElementById('oplCount').textContent = store.opls.filter(o => o.status !== 'Closed').length;
+            document.getElementById('riskCount').textContent = store.risks.filter(r => !['Closed','Mitigated','Accepted'].includes(r.status)).length;
+        }
+
+        function filterByProject(projectId) {
+            currentProjectFilter = currentProjectFilter === projectId ? '' : projectId;
+            updateSidebarProjects();
+            if (currentPage === 'dashboard') renderDashboard();
+            else if (currentPage === 'meetings') renderMeetings();
+            else if (currentPage === 'opl') renderOPL();
+            else if (currentPage === 'risk') renderRisk();
+        }
+
+        // ==================== Meetings ====================
+        function renderMeetings() {
+            const search = (document.getElementById('meetingSearch').value || '').toLowerCase();
+            let filtered = store.meetings;
+
+            if (currentProjectFilter) filtered = filtered.filter(m => m.projectId === currentProjectFilter);
+            if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search));
+
+            updateProjectFilters();
+
+            const html = filtered.map(m => {
+                const project = store.projects.find(p => p.id === m.projectId);
+                return `
+                    <div class="meeting-card" onclick="showMeetingDetail('${m.id}')">
+                        <div class="mc-project">${project ? project.name : 'Unknown'}</div>
+                        <div class="mc-title">${m.name}</div>
+                        <div class="mc-meta">
+                            <span>&#128197; ${m.frequency}</span>
+                            <span>&#128101; ${(m.depts || []).join(', ')}</span>
+                        </div>
+                        ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} follow-up(s)</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">No meetings</div><div class="es-desc">Create a meeting topic to track your team discussions</div></div>';
+        }
+
+        function showMeetingDetail(id) {
+            const m = store.meetings.find(x => x.id === id);
+            if (!m) return;
+            currentMeetingDetail = id;
+            const project = store.projects.find(p => p.id === m.projectId);
+
+            document.getElementById('meetingListGrid').style.display = 'none';
+            const detailEl = document.getElementById('meetingDetailView');
+            detailEl.style.display = 'block';
+
+            const followupsHtml = m.followups.length > 0
+                ? `<div class="followup-timeline">${m.followups.map(f => `
+                    <div class="followup-item">
+                        <div class="fi-date">${f.date}</div>
+                        <div class="fi-notes">${f.notes || 'No notes'}</div>
+                        ${f.attendees ? `<div class="fi-attendees">&#128101; ${f.attendees}</div>` : ''}
+                    </div>
+                `).join('')}</div>`
+                : '<div class="empty-state"><div class="es-desc">No follow-up meetings yet</div></div>';
+
+            detailEl.innerHTML = `
+                <div class="meeting-detail-header">
+                    <button class="btn btn-ghost" onclick="backToMeetingList()">&#8592; Back</button>
+                    <h3 style="font-size:18px; font-weight:600;">${m.name}</h3>
+                    <span class="badge badge-inprogress">${project ? project.name : ''}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Follow-up Timeline</span>
+                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ Add Follow-up</button>
+                        </div>
+                        <div class="card-body">${followupsHtml}</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Details</span></div>
+                        <div class="card-body">
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>Frequency:</strong> ${m.frequency}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>Departments:</strong> ${(m.depts || []).join(', ') || 'N/A'}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>Created:</strong> ${m.createdAt}</div>
+                            ${m.docUrl ? `<div style="font-size:13px;"><strong>Doc:</strong> <a href="${m.docUrl}" target="_blank" style="color:var(--primary);">Open in Feishu</a></div>` : ''}
+                            <hr style="margin:16px 0; border:none; border-top:1px solid var(--border-light);">
+                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">Delete Meeting</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function backToMeetingList() {
+            document.getElementById('meetingDetailView').style.display = 'none';
+            document.getElementById('meetingListGrid').style.display = 'grid';
+            currentMeetingDetail = null;
+        }
+
+        // ==================== OPL ====================
+        function renderOPL() {
+            const search = (document.getElementById('oplSearch').value || '').toLowerCase();
+            const statusFilter = document.getElementById('oplStatusFilter').value;
+            const priorityFilter = document.getElementById('oplPriorityFilter').value;
+
+            updateProjectFilters();
+
+            let filtered = store.opls;
+            if (currentProjectFilter) filtered = filtered.filter(o => o.projectId === currentProjectFilter);
+            if (search) filtered = filtered.filter(o => o.desc.toLowerCase().includes(search) || o.owner.toLowerCase().includes(search));
+            if (statusFilter) filtered = filtered.filter(o => o.status === statusFilter);
+            if (priorityFilter) filtered = filtered.filter(o => o.priority === priorityFilter);
+
+            // Stats
+            const total = filtered.length;
+            const open = filtered.filter(o => o.status === 'Open').length;
+            const inProg = filtered.filter(o => o.status === 'In Progress').length;
+            const overdue = filtered.filter(o => o.status === 'Overdue' || (o.status !== 'Closed' && new Date(o.dueDate) < new Date())).length;
+
+            document.getElementById('oplStats').innerHTML = `
+                <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+                <div class="stat-card warning"><div class="stat-label">Open</div><div class="stat-value">${open}</div></div>
+                <div class="stat-card info"><div class="stat-label">In Progress</div><div class="stat-value">${inProg}</div></div>
+                <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div></div>
+            `;
+
+            // Table
+            const rows = filtered.map(o => {
+                const project = store.projects.find(p => p.id === o.projectId);
+                const statusClass = o.status.toLowerCase().replace(/\s+/g, '');
+                const priorityClass = o.priority.toLowerCase();
+                return `<tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td style="max-width:250px;">${o.desc}</td>
+                    <td>${project ? project.name : '-'}</td>
+                    <td>${o.category}</td>
+                    <td><span class="owner-tag">${o.owner}</span></td>
+                    <td>${o.dueDate}</td>
+                    <td><span class="badge badge-${priorityClass}">${o.priority}</span></td>
+                    <td><span class="badge badge-${statusClass === 'inprogress' ? 'inprogress' : statusClass}">${o.status}</span></td>
+                    <td class="actions-cell">
+                        <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
+                            <option value="" disabled selected>Action</option>
+                            <option value="Open">Set Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Closed">Close</option>
+                            <option value="delete">Delete</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('oplTable').innerHTML = `
+                <table>
+                    <thead><tr><th>ID</th><th>Description</th><th>Project</th><th>Category</th><th>Owner</th><th>Due Date</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">No OPL items found</div></div></td></tr>'}</tbody>
+                </table>
+            `;
+        }
+
+        function updateOPLStatus(id, value) {
+            if (value === 'delete') {
+                if (confirm('Delete this OPL item?')) {
+                    store.opls = store.opls.filter(o => o.id !== id);
+                    addActivity(`Deleted ${id}`, 'opl');
+                }
+            } else {
+                const opl = store.opls.find(o => o.id === id);
+                if (opl) {
+                    opl.status = value;
+                    addActivity(`${id} status changed to ${value}`, 'opl', opl.projectId);
+                }
+            }
+            saveStore();
+            renderOPL();
+            updateCounts();
+        }
+
+        // ==================== Risk ====================
+        function renderRisk() {
+            const search = (document.getElementById('riskSearch').value || '').toLowerCase();
+            const statusFilter = document.getElementById('riskStatusFilter').value;
+            const levelFilter = document.getElementById('riskLevelFilter').value;
+
+            updateProjectFilters();
+
+            let filtered = store.risks;
+            if (currentProjectFilter) filtered = filtered.filter(r => r.projectId === currentProjectFilter);
+            if (search) filtered = filtered.filter(r => r.desc.toLowerCase().includes(search) || r.owner.toLowerCase().includes(search));
+            if (statusFilter) filtered = filtered.filter(r => r.status === statusFilter);
+            if (levelFilter) filtered = filtered.filter(r => r.level === levelFilter);
+
+            const total = filtered.length;
+            const open = filtered.filter(r => r.status === 'Open').length;
+            const high = filtered.filter(r => r.level === 'High' && r.status === 'Open').length;
+            const mitigated = filtered.filter(r => r.status === 'Mitigated').length;
+
+            document.getElementById('riskStats').innerHTML = `
+                <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+                <div class="stat-card warning"><div class="stat-label">Open</div><div class="stat-value">${open}</div></div>
+                <div class="stat-card danger"><div class="stat-label">High Priority</div><div class="stat-value">${high}</div></div>
+                <div class="stat-card success"><div class="stat-label">Mitigated</div><div class="stat-value">${mitigated}</div></div>
+            `;
+
+            const rows = filtered.map(r => {
+                const project = store.projects.find(p => p.id === r.projectId);
+                const statusClass = r.status.toLowerCase().replace(/\s+/g, '');
+                const levelClass = r.level.toLowerCase();
+                return `<tr>
+                    <td><strong>${r.id}</strong></td>
+                    <td style="max-width:250px;">${r.desc}</td>
+                    <td>${project ? project.name : '-'}</td>
+                    <td>${r.category}</td>
+                    <td><span class="badge badge-${levelClass}">${r.level}</span></td>
+                    <td><span class="owner-tag">${r.owner}</span></td>
+                    <td>${r.dueDate}</td>
+                    <td><span class="badge badge-${statusClass}">${r.status}</span></td>
+                    <td class="actions-cell">
+                        <select class="btn btn-sm" onchange="updateRiskStatus('${r.id}', this.value)" style="font-size:11px;padding:3px 6px;">
+                            <option value="" disabled selected>Action</option>
+                            <option value="Open">Set Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Mitigated">Mitigated</option>
+                            <option value="Closed">Close</option>
+                            <option value="Accepted">Accept</option>
+                            <option value="delete">Delete</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('riskTable').innerHTML = `
+                <table>
+                    <thead><tr><th>ID</th><th>Description</th><th>Project</th><th>Category</th><th>Level</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">No Risk items found</div></div></td></tr>'}</tbody>
+                </table>
+            `;
+        }
+
+        function updateRiskStatus(id, value) {
+            if (value === 'delete') {
+                if (confirm('Delete this Risk item?')) {
+                    store.risks = store.risks.filter(r => r.id !== id);
+                    addActivity(`Deleted ${id}`, 'risk');
+                }
+            } else {
+                const risk = store.risks.find(r => r.id === id);
+                if (risk) {
+                    risk.status = value;
+                    addActivity(`${id} status changed to ${value}`, 'risk', risk.projectId);
+                }
+            }
+            saveStore();
+            renderRisk();
+            updateCounts();
+        }
+
+        // ==================== Create Functions ====================
+        function createProject() {
+            const name = document.getElementById('projectName').value.trim();
+            const desc = document.getElementById('projectDesc').value.trim();
+            const color = document.getElementById('projectColor').value;
+            if (!name) { showToast('Project name is required'); return; }
+
+            const id = 'P' + String(store.projects.length + 1).padStart(3, '0');
+            store.projects.push({ id, name, desc, color, createdAt: new Date().toISOString().split('T')[0] });
+            addActivity(`Created project: ${name}`, 'project', id);
+            saveStore();
+            closeModal('project');
+            showToast(`Project "${name}" created`);
+            renderDashboard();
+        }
+
+        function createMeeting() {
+            const name = document.getElementById('meetingName').value.trim();
+            const projectId = document.getElementById('meetingProject').value;
+            const frequency = document.getElementById('meetingFrequency').value;
+            const docUrl = document.getElementById('meetingDocUrl').value.trim();
+            const depts = document.getElementById('meetingDepts').value.split(',').map(d => d.trim()).filter(Boolean);
+            if (!name || !projectId) { showToast('Name and Project are required'); return; }
+
+            const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
+            store.meetings.push({ id, name, projectId, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
+            addActivity(`Created meeting topic: ${name}`, 'meeting', projectId);
+            saveStore();
+            closeModal('meeting');
+            showToast(`Meeting "${name}" created`);
+            renderMeetings();
+            updateCounts();
+        }
+
+        function createOPL() {
+            const desc = document.getElementById('oplDesc').value.trim();
+            const projectId = document.getElementById('oplProject').value;
+            const category = document.getElementById('oplCategory').value;
+            const owner = document.getElementById('oplOwner').value.trim();
+            const dueDate = document.getElementById('oplDueDate').value;
+            const priority = document.getElementById('oplPriority').value;
+            const action = document.getElementById('oplAction').value.trim();
+            if (!desc || !owner || !dueDate || !projectId) { showToast('Description, Owner, Due Date and Project are required'); return; }
+
+            const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
+            store.opls.push({ id, desc, projectId, category, owner, dueDate, priority, status: 'Open', action, result: '', createdAt: new Date().toISOString().split('T')[0] });
+            addActivity(`Created ${id}: ${desc.substring(0, 40)}...`, 'opl', projectId);
+            saveStore();
+            closeModal('opl');
+            showToast(`OPL ${id} created`);
+            if (currentPage === 'opl') renderOPL();
+            updateCounts();
+        }
+
+        function createRisk() {
+            const desc = document.getElementById('riskDesc').value.trim();
+            const projectId = document.getElementById('riskProject').value;
+            const category = document.getElementById('riskCategory').value;
+            const level = document.getElementById('riskLevel').value;
+            const owner = document.getElementById('riskOwner').value.trim();
+            const dueDate = document.getElementById('riskDueDate').value;
+            const mitigation = document.getElementById('riskMitigation').value.trim();
+            if (!desc || !owner || !dueDate || !projectId) { showToast('Description, Owner, Due Date and Project are required'); return; }
+
+            const id = 'RISK-' + String(store.risks.length + 1).padStart(3, '0');
+            store.risks.push({ id, desc, projectId, category, level, owner, dueDate, status: 'Open', mitigation, createdAt: new Date().toISOString().split('T')[0] });
+            addActivity(`Created ${id}: ${desc.substring(0, 40)}...`, 'risk', projectId);
+            saveStore();
+            closeModal('risk');
+            showToast(`Risk ${id} created`);
+            if (currentPage === 'risk') renderRisk();
+            updateCounts();
+        }
+
+        function createFollowup() {
+            const meetingId = document.getElementById('followupMeetingId').value;
+            const date = document.getElementById('followupDate').value;
+            const notes = document.getElementById('followupNotes').value.trim();
+            const attendees = document.getElementById('followupAttendees').value.trim();
+            if (!date) { showToast('Date is required'); return; }
+
+            const meeting = store.meetings.find(m => m.id === meetingId);
+            if (!meeting) return;
+
+            const fid = 'F' + String(Date.now()).slice(-6);
+            meeting.followups.unshift({ id: fid, date, notes, attendees });
+            addActivity(`Added follow-up to "${meeting.name}" (${date})`, 'meeting', meeting.projectId);
+            saveStore();
+            closeModal('followup');
+            showToast('Follow-up added');
+            showMeetingDetail(meetingId);
+        }
+
+        function deleteMeeting(id) {
+            if (!confirm('Delete this meeting and all its follow-ups?')) return;
+            store.meetings = store.meetings.filter(m => m.id !== id);
+            addActivity('Deleted a meeting topic', 'meeting');
+            saveStore();
+            backToMeetingList();
+            renderMeetings();
+            updateCounts();
+        }
+
+        // ==================== Modals ====================
+        function openModal(type) {
+            updateProjectSelects();
+            document.getElementById(type + 'Modal').classList.add('active');
+        }
+
+        function closeModal(type) {
+            document.getElementById(type + 'Modal').classList.remove('active');
+        }
+
+        function openFollowupModal(meetingId) {
+            document.getElementById('followupMeetingId').value = meetingId;
+            document.getElementById('followupDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('followupNotes').value = '';
+            document.getElementById('followupAttendees').value = '';
+            document.getElementById('followupDocUrl').value = '';
+            openModal('followup');
+        }
+
+        function openQuickAdd() {
+            openModal('quickAdd');
+        }
+
+        function switchQuickTab(type) {
+            closeModal('quickAdd');
+            openModal(type);
+        }
+
+        // ==================== Helpers ====================
+        function updateProjectSelects() {
+            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            ['meetingProject', 'oplProject', 'riskProject'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">Select project...</option>' + options;
+            });
+        }
+
+        function updateProjectFilters() {
+            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            ['meetingProjectFilter', 'oplProjectFilter', 'riskProjectFilter'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const current = el.value;
+                    el.innerHTML = '<option value="">All Projects</option>' + options;
+                    el.value = current;
+                }
+            });
+        }
+
+        function addActivity(content, type, projectId) {
+            const now = new Date();
+            const time = now.toISOString().replace('T', ' ').substring(0, 16);
+            store.activities.unshift({ time, content, type, projectId: projectId || '' });
+            if (store.activities.length > 50) store.activities = store.activities.slice(0, 50);
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function fetchMinutesFromFeishu() {
+            const url = document.getElementById('followupDocUrl').value.trim();
+            if (!url) { showToast('Please enter a Feishu document URL'); return; }
+            showToast('Fetching from Feishu... (requires backend API)');
+            // In production, this would call a backend API to fetch the document
+        }
+
+        function exportAllCSV() {
+            // Export OPL
+            let csv = 'ID,Description,Project,Category,Owner,Due Date,Priority,Status,Action\n';
+            store.opls.forEach(o => {
+                const project = store.projects.find(p => p.id === o.projectId);
+                csv += `"${o.id}","${o.desc}","${project?project.name:''}","${o.category}","${o.owner}","${o.dueDate}","${o.priority}","${o.status}","${o.action}"\n`;
+            });
+            downloadCSV(csv, 'OPL_Export.csv');
+
+            // Export Risk
+            let riskCsv = 'ID,Description,Project,Category,Level,Owner,Due Date,Status,Mitigation\n';
+            store.risks.forEach(r => {
+                const project = store.projects.find(p => p.id === r.projectId);
+                riskCsv += `"${r.id}","${r.desc}","${project?project.name:''}","${r.category}","${r.level}","${r.owner}","${r.dueDate}","${r.status}","${r.mitigation}"\n`;
+            });
+            downloadCSV(riskCsv, 'Risk_Export.csv');
+
+            showToast('Exported OPL and Risk CSVs');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+
+        // ==================== Init ====================
+        loadStore();
+        renderDashboard();
+    </script>
+</body>
+</html>
