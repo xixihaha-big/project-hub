@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.5
+                数据本地保存 &middot; BMU代工厂管理 v2.6
             </div>
         </aside>
 
@@ -991,6 +991,7 @@
                     <td style="max-width:280px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
+                    <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
@@ -1010,8 +1011,8 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${activeRows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
 
@@ -1040,6 +1041,7 @@
                     <td style="max-width:280px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
+                    <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
@@ -1056,8 +1058,8 @@
 
             document.getElementById('oplClosedTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
-                    <tbody>${closedRows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -1270,10 +1272,10 @@
         }
 
         function exportCSV() {
-            let csv = '编号,描述,类别,负责人,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
+            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
             store.opls.forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
-                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
             });
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
