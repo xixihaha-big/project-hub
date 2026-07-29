@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.4
+                数据本地保存 &middot; BMU代工厂管理 v2.5
             </div>
         </aside>
 
@@ -560,6 +560,60 @@
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('opl')">取消</button>
                 <button class="btn btn-primary" onclick="createOPL()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit OPL Modal -->
+    <div class="modal-overlay" id="editOPLModal">
+        <div class="modal">
+            <h3>编辑问题项</h3>
+            <input type="hidden" id="editOPLId">
+            <div class="form-group">
+                <label>描述 *</label>
+                <textarea id="editOPLDesc" placeholder="描述问题..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>类别</label>
+                <select id="editOPLCategory">
+                    <option value="Design">设计</option>
+                    <option value="Process">工艺</option>
+                    <option value="Material">材料</option>
+                    <option value="Quality">质量</option>
+                    <option value="Test">测试</option>
+                    <option value="Production">生产</option>
+                    <option value="Supply Chain">供应链</option>
+                    <option value="Other">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>负责人 *</label>
+                <input type="text" id="editOPOwner" placeholder="负责人姓名">
+            </div>
+            <div class="form-group">
+                <label>截止日期</label>
+                <input type="date" id="editOPLDueDate">
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <select id="editOPLPriority">
+                    <option value="High">高</option>
+                    <option value="Medium">中</option>
+                    <option value="Low">低</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>行动方案</label>
+                <textarea id="editOPLAction" placeholder="解决方案..."></textarea>
+            </div>
+            <div class="form-group" id="editClosedAtGroup" style="display:none;">
+                <label>实际完成日期</label>
+                <input type="date" id="editOPLClosedAt">
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">修改后会影响按时完成率统计</div>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('editOPL')">取消</button>
+                <button class="btn btn-primary" onclick="saveOPL()">保存修改</button>
             </div>
         </div>
     </div>
@@ -943,6 +997,7 @@
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
+                            <option value="edit">编辑</option>
                             <option value="Open">设为待处理</option>
                             <option value="In Progress">进行中</option>
                             <option value="Closed">关闭并存档</option>
@@ -991,6 +1046,7 @@
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
+                            <option value="edit">编辑</option>
                             <option value="Open">重新打开</option>
                             <option value="delete">删除</option>
                         </select>
@@ -1007,7 +1063,10 @@
         }
 
         function updateOPLStatus(id, value) {
-            if (value === 'delete') {
+            if (value === 'edit') {
+                editOPL(id);
+                return;
+            } else if (value === 'delete') {
                 if (confirm('确定删除此问题项？')) {
                     store.opls = store.opls.filter(o => o.id !== id);
                     addActivity(`已删除 ${id}`);
@@ -1100,6 +1159,52 @@
             closeModal('opl');
             showToast(`问题 ${id} 已创建`);
             if (currentPage === 'opl') renderOPL();
+            updateCounts();
+        }
+
+        function editOPL(id) {
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            document.getElementById('editOPLId').value = opl.id;
+            document.getElementById('editOPLDesc').value = opl.desc || '';
+            document.getElementById('editOPLCategory').value = opl.category || 'Other';
+            document.getElementById('editOPOwner').value = opl.owner || '';
+            document.getElementById('editOPLDueDate').value = opl.dueDate || '';
+            document.getElementById('editOPLPriority').value = opl.priority || 'Medium';
+            document.getElementById('editOPLAction').value = opl.action || '';
+            // Show closedAt field only for closed items
+            const closedAtGroup = document.getElementById('editClosedAtGroup');
+            if (opl.status === 'Closed') {
+                closedAtGroup.style.display = 'block';
+                document.getElementById('editOPLClosedAt').value = opl.closedAt || '';
+            } else {
+                closedAtGroup.style.display = 'none';
+            }
+            openModal('editOPL');
+        }
+
+        function saveOPL() {
+            const id = document.getElementById('editOPLId').value;
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            const desc = document.getElementById('editOPLDesc').value.trim();
+            const owner = document.getElementById('editOPOwner').value.trim();
+            if (!desc) { showToast('描述不能为空'); return; }
+            if (!owner) { showToast('负责人不能为空'); return; }
+            opl.desc = desc;
+            opl.category = document.getElementById('editOPLCategory').value;
+            opl.owner = owner;
+            opl.dueDate = document.getElementById('editOPLDueDate').value;
+            opl.priority = document.getElementById('editOPLPriority').value;
+            opl.action = document.getElementById('editOPLAction').value.trim();
+            if (opl.status === 'Closed') {
+                opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
+            }
+            addActivity(`编辑了 ${id} 的信息`);
+            saveStore();
+            closeModal('editOPL');
+            showToast(`${id} 已更新`);
+            renderOPL();
             updateCounts();
         }
 
