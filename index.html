@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目中心 - 项目管理看板</title>
+    <title>BMU代工厂管理</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -40,34 +40,27 @@
             min-height: 100vh;
         }
 
-        /* ========== Layout ========== */
-        .app-layout {
-            display: flex;
-            min-height: 100vh;
-        }
+        .app-layout { display: flex; min-height: 100vh; }
 
         /* Sidebar */
         .sidebar {
-            width: 260px;
+            width: 240px;
             background: #1e293b;
             color: #e2e8f0;
             display: flex;
             flex-direction: column;
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            top: 0; left: 0; bottom: 0;
             z-index: 100;
-            transition: transform 0.3s;
         }
 
         .sidebar-header {
-            padding: 20px 20px 16px;
+            padding: 20px;
             border-bottom: 1px solid #334155;
         }
 
         .sidebar-header h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #fff;
             display: flex;
@@ -76,166 +69,54 @@
         }
 
         .sidebar-header .logo {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             background: var(--primary);
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
         }
 
-        .sidebar-nav {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-        }
-
-        .nav-section {
-            margin-bottom: 24px;
-        }
-
-        .nav-section-title {
-            font-size: 11px;
-            letter-spacing: 1px;
-            color: #64748b;
-            padding: 0 12px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
+        .sidebar-nav { flex: 1; padding: 12px; }
 
         .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.15s;
-            color: #cbd5e1;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 8px;
+            cursor: pointer; font-size: 14px;
+            transition: all 0.15s; color: #cbd5e1;
+            margin-bottom: 4px;
         }
 
-        .nav-item:hover {
-            background: #334155;
-            color: #fff;
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .nav-item .icon {
-            width: 20px;
-            text-align: center;
-            font-size: 15px;
-        }
-
+        .nav-item:hover { background: #334155; color: #fff; }
+        .nav-item.active { background: var(--primary); color: #fff; font-weight: 500; }
+        .nav-item .icon { width: 20px; text-align: center; font-size: 15px; }
         .nav-item .badge-count {
             margin-left: auto;
             background: rgba(255,255,255,0.15);
-            padding: 1px 7px;
-            border-radius: 10px;
-            font-size: 11px;
-        }
-
-        .nav-item.active .badge-count {
-            background: rgba(255,255,255,0.25);
-        }
-
-        /* Project list in sidebar */
-        .project-list {
-            padding: 0 12px;
-        }
-
-        .project-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #94a3b8;
-            transition: all 0.15s;
-        }
-
-        .project-item:hover {
-            background: #334155;
-            color: #fff;
-        }
-
-        .project-item.active {
-            color: #fff;
-            background: #334155;
-        }
-
-        .project-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            padding: 1px 7px; border-radius: 10px; font-size: 11px;
         }
 
         .sidebar-footer {
             padding: 16px 20px;
             border-top: 1px solid #334155;
-            font-size: 12px;
-            color: #64748b;
+            font-size: 12px; color: #64748b;
         }
 
         /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            display: flex;
-            flex-direction: column;
-        }
+        .main-content { flex: 1; margin-left: 240px; display: flex; flex-direction: column; }
 
-        /* Top Bar */
         .topbar {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border);
             padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 50;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
         }
 
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar-left h2 { font-size: 18px; font-weight: 600; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
 
-        .topbar-left h2 {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .topbar-left .breadcrumb {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Page Content */
-        .page-content {
-            padding: 24px 32px;
-            flex: 1;
-        }
-
-        /* ========== Components ========== */
+        .page-content { padding: 24px 32px; flex: 1; }
 
         /* Cards */
         .card {
@@ -243,38 +124,25 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             border: 1px solid var(--border-light);
+            margin-bottom: 20px;
         }
 
         .card-header {
             padding: 16px 20px;
             border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
         }
 
-        .card-title {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
+        .card-title { font-size: 15px; font-weight: 600; }
+        .card-body { padding: 20px; }
 
         /* Buttons */
         .btn {
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
+            padding: 8px 16px; border-radius: var(--radius-sm);
+            border: 1px solid var(--border); background: var(--card-bg);
+            cursor: pointer; font-size: 13px; font-weight: 500;
             transition: all 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px;
             color: var(--text);
         }
 
@@ -291,203 +159,102 @@
 
         /* Badges */
         .badge {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+            padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
             display: inline-block;
-            letter-spacing: 0.3px;
         }
 
+        .badge-high, .badge-danger { background: var(--danger-light); color: var(--danger); }
+        .badge-medium, .badge-warning { background: var(--warning-light); color: #b45309; }
+        .badge-low, .badge-info { background: var(--info-light); color: var(--info); }
         .badge-open { background: var(--warning-light); color: #b45309; }
-        .badge-inprogress { background: var(--info-light); color: #1d4ed8; }
+        .badge-inprogress { background: var(--info-light); color: var(--info); }
         .badge-closed { background: var(--success-light); color: #047857; }
-        .badge-overdue { background: var(--danger-light); color: #b91c1c; }
-        .badge-mitigated { background: #ede9fe; color: #6d28d9; }
-        .badge-accepted { background: #f1f5f9; color: #475569; }
-        .badge-high { background: var(--danger-light); color: #b91c1c; }
-        .badge-medium { background: var(--warning-light); color: #b45309; }
-        .badge-low { background: var(--success-light); color: #047857; }
+        .badge-overdue { background: var(--danger-light); color: var(--danger); }
 
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        tr:hover td { background: #f8fafc; }
-
-        td .owner-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: #f1f5f9;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        /* Stat Cards */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 24px;
         }
 
         .stat-card {
             background: var(--card-bg);
             border-radius: var(--radius);
             padding: 20px;
-            border: 1px solid var(--border-light);
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-light);
         }
 
-        .stat-card .stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            letter-spacing: 0.5px;
+        .stat-card.warning { border-left: 4px solid var(--warning); }
+        .stat-card.danger { border-left: 4px solid var(--danger); }
+        .stat-card.success { border-left: 4px solid var(--success); }
+        .stat-card.info { border-left: 4px solid var(--info); }
+
+        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 12px; background: #f8fafc; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 12px; }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+        tr:hover td { background: #f8fafc; }
+
+        .owner-tag {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
         }
 
-        .stat-card .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-top: 4px;
-            color: var(--text);
-        }
-
-        .stat-card .stat-detail {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
-
-        .stat-card.danger .stat-value { color: var(--danger); }
-        .stat-card.warning .stat-value { color: var(--warning); }
-        .stat-card.success .stat-value { color: var(--success); }
-        .stat-card.info .stat-value { color: var(--info); }
-
-        /* Filter Bar */
+        /* Filter bar */
         .filter-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+            display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
         }
 
-        .filter-bar input,
-        .filter-bar select {
-            padding: 7px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 13px;
+        .filter-bar input, .filter-bar select {
+            padding: 7px 12px; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 13px;
             background: var(--card-bg);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.2s;
         }
 
-        .filter-bar input:focus,
-        .filter-bar select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
         }
 
-        .filter-bar input { width: 220px; }
+        .modal-overlay.active { display: flex; }
 
-        /* Project Cards Grid */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .project-card {
+        .modal {
             background: var(--card-bg);
-            border: 1px solid var(--border-light);
             border-radius: var(--radius);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: var(--shadow);
-        }
-
-        .project-card:hover {
-            border-color: var(--primary);
+            padding: 24px; width: 90%; max-width: 520px;
+            max-height: 85vh; overflow-y: auto;
             box-shadow: var(--shadow-lg);
-            transform: translateY(-1px);
         }
 
-        .project-card .pc-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
+        .modal-wide { max-width: 750px; }
 
-        .project-card .pc-color {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #fff;
-            font-weight: 700;
-        }
+        .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
 
-        .project-card .pc-name {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 4px;
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 8px 12px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-size: 13px; font-family: inherit;
         }
+        .form-group textarea { min-height: 80px; resize: vertical; }
 
-        .project-card .pc-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
-        .project-card .pc-stats {
-            display: flex;
-            gap: 16px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .project-card .pc-stats span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Meeting List */
+        /* Meeting cards */
         .meeting-list-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 16px;
         }
 
@@ -495,235 +262,99 @@
             background: var(--card-bg);
             border: 1px solid var(--border-light);
             border-radius: var(--radius);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: var(--shadow);
+            padding: 16px; cursor: pointer;
+            transition: all 0.15s;
         }
 
-        .meeting-card:hover {
-            border-color: var(--primary);
-            box-shadow: var(--shadow-lg);
-        }
+        .meeting-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+        .meeting-card .mc-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .meeting-card .mc-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 12px; }
+        .meeting-card .mc-followups { font-size: 12px; color: var(--primary); margin-top: 8px; }
 
-        .meeting-card .mc-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .meeting-card .mc-project {
-            font-size: 11px;
-            color: var(--primary);
-            background: var(--primary-light);
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-
-        .meeting-card .mc-meta {
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .meeting-card .mc-followups {
-            margin-top: 10px;
-            font-size: 11px;
-            color: var(--info);
-            background: var(--info-light);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
-        /* Meeting Detail */
+        /* Meeting detail */
         .meeting-detail-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
         }
 
-        .followup-timeline {
-            position: relative;
-            padding-left: 24px;
-        }
-
-        .followup-timeline::before {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 8px;
-            bottom: 8px;
-            width: 2px;
-            background: var(--border);
-        }
-
+        .followup-timeline { }
         .followup-item {
-            position: relative;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            background: #f8fafc;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-light);
-        }
-
-        .followup-item::before {
-            content: '';
-            position: absolute;
-            left: -21px;
-            top: 18px;
-            width: 10px;
-            height: 10px;
-            background: var(--primary);
-            border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 2px var(--primary);
-        }
-
-        .followup-item .fi-date {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .followup-item .fi-notes {
-            font-size: 13px;
-            color: var(--text);
-        }
-
-        .followup-item .fi-attendees {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        .modal {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 28px;
-            width: 92%;
-            max-width: 560px;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
-        }
-
-        .modal h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            padding: 14px 0;
             border-bottom: 1px solid var(--border-light);
         }
+        .followup-item:last-child { border-bottom: none; }
+        .fi-date { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        .fi-notes { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+        .fi-attendees { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            outline: none;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border-light);
-        }
-
-        /* Notification Toast */
+        /* Toast */
         .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #1e293b;
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            z-index: 2000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            position: fixed; bottom: 24px; right: 24px;
+            background: #1e293b; color: #fff;
+            padding: 12px 20px; border-radius: 8px;
+            font-size: 13px; z-index: 9999;
             transform: translateX(120%);
             transition: transform 0.3s ease;
         }
-
         .toast.show { transform: translateX(0); }
 
         /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state .es-title { font-size: 15px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+        .empty-state .es-desc { font-size: 13px; }
+
+        /* Minutes textarea */
+        .minutes-textarea { min-height: 200px; font-size: 13px; line-height: 1.7; }
+
+        .parsed-section-title {
+            font-size: 14px; font-weight: 600; margin-bottom: 10px;
+            padding-bottom: 6px; border-bottom: 1px solid var(--border-light);
+            display: flex; align-items: center; gap: 8px;
         }
 
-        .empty-state .es-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-            opacity: 0.5;
+        .parsed-section-title .count-badge {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 10px; font-size: 11px;
         }
 
-        .empty-state .es-title {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
+        .extracted-card {
+            background: #f8fafc; border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm); padding: 12px 14px;
+            margin-bottom: 10px; position: relative;
         }
 
-        .empty-state .es-desc {
+        .extracted-card .ec-desc { font-size: 13px; font-weight: 500; margin-bottom: 8px; padding-right: 30px; }
+        .extracted-card .ec-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .extracted-card .ec-fields .ec-field { display: flex; flex-direction: column; gap: 3px; }
+        .extracted-card .ec-fields .ec-field label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .extracted-card .ec-fields .ec-field input,
+        .extracted-card .ec-fields .ec-field select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; background: #fff; }
+
+        .extracted-card .ec-remove {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px;
+        }
+        .extracted-card .ec-remove:hover { background: var(--danger-light); }
+
+        .minutes-step { display: none; }
+        .minutes-step.active { display: block; }
+
+        .parse-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+        /* Minutes record display */
+        .minutes-content-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
             font-size: 13px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         /* Responsive */
@@ -731,156 +362,7 @@
             .sidebar { transform: translateX(-100%); }
             .main-content { margin-left: 0; }
             .page-content { padding: 16px; }
-            .topbar { padding: 12px 16px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .projects-grid { grid-template-columns: 1fr; }
-        }
-
-        /* Tabs inside page */
-        .page-tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 20px;
-            background: #f1f5f9;
-            padding: 4px;
-            border-radius: 8px;
-            width: fit-content;
-        }
-
-        .page-tab {
-            padding: 7px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            transition: all 0.15s;
-        }
-
-        .page-tab:hover { color: var(--text); }
-        .page-tab.active { background: var(--card-bg); color: var(--text); box-shadow: var(--shadow); }
-
-        /* Action dropdown */
-        .actions-cell { position: relative; }
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 16px;
-            color: var(--text-muted);
-        }
-        .action-btn:hover { background: #f1f5f9; color: var(--text); }
-
-        /* Minutes Upload Modal */
-        .modal-wide {
-            max-width: 750px;
-        }
-
-        .minutes-textarea {
-            min-height: 200px;
-            font-size: 13px;
-            line-height: 1.7;
-        }
-
-        .parsed-results {
-            margin-top: 16px;
-        }
-
-        .parsed-section-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .parsed-section-title .count-badge {
-            background: var(--primary-light);
-            color: var(--primary);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-        }
-
-        .extracted-card {
-            background: #f8fafc;
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        .extracted-card .ec-desc {
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            padding-right: 30px;
-        }
-
-        .extracted-card .ec-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-
-        .extracted-card .ec-fields .ec-field {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .extracted-card .ec-fields .ec-field label {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .extracted-card .ec-fields .ec-field input,
-        .extracted-card .ec-fields .ec-field select {
-            padding: 5px 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 12px;
-            background: #fff;
-        }
-
-        .extracted-card .ec-remove {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .extracted-card .ec-remove:hover {
-            background: var(--danger-light);
-        }
-
-        .minutes-step {
-            display: none;
-        }
-
-        .minutes-step.active {
-            display: block;
-        }
-
-        .parse-hint {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            line-height: 1.5;
         }
     </style>
 </head>
@@ -889,55 +371,36 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1><span class="logo">P</span> 项目中心</h1>
+                <h1><span class="logo">B</span> BMU代工厂管理</h1>
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">概览</div>
-                    <div class="nav-item active" onclick="navigateTo('dashboard')">
-                        <span class="icon">&#9632;</span> 仪表盘
-                    </div>
+                <div class="nav-item active" onclick="navigateTo('dashboard')">
+                    <span class="icon">&#9632;</span> 仪表盘
                 </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">管理</div>
-                    <div class="nav-item" onclick="navigateTo('meetings')">
-                        <span class="icon">&#128197;</span> 会议
-                        <span class="badge-count" id="meetingCount">0</span>
-                    </div>
-                    <div class="nav-item" onclick="navigateTo('opl')">
-                        <span class="icon">&#9888;</span> 问题清单
-                        <span class="badge-count" id="oplCount">0</span>
-                    </div>
-                    <div class="nav-item" onclick="navigateTo('risk')">
-                        <span class="icon">&#9889;</span> 风险
-                        <span class="badge-count" id="riskCount">0</span>
-                    </div>
+                <div class="nav-item" onclick="navigateTo('meetings')">
+                    <span class="icon">&#128197;</span> 会议
+                    <span class="badge-count" id="meetingCount">0</span>
                 </div>
-                <div class="nav-section">
-                    <div class="nav-section-title">项目</div>
-                    <div class="project-list" id="sidebarProjectList"></div>
-                    <div class="nav-item" onclick="openModal('project')" style="margin-top:8px; color:#64748b; font-size:12px;">
-                        <span class="icon">+</span> 添加项目
-                    </div>
+                <div class="nav-item" onclick="navigateTo('opl')">
+                    <span class="icon">&#9888;</span> 问题清单
+                    <span class="badge-count" id="oplCount">0</span>
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; 项目中心 v1.0
+                数据本地保存 &middot; BMU代工厂管理 v2.0
             </div>
         </aside>
 
         <!-- Main -->
         <div class="main-content">
-            <!-- Top Bar -->
             <header class="topbar">
                 <div class="topbar-left">
                     <h2 id="pageTitle">仪表盘</h2>
-                    <span class="breadcrumb" id="pageBreadcrumb"></span>
                 </div>
                 <div class="topbar-right">
-                    <button class="btn btn-sm" onclick="exportAllCSV()">导出 CSV</button>
+                    <button class="btn btn-sm" onclick="exportCSV()">导出 CSV</button>
                     <button class="btn btn-success btn-sm" onclick="openMinutesUpload()">上传会议纪要</button>
-                    <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ 快速添加</button>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ 新建问题</button>
                 </div>
             </header>
 
@@ -946,27 +409,12 @@
                 <div class="stats-grid" id="dashboardStats"></div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">最近动态</span>
-                        </div>
+                        <div class="card-header"><span class="card-title">最近动态</span></div>
                         <div class="card-body" id="recentActivity"></div>
                     </div>
                     <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">逾期项目</span>
-                        </div>
+                        <div class="card-header"><span class="card-title">逾期问题</span></div>
                         <div class="card-body" id="overdueItems"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 24px;">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">项目</span>
-                            <button class="btn btn-sm btn-primary" onclick="openModal('project')">+ 新建项目</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="projects-grid" id="projectsGrid"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -975,13 +423,9 @@
             <div class="page-content" id="page-meetings" style="display:none;">
                 <div class="filter-bar">
                     <input type="text" placeholder="搜索会议..." id="meetingSearch" oninput="renderMeetings()">
-                    <select id="meetingProjectFilter" onchange="renderMeetings()">
-                        <option value="">所有项目</option>
-                    </select>
                     <button class="btn btn-primary" onclick="openModal('meeting')">+ 新建会议主题</button>
                 </div>
                 <div class="meeting-list-grid" id="meetingListGrid"></div>
-                <!-- Meeting Detail View -->
                 <div id="meetingDetailView" style="display:none;"></div>
             </div>
 
@@ -1001,10 +445,6 @@
                                 <option value="Open">待处理</option>
                                 <option value="In Progress">进行中</option>
                                 <option value="Closed">已关闭</option>
-                                <option value="Overdue">已逾期</option>
-                            </select>
-                            <select id="oplProjectFilter" onchange="renderOPL()">
-                                <option value="">所有项目</option>
                             </select>
                             <select id="oplPriorityFilter" onchange="renderOPL()">
                                 <option value="">所有优先级</option>
@@ -1017,74 +457,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Page: Risk -->
-            <div class="page-content" id="page-risk" style="display:none;">
-                <div class="stats-grid" id="riskStats"></div>
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">风险清单</span>
-                        <button class="btn btn-primary btn-sm" onclick="openModal('risk')">+ 新建风险</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="filter-bar">
-                            <input type="text" placeholder="搜索..." id="riskSearch" oninput="renderRisk()">
-                            <select id="riskStatusFilter" onchange="renderRisk()">
-                                <option value="">所有状态</option>
-                                <option value="Open">待处理</option>
-                                <option value="In Progress">进行中</option>
-                                <option value="Mitigated">已缓解</option>
-                                <option value="Closed">已关闭</option>
-                                <option value="Accepted">已接受</option>
-                            </select>
-                            <select id="riskProjectFilter" onchange="renderRisk()">
-                                <option value="">所有项目</option>
-                            </select>
-                            <select id="riskLevelFilter" onchange="renderRisk()">
-                                <option value="">所有级别</option>
-                                <option value="High">高</option>
-                                <option value="Medium">中</option>
-                                <option value="Low">低</option>
-                            </select>
-                        </div>
-                        <div class="table-container" id="riskTable"></div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Modals -->
-    <!-- New Project Modal -->
-    <div class="modal-overlay" id="projectModal">
-        <div class="modal">
-            <h3>新建项目</h3>
-            <div class="form-group">
-                <label>项目名称 *</label>
-                <input type="text" id="projectName" placeholder="例如 BMU2.0">
-            </div>
-            <div class="form-group">
-                <label>描述</label>
-                <textarea id="projectDesc" placeholder="项目简要描述..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>颜色</label>
-                <select id="projectColor">
-                    <option value="#4f46e5">靛蓝</option>
-                    <option value="#0891b2">青色</option>
-                    <option value="#ea580c">橙色</option>
-                    <option value="#16a34a">绿色</option>
-                    <option value="#dc2626">红色</option>
-                    <option value="#7c3aed">紫色</option>
-                    <option value="#0284c7">蓝色</option>
-                </select>
-            </div>
-            <div class="form-actions">
-                <button class="btn" onclick="closeModal('project')">取消</button>
-                <button class="btn btn-primary" onclick="createProject()">创建</button>
-            </div>
-        </div>
-    </div>
 
     <!-- New Meeting Modal -->
     <div class="modal-overlay" id="meetingModal">
@@ -1093,10 +469,6 @@
             <div class="form-group">
                 <label>会议名称 *</label>
                 <input type="text" id="meetingName" placeholder="例如 每周APQP评审">
-            </div>
-            <div class="form-group">
-                <label>所属项目 *</label>
-                <select id="meetingProject"></select>
             </div>
             <div class="form-group">
                 <label>频率</label>
@@ -1131,10 +503,6 @@
                 <textarea id="oplDesc" placeholder="描述问题..."></textarea>
             </div>
             <div class="form-group">
-                <label>所属项目 *</label>
-                <select id="oplProject"></select>
-            </div>
-            <div class="form-group">
                 <label>类别</label>
                 <select id="oplCategory">
                     <option value="Design">设计</option>
@@ -1143,6 +511,7 @@
                     <option value="Quality">质量</option>
                     <option value="Test">测试</option>
                     <option value="Production">生产</option>
+                    <option value="Supply Chain">供应链</option>
                     <option value="Other">其他</option>
                 </select>
             </div>
@@ -1173,57 +542,6 @@
         </div>
     </div>
 
-    <!-- New Risk Modal -->
-    <div class="modal-overlay" id="riskModal">
-        <div class="modal">
-            <h3>新建风险项</h3>
-            <div class="form-group">
-                <label>风险描述 *</label>
-                <textarea id="riskDesc" placeholder="描述风险..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>所属项目 *</label>
-                <select id="riskProject"></select>
-            </div>
-            <div class="form-group">
-                <label>类别</label>
-                <select id="riskCategory">
-                    <option value="Technical">技术</option>
-                    <option value="Schedule">进度</option>
-                    <option value="Quality">质量</option>
-                    <option value="Supply Chain">供应链</option>
-                    <option value="Cost">成本</option>
-                    <option value="Resource">资源</option>
-                    <option value="Other">其他</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>风险级别</label>
-                <select id="riskLevel">
-                    <option value="High">高</option>
-                    <option value="Medium" selected>中</option>
-                    <option value="Low">低</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>负责人 *</label>
-                <input type="text" id="riskOwner" placeholder="负责人姓名">
-            </div>
-            <div class="form-group">
-                <label>目标关闭日期 *</label>
-                <input type="date" id="riskDueDate">
-            </div>
-            <div class="form-group">
-                <label>缓解方案</label>
-                <textarea id="riskMitigation" placeholder="如何缓解..."></textarea>
-            </div>
-            <div class="form-actions">
-                <button class="btn" onclick="closeModal('risk')">取消</button>
-                <button class="btn btn-primary" onclick="createRisk()">创建</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Follow-up Modal -->
     <div class="modal-overlay" id="followupModal">
         <div class="modal">
@@ -1233,40 +551,17 @@
                 <input type="date" id="followupDate">
             </div>
             <div class="form-group">
-                <label>飞书会议纪要链接</label>
-                <input type="url" id="followupDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
+                <label>参会人员</label>
+                <input type="text" id="followupAttendees" placeholder="逗号分隔姓名">
             </div>
             <div class="form-group">
                 <label>会议记录</label>
-                <textarea id="followupNotes" placeholder="关键决策和行动项..." style="min-height:120px;"></textarea>
-            </div>
-            <div class="form-group">
-                <label>参会人员</label>
-                <input type="text" id="followupAttendees" placeholder="逗号分隔姓名">
+                <textarea id="followupNotes" placeholder="会议内容..." style="min-height:150px;"></textarea>
             </div>
             <input type="hidden" id="followupMeetingId">
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('followup')">取消</button>
-                <button class="btn btn-success" onclick="fetchMinutesFromFeishu()">从飞书获取</button>
                 <button class="btn btn-primary" onclick="createFollowup()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Add Modal -->
-    <div class="modal-overlay" id="quickAddModal">
-        <div class="modal">
-            <h3>快速添加</h3>
-            <div class="page-tabs" style="margin-bottom:16px;">
-                <div class="page-tab active" onclick="switchQuickTab('opl')">问题清单</div>
-                <div class="page-tab" onclick="switchQuickTab('risk')">风险</div>
-                <div class="page-tab" onclick="switchQuickTab('meeting')">会议</div>
-            </div>
-            <div id="quickAddContent">
-                <p style="color:var(--text-secondary); font-size:13px;">请选择上方类型，然后填写对应表单。</p>
-            </div>
-            <div class="form-actions">
-                <button class="btn" onclick="closeModal('quickAdd')">关闭</button>
             </div>
         </div>
     </div>
@@ -1279,15 +574,9 @@
             <!-- Step 1: Input -->
             <div class="minutes-step active" id="minutesStep1">
                 <div class="form-group">
-                    <label>所属项目 *</label>
-                    <select id="minutesProject" onchange="updateMinutesMeetings()">
-                        <option value="">选择项目...</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label>会议主题 *</label>
                     <select id="minutesMeeting">
-                        <option value="">选择或输入会议主题...</option>
+                        <option value="">选择已有会议主题...</option>
                     </select>
                     <input type="text" id="minutesNewMeeting" placeholder="或输入新的会议主题名称" style="margin-top:6px;">
                 </div>
@@ -1297,8 +586,8 @@
                 </div>
                 <div class="form-group">
                     <label>会议纪要内容 *</label>
-                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴飞书会议纪要内容...&#10;&#10;支持自动识别：&#10;✅ 飞书会议纪要的「待办任务」章节（- [ ] 格式）&#10;✅ 带 @负责人 的行动项&#10;✅ 风险相关描述（含「延期风险」「无法按时」「短缺」等）&#10;✅ 自动提取负责人、截止日期、优先级、类别&#10;&#10;直接从飞书文档复制全文粘贴即可。"></textarea>
-                    <div class="parse-hint">提示：支持飞书会议纪要格式，直接粘贴全文后点击「智能解析」，自动提取待办任务→OPL，风险项→Risk。</div>
+                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴飞书会议纪要内容...&#10;&#10;直接从飞书文档复制全文粘贴即可。&#10;系统会自动识别待办任务并提取为问题清单(OPL)。"></textarea>
+                    <div class="parse-hint">提示：粘贴会议纪要全文后点击「智能解析」，系统将自动提取待办任务到问题清单，并完整保存会议记录。</div>
                 </div>
                 <div class="form-actions">
                     <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
@@ -1324,32 +613,25 @@
     <script>
         // ==================== Data Store ====================
         let store = {
-            projects: [],
             meetings: [],
             opls: [],
-            risks: [],
             activities: []
         };
 
         let currentPage = 'dashboard';
         let currentMeetingDetail = null;
-        let currentProjectFilter = '';
 
         // ==================== Display Helpers ====================
         function statusCN(s) {
-            const map = {'Open':'待处理','In Progress':'进行中','Closed':'已关闭','Overdue':'已逾期','Mitigated':'已缓解','Accepted':'已接受'};
+            const map = {'Open':'待处理','In Progress':'进行中','Closed':'已关闭','Overdue':'已逾期'};
             return map[s] || s;
         }
         function priorityCN(p) {
             const map = {'High':'高','Medium':'中','Low':'低'};
             return map[p] || p;
         }
-        function levelCN(l) {
-            const map = {'High':'高','Medium':'中','Low':'低'};
-            return map[l] || l;
-        }
         function categoryCN(c) {
-            const map = {'Design':'设计','Process':'工艺','Material':'材料','Quality':'质量','Test':'测试','Production':'生产','Other':'其他','Technical':'技术','Schedule':'进度','Supply Chain':'供应链','Cost':'成本','Resource':'资源'};
+            const map = {'Design':'设计','Process':'工艺','Material':'材料','Quality':'质量','Test':'测试','Production':'生产','Other':'其他','Supply Chain':'供应链'};
             return map[c] || c;
         }
         function frequencyCN(f) {
@@ -1358,11 +640,10 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v3-cn';
+        const DATA_VERSION = 'v4-bmu';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
-                // 版本不匹配，清除旧数据，重新生成中文示例
                 localStorage.removeItem('project-hub-data');
                 localStorage.setItem('project-hub-version', DATA_VERSION);
                 initSampleData();
@@ -1381,59 +662,48 @@
         }
 
         function initSampleData() {
-            store.projects = [
-                { id: 'P001', name: 'BMU2.0', desc: '电池管理单元2.0开发项目', color: '#4f46e5', createdAt: '2025-06-01' },
-                { id: 'P002', name: 'BMU2.1', desc: '电池管理单元2.1升级项目', color: '#0891b2', createdAt: '2025-07-01' }
-            ];
-
             store.meetings = [
                 {
-                    id: 'M001', name: 'APQP周评审', projectId: 'P001',
-                    docUrl: 'https://mi-p.feishu.cn/docx/VW62dfpRuoqZVExBZWQchfAgnaf',
+                    id: 'M001', name: 'APQP周评审',
+                    docUrl: '',
                     depts: ['EE', 'ME', 'DQE', 'PCBA工艺', 'PM'],
                     frequency: 'weekly', createdAt: '2025-07-01',
                     followups: [
-                        { id: 'F001', date: '2025-07-21', notes: '讨论了PCB拼板方案和SMT DFM检查结果', attendees: '张三, 李四, 王五' },
-                        { id: 'F002', date: '2025-07-14', notes: '评审了BOM一致性和元器件变更', attendees: '张三, 赵六, 钱七' }
+                        { id: 'F001', date: '2025-07-21', notes: '1. 讨论了PCB拼板方案和SMT DFM检查结果\n2. BOM一致性确认完成\n3. 泰科料重信息待获取\n\n待办：\n- 崔江红跟进泰科料重数据\n- 李晴天确认CAMDS提交进度', attendees: '张三, 李四, 王五, 崔江红' },
+                        { id: 'F002', date: '2025-07-14', notes: '1. 评审了BOM一致性和元器件变更\n2. 供应商交付进度更新\n3. 工艺验证计划确认', attendees: '张三, 赵六, 钱七' }
                     ]
                 },
                 {
-                    id: 'M002', name: '结构评审', projectId: 'P002',
-                    docUrl: '', depts: ['ME', 'DQE'], frequency: 'biweekly',
-                    createdAt: '2025-07-10', followups: []
+                    id: 'M002', name: '代工厂工艺对接',
+                    docUrl: '', depts: ['ME', 'DQE', '代工厂'],
+                    frequency: 'biweekly', createdAt: '2025-07-10',
+                    followups: [
+                        { id: 'F003', date: '2025-07-18', notes: '与代工厂确认了SMT贴片工艺参数：\n1. 回流焊温度曲线已优化\n2. 钢网开孔尺寸调整为1:1.05\n3. 首件检验SOP已更新\n\n问题：部分物料来料包装不符合自动化上料要求，需协调供应商整改。', attendees: '李四, 钱七, 代工厂张工' }
+                    ]
                 }
             ];
 
             store.opls = [
-                { id: 'OPL-001', desc: 'PCB拼板散热问题需重新评估', projectId: 'P001', category: 'Design', owner: '张三', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: '重新进行热仿真分析', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-002', desc: 'SMT DFM检查发现焊盘间距不合规', projectId: 'P001', category: 'Process', owner: '李四', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: '修改PCB布局', result: '', createdAt: '2025-07-14' },
-                { id: 'OPL-003', desc: 'BOM替代元器件待确认', projectId: 'P002', category: 'Material', owner: '赵六', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: '联系供应商获取替代方案', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-004', desc: '注塑成型参数需优化', projectId: 'P002', category: 'Process', owner: '钱七', dueDate: '2025-07-25', priority: 'Medium', status: 'Overdue', action: '调整温度和压力参数', result: '', createdAt: '2025-07-07' },
-                { id: 'OPL-005', desc: 'EMC预测试失败——辐射超标', projectId: 'P001', category: 'Test', owner: '王五', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: '增加屏蔽和滤波措施', result: '', createdAt: '2025-07-21' },
-                { id: 'OPL-006', desc: '装配SOP需更新', projectId: 'P001', category: 'Production', owner: '李四', dueDate: '2025-07-20', priority: 'Low', status: 'Closed', action: '更新SOP至v2.0版本', result: '已完成并培训', createdAt: '2025-07-01' }
-            ];
-
-            store.risks = [
-                { id: 'RISK-001', desc: '芯片供应商交付延期风险', projectId: 'P001', category: 'Supply Chain', level: 'High', owner: '赵六', dueDate: '2025-08-15', status: 'Open', mitigation: '寻找第二供应商，提前备货', createdAt: '2025-07-14' },
-                { id: 'RISK-002', desc: 'PCBA产线良率低于目标', projectId: 'P001', category: 'Quality', level: 'Medium', owner: '李四', dueDate: '2025-08-01', status: 'In Progress', mitigation: '优化回流焊温度曲线', createdAt: '2025-07-07' },
-                { id: 'RISK-003', desc: '项目可能延期2周', projectId: 'P002', category: 'Schedule', level: 'High', owner: '张三', dueDate: '2025-08-20', status: 'Open', mitigation: '增加资源投入，并行推进任务', createdAt: '2025-07-21' },
-                { id: 'RISK-004', desc: '新工艺验证时间不足', projectId: 'P002', category: 'Technical', level: 'Medium', owner: '钱七', dueDate: '2025-08-10', status: 'Open', mitigation: '加快验证节奏，增加试产批次', createdAt: '2025-07-14' },
-                { id: 'RISK-005', desc: '测试设备排期冲突', projectId: 'P001', category: 'Resource', level: 'Low', owner: '王五', dueDate: '2025-08-05', status: 'Mitigated', mitigation: '已协调与其他项目的时间窗口', createdAt: '2025-07-07' }
+                { id: 'OPL-001', desc: 'PCB拼板散热问题需重新评估', category: 'Design', owner: '张三', dueDate: '2025-08-01', priority: 'High', status: 'Open', action: '重新进行热仿真分析', createdAt: '2025-07-21' },
+                { id: 'OPL-002', desc: 'SMT DFM检查发现焊盘间距不合规', category: 'Process', owner: '李四', dueDate: '2025-07-28', priority: 'High', status: 'In Progress', action: '修改PCB布局', createdAt: '2025-07-14' },
+                { id: 'OPL-003', desc: '泰科料重获取：推动获取泰科一颗料的准确重量信息', category: 'Material', owner: '崔江红', dueDate: '2025-08-05', priority: 'Medium', status: 'Open', action: '联系泰科供应商', createdAt: '2025-07-21' },
+                { id: 'OPL-004', desc: '来料包装不符合自动化上料要求', category: 'Process', owner: '钱七', dueDate: '2025-07-25', priority: 'Medium', status: 'Open', action: '协调供应商整改包装规格', createdAt: '2025-07-18' },
+                { id: 'OPL-005', desc: 'EMC预测试辐射超标', category: 'Test', owner: '王五', dueDate: '2025-08-10', priority: 'High', status: 'Open', action: '增加屏蔽和滤波措施', createdAt: '2025-07-21' }
             ];
 
             store.activities = [
-                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC预测试失败', type: 'opl', projectId: 'P001' },
-                { time: '2025-07-21 10:25', content: '创建了 RISK-003：项目延期风险', type: 'risk', projectId: 'P002' },
-                { time: '2025-07-21 10:00', content: '添加了跟进会议（7月21日）', type: 'meeting', projectId: 'P001' },
-                { time: '2025-07-20 14:00', content: 'OPL-006 状态变更为已关闭', type: 'opl', projectId: 'P001' },
-                { time: '2025-07-14 11:00', content: '创建了 RISK-001：芯片交付风险', type: 'risk', projectId: 'P001' }
+                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC预测试辐射超标' },
+                { time: '2025-07-21 10:00', content: '添加了会议跟进（APQP周评审 7月21日）' },
+                { time: '2025-07-18 15:00', content: '创建了 OPL-004：来料包装问题' },
+                { time: '2025-07-18 14:30', content: '添加了会议跟进（代工厂工艺对接 7月18日）' },
+                { time: '2025-07-14 11:00', content: '创建了 OPL-002：焊盘间距不合规' }
             ];
 
             saveStore();
         }
 
         // ==================== Navigation ====================
-        function navigateTo(page, options) {
+        function navigateTo(page) {
             currentPage = page;
             document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
             document.getElementById('page-' + page).style.display = 'block';
@@ -1441,22 +711,25 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             event && event.target && event.target.closest('.nav-item') && event.target.closest('.nav-item').classList.add('active');
 
-            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单', risk: '风险' };
+            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单' };
             document.getElementById('pageTitle').textContent = titles[page] || page;
-            document.getElementById('pageBreadcrumb').textContent = '';
 
             if (page === 'dashboard') renderDashboard();
             else if (page === 'meetings') { renderMeetings(); document.getElementById('meetingDetailView').style.display = 'none'; document.getElementById('meetingListGrid').style.display = 'grid'; }
             else if (page === 'opl') renderOPL();
-            else if (page === 'risk') renderRisk();
         }
 
         // ==================== Dashboard ====================
         function renderDashboard() {
             const openOPL = store.opls.filter(o => o.status !== 'Closed').length;
-            const overdueOPL = store.opls.filter(o => o.status === 'Overdue' || (o.status !== 'Closed' && new Date(o.dueDate) < new Date())).length;
-            const openRisk = store.risks.filter(r => !['Closed', 'Mitigated', 'Accepted'].includes(r.status)).length;
-            const highRisk = store.risks.filter(r => r.level === 'High' && r.status === 'Open').length;
+            const overdueOPL = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
+            const totalMeetings = store.meetings.reduce((sum, m) => sum + m.followups.length, 0);
+            const thisWeek = store.opls.filter(o => {
+                const d = new Date(o.createdAt);
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
+                return d >= weekAgo;
+            }).length;
 
             document.getElementById('dashboardStats').innerHTML = `
                 <div class="stat-card info">
@@ -1469,15 +742,15 @@
                     <div class="stat-value">${overdueOPL}</div>
                     <div class="stat-detail">项已超过截止日期</div>
                 </div>
-                <div class="stat-card ${highRisk > 0 ? 'warning' : 'success'}">
-                    <div class="stat-label">待处理风险</div>
-                    <div class="stat-value">${openRisk}</div>
-                    <div class="stat-detail">${highRisk} 高优先级</div>
-                </div>
                 <div class="stat-card">
-                    <div class="stat-label">项目</div>
-                    <div class="stat-value">${store.projects.length}</div>
+                    <div class="stat-label">会议记录</div>
+                    <div class="stat-value">${totalMeetings}</div>
                     <div class="stat-detail">${store.meetings.length} 个会议主题</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">本周新增</div>
+                    <div class="stat-value">${thisWeek}</div>
+                    <div class="stat-detail">个新问题项</div>
                 </div>
             `;
 
@@ -1492,111 +765,48 @@
 
             // Overdue
             const overdueItems = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
-            const overdueRisks = store.risks.filter(r => !['Closed','Mitigated','Accepted'].includes(r.status) && new Date(r.dueDate) < new Date());
-            const allOverdue = [
-                ...overdueItems.map(o => ({ id: o.id, desc: o.desc, owner: o.owner, due: o.dueDate, type: '问题' })),
-                ...overdueRisks.map(r => ({ id: r.id, desc: r.desc, owner: r.owner, due: r.dueDate, type: '风险' }))
-            ].sort((a, b) => new Date(a.due) - new Date(b.due));
-
-            const overdueHtml = allOverdue.slice(0, 6).map(item => `
+            const overdueHtml = overdueItems.slice(0, 6).map(item => `
                 <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
-                    <span class="badge badge-overdue">${item.type}</span>
+                    <span class="badge badge-overdue">${item.id}</span>
                     <span style="font-size:13px; flex:1;">${item.desc}</span>
                     <span class="owner-tag">${item.owner}</span>
-                    <span style="font-size:11px; color:var(--danger);">${item.due}</span>
+                    <span style="font-size:11px; color:var(--danger);">${item.dueDate}</span>
                 </div>
             `).join('');
             document.getElementById('overdueItems').innerHTML = overdueHtml || '<div class="empty-state"><div class="es-desc">暂无逾期项</div></div>';
 
-            // Projects grid
-            renderProjectsGrid();
-            updateSidebarProjects();
             updateCounts();
-        }
-
-        function renderProjectsGrid() {
-            const html = store.projects.map(p => {
-                const oplCount = store.opls.filter(o => o.projectId === p.id && o.status !== 'Closed').length;
-                const riskCount = store.risks.filter(r => r.projectId === p.id && !['Closed','Mitigated','Accepted'].includes(r.status)).length;
-                const meetingCount = store.meetings.filter(m => m.projectId === p.id).length;
-                return `
-                    <div class="project-card" onclick="filterByProject('${p.id}')">
-                        <div class="pc-header">
-                            <div>
-                                <div class="pc-name">${p.name}</div>
-                                <div class="pc-desc">${p.desc || '暂无描述'}</div>
-                            </div>
-                            <div class="pc-color" style="background:${p.color}">${p.name.charAt(0)}</div>
-                        </div>
-                        <div class="pc-stats">
-                            <span><strong>${oplCount}</strong> 个待解决问题</span>
-                            <span><strong>${riskCount}</strong> 个活跃风险</span>
-                            <span><strong>${meetingCount}</strong> 个会议</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('projectsGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128193;</div><div class="es-title">暂无项目</div><div class="es-desc">创建第一个项目开始使用</div></div>';
-        }
-
-        function updateSidebarProjects() {
-            const html = store.projects.map(p => `
-                <div class="project-item ${currentProjectFilter === p.id ? 'active' : ''}" onclick="filterByProject('${p.id}')">
-                    <span class="project-dot" style="background:${p.color}"></span>
-                    ${p.name}
-                </div>
-            `).join('');
-            document.getElementById('sidebarProjectList').innerHTML = html;
         }
 
         function updateCounts() {
             document.getElementById('meetingCount').textContent = store.meetings.length;
             document.getElementById('oplCount').textContent = store.opls.filter(o => o.status !== 'Closed').length;
-            document.getElementById('riskCount').textContent = store.risks.filter(r => !['Closed','Mitigated','Accepted'].includes(r.status)).length;
-        }
-
-        function filterByProject(projectId) {
-            currentProjectFilter = currentProjectFilter === projectId ? '' : projectId;
-            updateSidebarProjects();
-            if (currentPage === 'dashboard') renderDashboard();
-            else if (currentPage === 'meetings') renderMeetings();
-            else if (currentPage === 'opl') renderOPL();
-            else if (currentPage === 'risk') renderRisk();
         }
 
         // ==================== Meetings ====================
         function renderMeetings() {
             const search = (document.getElementById('meetingSearch').value || '').toLowerCase();
             let filtered = store.meetings;
-
-            if (currentProjectFilter) filtered = filtered.filter(m => m.projectId === currentProjectFilter);
             if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search));
 
-            updateProjectFilters();
-
-            const html = filtered.map(m => {
-                const project = store.projects.find(p => p.id === m.projectId);
-                return `
-                    <div class="meeting-card" onclick="showMeetingDetail('${m.id}')">
-                        <div class="mc-project">${project ? project.name : '未知'}</div>
-                        <div class="mc-title">${m.name}</div>
-                        <div class="mc-meta">
-                            <span>&#128197; ${frequencyCN(m.frequency)}</span>
-                            <span>&#128101; ${(m.depts || []).join(', ')}</span>
-                        </div>
-                        ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} 次跟进</div>` : ''}
+            const html = filtered.map(m => `
+                <div class="meeting-card" onclick="showMeetingDetail('${m.id}')">
+                    <div class="mc-title">${m.name}</div>
+                    <div class="mc-meta">
+                        <span>&#128197; ${frequencyCN(m.frequency)}</span>
+                        <span>&#128101; ${(m.depts || []).join(', ')}</span>
                     </div>
-                `;
-            }).join('');
+                    ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} 次会议记录</div>` : ''}
+                </div>
+            `).join('');
 
-            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">暂无会议</div><div class="es-desc">创建会议主题来跟踪团队讨论</div></div>';
+            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">暂无会议</div><div class="es-desc">创建会议主题来跟踪代工厂沟通</div></div>';
         }
 
         function showMeetingDetail(id) {
             const m = store.meetings.find(x => x.id === id);
             if (!m) return;
             currentMeetingDetail = id;
-            const project = store.projects.find(p => p.id === m.projectId);
 
             document.getElementById('meetingListGrid').style.display = 'none';
             const detailEl = document.getElementById('meetingDetailView');
@@ -1605,33 +815,33 @@
             const followupsHtml = m.followups.length > 0
                 ? `<div class="followup-timeline">${m.followups.map(f => `
                     <div class="followup-item">
-                        <div class="fi-date">${f.date}</div>
-                        <div class="fi-notes">${f.notes || '暂无笔记'}</div>
-                        ${f.attendees ? `<div class="fi-attendees">&#128101; ${f.attendees}</div>` : ''}
+                        <div class="fi-date">&#128197; ${f.date} ${f.attendees ? ' &nbsp;&#128101; ' + f.attendees : ''}</div>
+                        <div class="minutes-content-box">${escapeHtml(f.notes || '暂无记录')}</div>
                     </div>
                 `).join('')}</div>`
-                : '<div class="empty-state"><div class="es-desc">暂无跟进会议</div></div>';
+                : '<div class="empty-state"><div class="es-desc">暂无会议记录</div></div>';
 
             detailEl.innerHTML = `
                 <div class="meeting-detail-header">
                     <button class="btn btn-ghost" onclick="backToMeetingList()">&#8592; 返回</button>
                     <h3 style="font-size:18px; font-weight:600;">${m.name}</h3>
-                    <span class="badge badge-inprogress">${project ? project.name : ''}</span>
+                    <span class="badge badge-inprogress">${frequencyCN(m.frequency)}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">跟进时间线</span>
-                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ 添加跟进</button>
+                            <span class="card-title">会议记录</span>
+                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ 添加记录</button>
                         </div>
                         <div class="card-body">${followupsHtml}</div>
                     </div>
                     <div class="card">
-                        <div class="card-header"><span class="card-title">详情</span></div>
+                        <div class="card-header"><span class="card-title">会议信息</span></div>
                         <div class="card-body">
                             <div style="font-size:13px; margin-bottom:10px;"><strong>频率：</strong> ${frequencyCN(m.frequency)}</div>
-                            <div style="font-size:13px; margin-bottom:10px;"><strong>参与部门：</strong> ${(m.depts || []).join(', ') || 'N/A'}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>参与部门：</strong> ${(m.depts || []).join(', ') || '未设置'}</div>
                             <div style="font-size:13px; margin-bottom:10px;"><strong>创建时间：</strong> ${m.createdAt}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>累计记录：</strong> ${m.followups.length} 次</div>
                             ${m.docUrl ? `<div style="font-size:13px;"><strong>文档：</strong> <a href="${m.docUrl}" target="_blank" style="color:var(--primary);">在飞书中打开</a></div>` : ''}
                             <hr style="margin:16px 0; border:none; border-top:1px solid var(--border-light);">
                             <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">删除会议</button>
@@ -1653,19 +863,15 @@
             const statusFilter = document.getElementById('oplStatusFilter').value;
             const priorityFilter = document.getElementById('oplPriorityFilter').value;
 
-            updateProjectFilters();
-
             let filtered = store.opls;
-            if (currentProjectFilter) filtered = filtered.filter(o => o.projectId === currentProjectFilter);
             if (search) filtered = filtered.filter(o => o.desc.toLowerCase().includes(search) || o.owner.toLowerCase().includes(search));
             if (statusFilter) filtered = filtered.filter(o => o.status === statusFilter);
             if (priorityFilter) filtered = filtered.filter(o => o.priority === priorityFilter);
 
-            // Stats
             const total = filtered.length;
             const open = filtered.filter(o => o.status === 'Open').length;
             const inProg = filtered.filter(o => o.status === 'In Progress').length;
-            const overdue = filtered.filter(o => o.status === 'Overdue' || (o.status !== 'Closed' && new Date(o.dueDate) < new Date())).length;
+            const overdue = filtered.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
 
             document.getElementById('oplStats').innerHTML = `
                 <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
@@ -1674,21 +880,18 @@
                 <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">已逾期</div><div class="stat-value">${overdue}</div></div>
             `;
 
-            // Table
             const rows = filtered.map(o => {
-                const project = store.projects.find(p => p.id === o.projectId);
-                const statusClass = o.status.toLowerCase().replace(/\s+/g, '');
+                const statusClass = o.status === 'In Progress' ? 'inprogress' : o.status.toLowerCase();
                 const priorityClass = o.priority.toLowerCase();
                 return `<tr>
                     <td><strong>${o.id}</strong></td>
-                    <td style="max-width:250px;">${o.desc}</td>
-                    <td>${project ? project.name : '-'}</td>
+                    <td style="max-width:280px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
                     <td>${o.dueDate}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
-                    <td><span class="badge badge-${statusClass === 'inprogress' ? 'inprogress' : statusClass}">${statusCN(o.status)}</span></td>
-                    <td class="actions-cell">
+                    <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
+                    <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
                             <option value="Open">设为待处理</option>
@@ -1702,8 +905,8 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>项目</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无问题项</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无问题项</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -1712,13 +915,13 @@
             if (value === 'delete') {
                 if (confirm('确定删除此问题项？')) {
                     store.opls = store.opls.filter(o => o.id !== id);
-                    addActivity(`已删除 ${id}`, 'opl');
+                    addActivity(`已删除 ${id}`);
                 }
             } else {
                 const opl = store.opls.find(o => o.id === id);
                 if (opl) {
                     opl.status = value;
-                    addActivity(`${id} 状态变更为${statusCN(value)}`, 'opl', opl.projectId);
+                    addActivity(`${id} 状态变更为${statusCN(value)}`);
                 }
             }
             saveStore();
@@ -1726,112 +929,17 @@
             updateCounts();
         }
 
-        // ==================== Risk ====================
-        function renderRisk() {
-            const search = (document.getElementById('riskSearch').value || '').toLowerCase();
-            const statusFilter = document.getElementById('riskStatusFilter').value;
-            const levelFilter = document.getElementById('riskLevelFilter').value;
-
-            updateProjectFilters();
-
-            let filtered = store.risks;
-            if (currentProjectFilter) filtered = filtered.filter(r => r.projectId === currentProjectFilter);
-            if (search) filtered = filtered.filter(r => r.desc.toLowerCase().includes(search) || r.owner.toLowerCase().includes(search));
-            if (statusFilter) filtered = filtered.filter(r => r.status === statusFilter);
-            if (levelFilter) filtered = filtered.filter(r => r.level === levelFilter);
-
-            const total = filtered.length;
-            const open = filtered.filter(r => r.status === 'Open').length;
-            const high = filtered.filter(r => r.level === 'High' && r.status === 'Open').length;
-            const mitigated = filtered.filter(r => r.status === 'Mitigated').length;
-
-            document.getElementById('riskStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
-                <div class="stat-card warning"><div class="stat-label">待处理</div><div class="stat-value">${open}</div></div>
-                <div class="stat-card danger"><div class="stat-label">高优先级</div><div class="stat-value">${high}</div></div>
-                <div class="stat-card success"><div class="stat-label">已缓解</div><div class="stat-value">${mitigated}</div></div>
-            `;
-
-            const rows = filtered.map(r => {
-                const project = store.projects.find(p => p.id === r.projectId);
-                const statusClass = r.status.toLowerCase().replace(/\s+/g, '');
-                const levelClass = r.level.toLowerCase();
-                return `<tr>
-                    <td><strong>${r.id}</strong></td>
-                    <td style="max-width:250px;">${r.desc}</td>
-                    <td>${project ? project.name : '-'}</td>
-                    <td>${categoryCN(r.category)}</td>
-                    <td><span class="badge badge-${levelClass}">${levelCN(r.level)}</span></td>
-                    <td><span class="owner-tag">${r.owner}</span></td>
-                    <td>${r.dueDate}</td>
-                    <td><span class="badge badge-${statusClass}">${statusCN(r.status)}</span></td>
-                    <td class="actions-cell">
-                        <select class="btn btn-sm" onchange="updateRiskStatus('${r.id}', this.value)" style="font-size:11px;padding:3px 6px;">
-                            <option value="" disabled selected>操作</option>
-                            <option value="Open">设为待处理</option>
-                            <option value="In Progress">进行中</option>
-                            <option value="Mitigated">已缓解</option>
-                            <option value="Closed">关闭</option>
-                            <option value="Accepted">接受</option>
-                            <option value="delete">删除</option>
-                        </select>
-                    </td>
-                </tr>`;
-            }).join('');
-
-            document.getElementById('riskTable').innerHTML = `
-                <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>项目</th><th>类别</th><th>级别</th><th>负责人</th><th>截止日期</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无风险项</div></div></td></tr>'}</tbody>
-                </table>
-            `;
-        }
-
-        function updateRiskStatus(id, value) {
-            if (value === 'delete') {
-                if (confirm('确定删除此风险项？')) {
-                    store.risks = store.risks.filter(r => r.id !== id);
-                    addActivity(`已删除 ${id}`, 'risk');
-                }
-            } else {
-                const risk = store.risks.find(r => r.id === id);
-                if (risk) {
-                    risk.status = value;
-                    addActivity(`${id} 状态变更为${statusCN(value)}`, 'risk', risk.projectId);
-                }
-            }
-            saveStore();
-            renderRisk();
-            updateCounts();
-        }
-
         // ==================== Create Functions ====================
-        function createProject() {
-            const name = document.getElementById('projectName').value.trim();
-            const desc = document.getElementById('projectDesc').value.trim();
-            const color = document.getElementById('projectColor').value;
-            if (!name) { showToast('请输入项目名称'); return; }
-
-            const id = 'P' + String(store.projects.length + 1).padStart(3, '0');
-            store.projects.push({ id, name, desc, color, createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`创建了项目：${name}`, 'project', id);
-            saveStore();
-            closeModal('project');
-            showToast(`项目 "${name}" 已创建`);
-            renderDashboard();
-        }
-
         function createMeeting() {
             const name = document.getElementById('meetingName').value.trim();
-            const projectId = document.getElementById('meetingProject').value;
             const frequency = document.getElementById('meetingFrequency').value;
             const docUrl = document.getElementById('meetingDocUrl').value.trim();
             const depts = document.getElementById('meetingDepts').value.split(',').map(d => d.trim()).filter(Boolean);
-            if (!name || !projectId) { showToast('请输入名称和选择项目'); return; }
+            if (!name) { showToast('请输入会议名称'); return; }
 
             const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
-            store.meetings.push({ id, name, projectId, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
-            addActivity(`创建了会议主题：${name}`, 'meeting', projectId);
+            store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
+            addActivity(`创建了会议主题：${name}`);
             saveStore();
             closeModal('meeting');
             showToast(`会议 "${name}" 已创建`);
@@ -1841,41 +949,20 @@
 
         function createOPL() {
             const desc = document.getElementById('oplDesc').value.trim();
-            const projectId = document.getElementById('oplProject').value;
             const category = document.getElementById('oplCategory').value;
             const owner = document.getElementById('oplOwner').value.trim();
             const dueDate = document.getElementById('oplDueDate').value;
             const priority = document.getElementById('oplPriority').value;
             const action = document.getElementById('oplAction').value.trim();
-            if (!desc || !owner || !dueDate || !projectId) { showToast('请输入描述、负责人、截止日期和选择项目'); return; }
+            if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, projectId, category, owner, dueDate, priority, status: 'Open', action, result: '', createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`创建了 ${id}：${desc.substring(0, 40)}...`, 'opl', projectId);
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0] });
+            addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
             showToast(`问题 ${id} 已创建`);
             if (currentPage === 'opl') renderOPL();
-            updateCounts();
-        }
-
-        function createRisk() {
-            const desc = document.getElementById('riskDesc').value.trim();
-            const projectId = document.getElementById('riskProject').value;
-            const category = document.getElementById('riskCategory').value;
-            const level = document.getElementById('riskLevel').value;
-            const owner = document.getElementById('riskOwner').value.trim();
-            const dueDate = document.getElementById('riskDueDate').value;
-            const mitigation = document.getElementById('riskMitigation').value.trim();
-            if (!desc || !owner || !dueDate || !projectId) { showToast('请输入描述、负责人、截止日期和选择项目'); return; }
-
-            const id = 'RISK-' + String(store.risks.length + 1).padStart(3, '0');
-            store.risks.push({ id, desc, projectId, category, level, owner, dueDate, status: 'Open', mitigation, createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`创建了 ${id}：${desc.substring(0, 40)}...`, 'risk', projectId);
-            saveStore();
-            closeModal('risk');
-            showToast(`风险 ${id} 已创建`);
-            if (currentPage === 'risk') renderRisk();
             updateCounts();
         }
 
@@ -1891,17 +978,17 @@
 
             const fid = 'F' + String(Date.now()).slice(-6);
             meeting.followups.unshift({ id: fid, date, notes, attendees });
-            addActivity(`添加了跟进到"${meeting.name}"（${date}）`, 'meeting', meeting.projectId);
+            addActivity(`添加了会议记录（${meeting.name} ${date}）`);
             saveStore();
             closeModal('followup');
-            showToast('跟进已添加');
+            showToast('会议记录已保存');
             showMeetingDetail(meetingId);
         }
 
         function deleteMeeting(id) {
-            if (!confirm('确定删除此会议及所有跟进记录？')) return;
+            if (!confirm('确定删除此会议及所有记录？')) return;
             store.meetings = store.meetings.filter(m => m.id !== id);
-            addActivity('删除了一个会议主题', 'meeting');
+            addActivity('删除了一个会议主题');
             saveStore();
             backToMeetingList();
             renderMeetings();
@@ -1910,7 +997,6 @@
 
         // ==================== Modals ====================
         function openModal(type) {
-            updateProjectSelects();
             document.getElementById(type + 'Modal').classList.add('active');
         }
 
@@ -1923,44 +1009,14 @@
             document.getElementById('followupDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('followupNotes').value = '';
             document.getElementById('followupAttendees').value = '';
-            document.getElementById('followupDocUrl').value = '';
             openModal('followup');
         }
 
-        function openQuickAdd() {
-            openModal('quickAdd');
-        }
-
-        function switchQuickTab(type) {
-            closeModal('quickAdd');
-            openModal(type);
-        }
-
         // ==================== Helpers ====================
-        function updateProjectSelects() {
-            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            ['meetingProject', 'oplProject', 'riskProject'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = '<option value="">选择项目...</option>' + options;
-            });
-        }
-
-        function updateProjectFilters() {
-            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            ['meetingProjectFilter', 'oplProjectFilter', 'riskProjectFilter'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    const current = el.value;
-                    el.innerHTML = '<option value="">所有项目</option>' + options;
-                    el.value = current;
-                }
-            });
-        }
-
-        function addActivity(content, type, projectId) {
+        function addActivity(content) {
             const now = new Date();
             const time = now.toISOString().replace('T', ' ').substring(0, 16);
-            store.activities.unshift({ time, content, type, projectId: projectId || '' });
+            store.activities.unshift({ time, content });
             if (store.activities.length > 50) store.activities = store.activities.slice(0, 50);
         }
 
@@ -1971,92 +1027,51 @@
             setTimeout(() => el.classList.remove('show'), 3000);
         }
 
-        function fetchMinutesFromFeishu() {
-            const url = document.getElementById('followupDocUrl').value.trim();
-            if (!url) { showToast('请输入飞书文档链接'); return; }
-            showToast('正在从飞书获取...（需要后端接口支持）');
-        }
-
-        function exportAllCSV() {
-            // Export OPL
-            let csv = '编号,描述,项目,类别,负责人,截止日期,优先级,状态,行动方案\n';
+        function exportCSV() {
+            let csv = '编号,描述,类别,负责人,截止日期,优先级,状态,行动方案\n';
             store.opls.forEach(o => {
-                const project = store.projects.find(p => p.id === o.projectId);
-                csv += `"${o.id}","${o.desc}","${project?project.name:''}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action}"\n`;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
             });
-            downloadCSV(csv, 'OPL_Export.csv');
-
-            // Export Risk
-            let riskCsv = '编号,描述,项目,类别,级别,负责人,截止日期,状态,缓解方案\n';
-            store.risks.forEach(r => {
-                const project = store.projects.find(p => p.id === r.projectId);
-                riskCsv += `"${r.id}","${r.desc}","${project?project.name:''}","${categoryCN(r.category)}","${levelCN(r.level)}","${r.owner}","${r.dueDate}","${statusCN(r.status)}","${r.mitigation}"\n`;
-            });
-            downloadCSV(riskCsv, 'Risk_Export.csv');
-
-            showToast('已导出问题清单和风险 CSV');
-        }
-
-        function downloadCSV(content, filename) {
-            const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = filename;
+            link.download = 'OPL_Export.csv';
             link.click();
+            showToast('问题清单已导出');
         }
 
         // ==================== Minutes Upload ====================
         let extractedOPLs = [];
-        let extractedRisks = [];
         let extractedAttendees = '';
 
         function openMinutesUpload() {
-            // Reset to step 1
             document.getElementById('minutesStep1').classList.add('active');
             document.getElementById('minutesStep2').classList.remove('active');
-            // Populate project select
-            const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            document.getElementById('minutesProject').innerHTML = '<option value="">选择项目...</option>' + options;
-            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择会议主题...</option>';
+            const options = store.meetings.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择已有会议主题...</option>' + options;
             document.getElementById('minutesNewMeeting').value = '';
             document.getElementById('minutesDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('minutesContent').value = '';
             extractedOPLs = [];
-            extractedRisks = [];
+            extractedAttendees = '';
             document.getElementById('minutesUploadModal').classList.add('active');
         }
 
-        function updateMinutesMeetings() {
-            const projectId = document.getElementById('minutesProject').value;
-            const meetings = store.meetings.filter(m => m.projectId === projectId);
-            const options = meetings.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
-            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择已有会议主题...</option>' + options;
-        }
-
         function parseMinutes() {
-            const projectId = document.getElementById('minutesProject').value;
             const meetingId = document.getElementById('minutesMeeting').value;
             const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
             const date = document.getElementById('minutesDate').value;
             const content = document.getElementById('minutesContent').value.trim();
 
-            if (!projectId) { showToast('请选择所属项目'); return; }
             if (!meetingId && !newMeetingName) { showToast('请选择或输入会议主题'); return; }
             if (!date) { showToast('请选择会议日期'); return; }
             if (!content) { showToast('请粘贴会议纪要内容'); return; }
 
-            // Parse the content - enhanced for Feishu meeting minutes format
             extractedOPLs = [];
-            extractedRisks = [];
-
-            // ===== Extract attendees (参会人员) from content =====
             extractedAttendees = '';
-            const attendeesPatterns = [
-                /参会人员[：:]\s*(.+)/,
-                /参会人[：:]\s*(.+)/,
-                /与会人员[：:]\s*(.+)/,
-                /出席[：:]\s*(.+)/
-            ];
+
+            // Extract attendees
+            const attendeesPatterns = [/参会人员[：:]\s*(.+)/, /参会人[：:]\s*(.+)/, /与会人员[：:]\s*(.+)/, /出席[：:]\s*(.+)/];
             for (const pat of attendeesPatterns) {
                 const m = content.match(pat);
                 if (m) {
@@ -2064,241 +1079,121 @@
                     const citeNames = [];
                     const citeRegex = /user-name="([^"]+)"/g;
                     let cm;
-                    while ((cm = citeRegex.exec(raw)) !== null) {
-                        citeNames.push(cm[1]);
-                    }
+                    while ((cm = citeRegex.exec(raw)) !== null) citeNames.push(cm[1]);
                     raw = raw.replace(/<cite[^>]*><\/cite>/g, '').replace(/<[^>]+>/g, '');
-                    const plainNames = raw.split(/[,，、\s]+/).map(n => n.replace(/\(外部\)|\（外部\）/g, '').trim()).filter(n => n && n.length >= 2 && n.length <= 10 && !/^\d/.test(n) && !/其他/.test(n) && !/名外部/.test(n));
+                    const plainNames = raw.split(/[,，、\s]+/).map(n => n.replace(/\(外部\)|\（外部\）/g, '').trim()).filter(n => n && n.length >= 2 && n.length <= 10 && !/^\d/.test(n) && !/其他|名外部/.test(n));
                     extractedAttendees = [...citeNames, ...plainNames].filter((v, i, a) => a.indexOf(v) === i).join(', ');
                     break;
                 }
             }
 
+            // Parse OPL items
             const lines = content.split('\n');
-
-            // ===== Multi-strategy parsing for Feishu meeting minutes =====
-            // Strategy: identify sections by headings or keywords, then extract items
-
-            let currentSection = '';
             let todoSection = false;
-            let riskSection = false;
-            let consensusSection = false;
-            let summarySection = false;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                // --- Section detection (supports multiple formats) ---
-                // Format 1: Markdown headings: # 标题, ## 标题
-                // Format 2: Bold text as heading: **标题**
-                // Format 3: Emoji + text as heading (common when copying from Feishu): ✅ 待办任务, 🧾 核心议题
-                // Format 4: Plain text section headers: "待办任务与跟进", "核心议题"
+                // Section detection
                 const isHeading = /^#{1,3}\s/.test(line) || /^\*\*[^*]+\*\*$/.test(line);
                 const isSectionLike = /^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/.test(line) ||
-                    /^(待办|任务|跟进|风险|核心议题|落地策略|总结|共识|补充)/.test(line);
+                    /^(待办|任务|跟进|核心议题|落地策略|总结|共识|补充)/.test(line);
 
                 if (isHeading || isSectionLike) {
                     const headingText = line.replace(/^#{1,3}\s*/, '').replace(/\*\*/g, '').replace(/^[🎉🧾✅🪜📋⚠️🔥💡📌]\s*/, '').trim();
                     todoSection = /待办|任务|跟进|Action|TODO|行动项/.test(headingText);
-                    riskSection = /风险|Risk/.test(headingText) && !/应对|处理|策略/.test(headingText);
-                    consensusSection = /共识|决议|结论|策略|落地/.test(headingText);
-                    summarySection = /总结|概述/.test(headingText);
-                    currentSection = headingText;
                     continue;
                 }
 
-                // --- Extract TODO/OPL items ---
-
-                // Pattern 1: Markdown checkbox: "- [ ] content @person"
+                // Markdown checkbox
                 const checkboxMatch = line.match(/^[-*]\s*\[[\sx]*\]\s*(.+)/);
                 if (checkboxMatch) {
-                    const parsed = parseItemContent(checkboxMatch[1], 'opl');
+                    const parsed = parseItemContent(checkboxMatch[1]);
                     if (parsed) extractedOPLs.push(parsed);
                     continue;
                 }
 
-                // Pattern 2: Plain text todo item (Feishu copy-paste format)
-                // When copied from Feishu, "- [ ] xxx" often becomes just "xxx" or "· xxx" or plain text with @
-                // Detect: lines containing @person AND in/after todo section, OR lines with task-like patterns
+                // In todo section
                 if (todoSection) {
-                    // Strip bullet markers if any
                     let itemText = line.replace(/^[-*•·]\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
-                    // Skip sub-headings and short lines
                     if (itemText.length > 5 && !isHeading && !/^[>]/.test(line)) {
-                        // Skip lines that are clearly notes/hints (like "待办任务由 AI 生成")
                         if (!/由.*生成|可能不准确|人工调整/.test(itemText)) {
-                            const parsed = parseItemContent(itemText, 'opl');
+                            const parsed = parseItemContent(itemText);
                             if (parsed) extractedOPLs.push(parsed);
                         }
                     }
                     continue;
                 }
 
-                // Pattern 3: Lines with explicit task format anywhere in the doc
+                // Explicit patterns
                 if (/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i.test(line)) {
                     const itemText = line.replace(/^(问题[:：]|Issue[:：]|待解决[:：]|Action\s*Item[:：]|TODO[:：])/i, '').trim();
                     if (itemText.length > 3) {
-                        const parsed = parseItemContent(itemText, 'opl');
+                        const parsed = parseItemContent(itemText);
                         if (parsed) extractedOPLs.push(parsed);
-                    }
-                    continue;
-                }
-
-                // --- Extract Risk items ---
-
-                // Pattern 1: Explicit risk prefix
-                if (/^(风险[:：]|Risk[:：])/i.test(line)) {
-                    const itemText = line.replace(/^(风险[:：]|Risk[:：])/i, '').trim();
-                    if (itemText.length > 3) {
-                        const parsed = parseItemContent(itemText, 'risk');
-                        if (parsed) extractedRisks.push(parsed);
-                    }
-                    continue;
-                }
-
-                // Pattern 2: Inside risk section
-                if (riskSection) {
-                    let itemText = line.replace(/^[-*•·]\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
-                    if (itemText.length > 5 && !isHeading) {
-                        const parsed = parseItemContent(itemText, 'risk');
-                        if (parsed) extractedRisks.push(parsed);
-                    }
-                    continue;
-                }
-
-                // Pattern 3: Risk keywords in consensus/strategy sections
-                if ((consensusSection || summarySection) && !todoSection) {
-                    const strongRiskPatterns = [
-                        /存在.*风险/,
-                        /风险[较很]?[高大]/,
-                        /可能[导造]成/,
-                        /延期风险/,
-                        /供应.*风险/,
-                        /短缺/,
-                        /无法按时/,
-                        /不能满足/,
-                        /冲突/,
-                        /抛料/
-                    ];
-                    const isStrongRisk = strongRiskPatterns.some(p => p.test(line));
-                    if (isStrongRisk && line.length > 10 && line.length < 200) {
-                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 15)) || cleanLine.includes(r.desc.substring(0, 15)));
-                        if (!isDup) {
-                            const parsed = parseItemContent(cleanLine, 'risk');
-                            if (parsed) extractedRisks.push(parsed);
-                        }
                     }
                 }
             }
 
-            // ===== Strategy 2: If structure-based found nothing, use broader keyword scan =====
-            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
-                // Try to find any lines with @ mentions (likely action items)
-                const atLines = [];
-                const riskLines = [];
+            // Fallback: lines with @mentions
+            if (extractedOPLs.length === 0) {
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line || line.length < 8 || line.length > 300) continue;
                     if (/^#{1,3}\s/.test(line) || /^>/.test(line)) continue;
-
-                    // Lines with @person are likely action items
-                    if (/@[一-龥]{2,4}/.test(line)) {
+                    if (/@[一-鿿]{2,4}/.test(line)) {
                         const cleanLine = line.replace(/^[-*•·\d.、)\[\]x\s]*/, '').trim();
-                        if (cleanLine.length > 5) atLines.push(cleanLine);
-                        continue;
-                    }
-
-                    // Keyword-based detection
-                    const oplKws = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '催办', '需尽快', '推动', '协助'];
-                    const riskKws = ['风险', '延期', '不确定', '短缺', '冲突', '无法到位', '无法按时', '抛料', '不满足'];
-
-                    const hasOPL = oplKws.some(kw => line.includes(kw));
-                    const hasRisk = riskKws.some(kw => line.includes(kw));
-
-                    if (hasRisk && !hasOPL) {
-                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        if (cleanLine.length > 5) riskLines.push(cleanLine);
-                    } else if (hasOPL) {
-                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        if (cleanLine.length > 5) atLines.push(cleanLine);
-                    }
-                }
-
-                // Parse collected lines
-                atLines.forEach(line => {
-                    const isDup = extractedOPLs.some(r => r.desc.includes(line.substring(0, 15)));
-                    if (!isDup) {
-                        const parsed = parseItemContent(line, 'opl');
-                        if (parsed) extractedOPLs.push(parsed);
-                    }
-                });
-                riskLines.forEach(line => {
-                    const isDup = extractedRisks.some(r => r.desc.includes(line.substring(0, 15)));
-                    if (!isDup) {
-                        const parsed = parseItemContent(line, 'risk');
-                        if (parsed) extractedRisks.push(parsed);
-                    }
-                });
-            }
-
-            // ===== Strategy 3: Extract risks from "会议共识" numbered items =====
-            // Feishu meeting notes often have risks embedded in consensus points
-            if (extractedRisks.length === 0) {
-                let inConsensus = false;
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (/共识|风险.*应对|风险.*处理/.test(line) && (line.length < 30 || /^[#*]/.test(line))) {
-                        inConsensus = true;
-                        continue;
-                    }
-                    if (inConsensus && /^[#]/.test(line)) { inConsensus = false; continue; }
-                    if (inConsensus && /风险|延期|冲突|无法/.test(line) && line.length > 10 && line.length < 200) {
-                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
-                        const isDup = extractedRisks.some(r => r.desc.includes(cleanLine.substring(0, 15)));
-                        if (!isDup) {
-                            const parsed = parseItemContent(cleanLine, 'risk');
-                            if (parsed) extractedRisks.push(parsed);
+                        if (cleanLine.length > 5) {
+                            const parsed = parseItemContent(cleanLine);
+                            if (parsed) extractedOPLs.push(parsed);
                         }
                     }
                 }
             }
 
-            // Show step 2 with results
-            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
-                showToast('未能从会议纪要中识别到问题项或风险项，请检查内容格式');
-                return;
+            // Fallback 2: keyword-based
+            if (extractedOPLs.length === 0) {
+                const oplKws = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '需尽快', '推动', '协助'];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.length < 8 || line.length > 300) continue;
+                    if (/^#{1,3}\s/.test(line)) continue;
+                    if (oplKws.some(kw => line.includes(kw))) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        if (cleanLine.length > 5) {
+                            const isDup = extractedOPLs.some(r => r.desc.includes(cleanLine.substring(0, 15)));
+                            if (!isDup) {
+                                const parsed = parseItemContent(cleanLine);
+                                if (parsed) extractedOPLs.push(parsed);
+                            }
+                        }
+                    }
+                }
             }
+
+            // Show results
             renderParsedResults();
             document.getElementById('minutesStep1').classList.remove('active');
             document.getElementById('minutesStep2').classList.add('active');
         }
 
-        // Helper: parse a single item line and extract owner, date, priority, category
-        function parseItemContent(text, type) {
+        function parseItemContent(text) {
             let desc = text.trim();
             if (!desc || desc.length < 3) return null;
 
-            // Remove markdown bold markers and cite tags
             desc = desc.replace(/\*\*/g, '');
             desc = desc.replace(/<cite[^>]*user-name="([^"]+)"[^>]*><\/cite>/g, '@$1');
             desc = desc.replace(/<[^>]+>/g, '');
 
-            // Extract owner: @name patterns (support multiple @mentions, take first as owner)
+            // Extract owner
             let owner = '';
-            const ownerPatterns = [
-                /@([一-龥]{2,4})/,
-                /@([^\s@,，;；。.\d]{2,10})/,
-                /负责人[:：]\s*([^\s,，;；。.]+)/,
-                /责任人[:：]\s*([^\s,，;；。.]+)/
-            ];
+            const ownerPatterns = [/@([一-鿿]{2,4})/, /@([^\s@,，;；。.\d]{2,10})/, /负责人[:：]\s*([^\s,，;；。.]+)/];
             for (const pat of ownerPatterns) {
                 const m = desc.match(pat);
                 if (m) {
                     owner = m[1];
-                    // Remove all @mentions from description
-                    desc = desc.replace(/@[一-龥]{2,4}/g, '').replace(/@[^\s@,，;；。.\d]{2,10}/g, '').trim();
+                    desc = desc.replace(/@[一-鿿]{2,4}/g, '').replace(/@[^\s@,，;；。.\d]{2,10}/g, '').trim();
                     break;
                 }
             }
@@ -2308,15 +1203,13 @@
             const datePatterns = [
                 { re: /截止[:：]?\s*(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
                 { re: /(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
-                { re: /(\d{1,2})月(\d{1,2})[日号]前?/, idx: null, full: false },
-                { re: /本周([一二三四五六日天])前?/, idx: null, full: false }
+                { re: /(\d{1,2})月(\d{1,2})[日号]前?/, idx: null, full: false }
             ];
             for (const dp of datePatterns) {
                 const m = desc.match(dp.re);
                 if (m) {
-                    if (dp.full) {
-                        dueDate = m[dp.idx];
-                    } else if (m[1] && m[2]) {
+                    if (dp.full) { dueDate = m[dp.idx]; }
+                    else if (m[1] && m[2]) {
                         const year = new Date().getFullYear();
                         dueDate = `${year}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
                     }
@@ -2325,56 +1218,38 @@
                 }
             }
 
-            // Extract priority
+            // Priority
             let priority = 'Medium';
             if (/紧急|重要|高优先|尽快|立即/.test(text)) priority = 'High';
             else if (/低优先|不紧急|适时/.test(text)) priority = 'Low';
 
-            // Extract category
+            // Category
             let category = 'Other';
-            if (type === 'opl') {
-                if (/设计|Design|BOM|原理图/i.test(text)) category = 'Design';
-                else if (/工艺|Process|工装|治具|插件|贴片|焊接/i.test(text)) category = 'Process';
-                else if (/材料|Material|物料|备料|来料|导热垫|电容/i.test(text)) category = 'Material';
-                else if (/质量|Quality|AECQ|PPAP|合格/i.test(text)) category = 'Quality';
-                else if (/测试|Test|验证|DVP|DV/i.test(text)) category = 'Test';
-                else if (/生产|Production|排产|量产|产线/i.test(text)) category = 'Production';
-                else if (/供应|供应商|采购|交付/i.test(text)) category = 'Supply Chain';
-            } else {
-                if (/技术|Technical|设计缺陷/i.test(text)) category = 'Technical';
-                else if (/进度|Schedule|延期|延迟|时间.*冲突|无法按时/i.test(text)) category = 'Schedule';
-                else if (/质量|Quality|良率|不良/i.test(text)) category = 'Quality';
-                else if (/供应|Supply|供应商|短缺|缺料|备料/i.test(text)) category = 'Supply Chain';
-                else if (/成本|Cost|费用|预算/i.test(text)) category = 'Cost';
-                else if (/资源|Resource|人力/i.test(text)) category = 'Resource';
-                else if (/工艺|Process|工装|治具|抛料/i.test(text)) category = 'Technical';
-            }
+            if (/设计|Design|BOM|原理图/i.test(text)) category = 'Design';
+            else if (/工艺|Process|工装|治具|插件|贴片|焊接/i.test(text)) category = 'Process';
+            else if (/材料|Material|物料|备料|来料|导热垫|电容/i.test(text)) category = 'Material';
+            else if (/质量|Quality|AECQ|PPAP|合格/i.test(text)) category = 'Quality';
+            else if (/测试|Test|验证|DVP|DV/i.test(text)) category = 'Test';
+            else if (/生产|Production|排产|量产|产线/i.test(text)) category = 'Production';
+            else if (/供应|供应商|采购|交付/i.test(text)) category = 'Supply Chain';
 
-            // Clean up description
-            desc = desc.replace(/[,，;；。]\s*$/, '').replace(/^\s*[:：]\s*/, '').trim();
-            // Remove trailing periods and extra spaces
-            desc = desc.replace(/\s{2,}/g, ' ').replace(/[。.]\s*$/, '').trim();
+            desc = desc.replace(/[,，;；。]\s*$/, '').replace(/^\s*[:：]\s*/, '').replace(/\s{2,}/g, ' ').replace(/[。.]\s*$/, '').trim();
             if (!desc || desc.length < 3) return null;
 
-            if (type === 'opl') {
-                return { desc, owner, dueDate, priority, category };
-            } else {
-                return { desc, owner, dueDate, level: priority, category };
-            }
+            return { desc, owner, dueDate, priority, category };
         }
 
         function renderParsedResults() {
             let html = '';
+            html += `<div class="parsed-section-title">识别到的问题项 (OPL) <span class="count-badge">${extractedOPLs.length} 项</span></div>`;
 
-            // OPL section
-            html += `<div class="parsed-section-title">问题项 (OPL) <span class="count-badge">${extractedOPLs.length} 项</span></div>`;
             if (extractedOPLs.length === 0) {
-                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">未识别到问题项</div>';
+                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px; padding:20px; text-align:center;">未识别到问题项。会议纪要内容仍会完整保存为会议记录。</div>';
             } else {
                 extractedOPLs.forEach((item, idx) => {
                     html += `
-                    <div class="extracted-card" id="opl-card-${idx}">
-                        <button class="ec-remove" onclick="removeExtractedItem('opl', ${idx})" title="移除">&times;</button>
+                    <div class="extracted-card">
+                        <button class="ec-remove" onclick="removeExtractedItem(${idx})" title="移除">&times;</button>
                         <div class="ec-desc">
                             <input type="text" value="${escapeHtml(item.desc)}" onchange="extractedOPLs[${idx}].desc=this.value" style="width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:500;">
                         </div>
@@ -2404,52 +1279,7 @@
                                     <option value="Quality" ${item.category==='Quality'?'selected':''}>质量</option>
                                     <option value="Test" ${item.category==='Test'?'selected':''}>测试</option>
                                     <option value="Production" ${item.category==='Production'?'selected':''}>生产</option>
-                                    <option value="Other" ${item.category==='Other'?'selected':''}>其他</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            }
-
-            // Risk section
-            html += `<div class="parsed-section-title" style="margin-top:20px;">风险项 (Risk) <span class="count-badge">${extractedRisks.length} 项</span></div>`;
-            if (extractedRisks.length === 0) {
-                html += '<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">未识别到风险项</div>';
-            } else {
-                extractedRisks.forEach((item, idx) => {
-                    html += `
-                    <div class="extracted-card" id="risk-card-${idx}">
-                        <button class="ec-remove" onclick="removeExtractedItem('risk', ${idx})" title="移除">&times;</button>
-                        <div class="ec-desc">
-                            <input type="text" value="${escapeHtml(item.desc)}" onchange="extractedRisks[${idx}].desc=this.value" style="width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:500;">
-                        </div>
-                        <div class="ec-fields">
-                            <div class="ec-field">
-                                <label>负责人</label>
-                                <input type="text" value="${escapeHtml(item.owner)}" onchange="extractedRisks[${idx}].owner=this.value" placeholder="未指定">
-                            </div>
-                            <div class="ec-field">
-                                <label>截止日期</label>
-                                <input type="date" value="${item.dueDate}" onchange="extractedRisks[${idx}].dueDate=this.value">
-                            </div>
-                            <div class="ec-field">
-                                <label>风险级别</label>
-                                <select onchange="extractedRisks[${idx}].level=this.value">
-                                    <option value="High" ${item.level==='High'?'selected':''}>高</option>
-                                    <option value="Medium" ${item.level==='Medium'?'selected':''}>中</option>
-                                    <option value="Low" ${item.level==='Low'?'selected':''}>低</option>
-                                </select>
-                            </div>
-                            <div class="ec-field">
-                                <label>类别</label>
-                                <select onchange="extractedRisks[${idx}].category=this.value">
-                                    <option value="Technical" ${item.category==='Technical'?'selected':''}>技术</option>
-                                    <option value="Schedule" ${item.category==='Schedule'?'selected':''}>进度</option>
-                                    <option value="Quality" ${item.category==='Quality'?'selected':''}>质量</option>
                                     <option value="Supply Chain" ${item.category==='Supply Chain'?'selected':''}>供应链</option>
-                                    <option value="Cost" ${item.category==='Cost'?'selected':''}>成本</option>
-                                    <option value="Resource" ${item.category==='Resource'?'selected':''}>资源</option>
                                     <option value="Other" ${item.category==='Other'?'selected':''}>其他</option>
                                 </select>
                             </div>
@@ -2458,19 +1288,13 @@
                 });
             }
 
-            if (extractedOPLs.length === 0 && extractedRisks.length === 0) {
-                html += '<div style="text-align:center; padding:20px; color:var(--text-muted);">未能从文本中识别出问题项或风险项。<br>请检查内容格式或返回修改。</div>';
-            }
+            html += '<div style="margin-top:16px; padding:12px; background:var(--success-light); border-radius:var(--radius-sm); font-size:13px; color:#047857;">&#10003; 会议纪要全文将完整保存为会议记录。</div>';
 
             document.getElementById('parsedResults').innerHTML = html;
         }
 
-        function removeExtractedItem(type, index) {
-            if (type === 'opl') {
-                extractedOPLs.splice(index, 1);
-            } else {
-                extractedRisks.splice(index, 1);
-            }
+        function removeExtractedItem(index) {
+            extractedOPLs.splice(index, 1);
             renderParsedResults();
         }
 
@@ -2480,104 +1304,63 @@
         }
 
         function confirmMinutesImport() {
-            const projectId = document.getElementById('minutesProject').value;
             let meetingId = document.getElementById('minutesMeeting').value;
             const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
             const date = document.getElementById('minutesDate').value;
             const content = document.getElementById('minutesContent').value.trim();
 
-            // If new meeting name provided, create the meeting first
+            // Create meeting if needed
             if (!meetingId && newMeetingName) {
                 meetingId = 'M' + String(store.meetings.length + 1).padStart(3, '0');
                 store.meetings.push({
-                    id: meetingId,
-                    name: newMeetingName,
-                    projectId: projectId,
-                    docUrl: '',
-                    depts: [],
-                    frequency: 'adhoc',
-                    createdAt: new Date().toISOString().split('T')[0],
-                    followups: []
+                    id: meetingId, name: newMeetingName, docUrl: '', depts: [],
+                    frequency: 'adhoc', createdAt: new Date().toISOString().split('T')[0], followups: []
                 });
-                addActivity(`创建了会议主题：${newMeetingName}`, 'meeting', projectId);
+                addActivity(`创建了会议主题：${newMeetingName}`);
             }
 
             if (!meetingId) { showToast('请选择或创建会议主题'); return; }
 
             let oplCount = 0;
-            let riskCount = 0;
 
             // Add OPL items
             extractedOPLs.forEach(item => {
                 if (!item.desc) return;
                 const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
                 store.opls.push({
-                    id,
-                    desc: item.desc,
-                    projectId,
-                    category: item.category || 'Other',
-                    owner: item.owner || '待指定',
-                    dueDate: item.dueDate || '',
-                    priority: item.priority || 'Medium',
-                    status: 'Open',
-                    action: '',
-                    result: '',
-                    createdAt: new Date().toISOString().split('T')[0]
+                    id, desc: item.desc, category: item.category || 'Other',
+                    owner: item.owner || '待指定', dueDate: item.dueDate || '',
+                    priority: item.priority || 'Medium', status: 'Open',
+                    action: '', createdAt: new Date().toISOString().split('T')[0]
                 });
                 oplCount++;
             });
 
-            // Add Risk items
-            extractedRisks.forEach(item => {
-                if (!item.desc) return;
-                const id = 'RISK-' + String(store.risks.length + 1).padStart(3, '0');
-                store.risks.push({
-                    id,
-                    desc: item.desc,
-                    projectId,
-                    category: item.category || 'Other',
-                    level: item.level || 'Medium',
-                    owner: item.owner || '待指定',
-                    dueDate: item.dueDate || '',
-                    status: 'Open',
-                    mitigation: '',
-                    createdAt: new Date().toISOString().split('T')[0]
-                });
-                riskCount++;
-            });
-
-            // Add meeting minutes as followup
+            // Save FULL meeting minutes as followup (no truncation!)
             const meeting = store.meetings.find(m => m.id === meetingId);
             if (meeting) {
                 const fid = 'F' + String(Date.now()).slice(-6);
                 meeting.followups.unshift({
                     id: fid,
                     date: date,
-                    notes: content.substring(0, 500) + (content.length > 500 ? '...' : ''),
+                    notes: content,  // 全文保存，不截断
                     attendees: extractedAttendees || ''
                 });
             }
 
             // Activity logs
             if (oplCount > 0) {
-                addActivity(`从会议纪要导入了 ${oplCount} 个问题项`, 'opl', projectId);
+                addActivity(`从会议纪要导入了 ${oplCount} 个问题项`);
             }
-            if (riskCount > 0) {
-                addActivity(`从会议纪要导入了 ${riskCount} 个风险项`, 'risk', projectId);
-            }
-            addActivity(`上传了会议纪要（${date}）`, 'meeting', projectId);
+            addActivity(`保存了会议记录（${meeting ? meeting.name : ''} ${date}）`);
 
             saveStore();
             closeModal('minutesUpload');
+            showToast(`保存成功！会议记录已保存${oplCount > 0 ? '，并添加了 ' + oplCount + ' 个问题项' : ''}`);
 
-            const totalItems = oplCount + riskCount;
-            showToast(`导入成功！添加了 ${oplCount} 个问题项和 ${riskCount} 个风险项`);
-
-            // Refresh current page
             if (currentPage === 'dashboard') renderDashboard();
             else if (currentPage === 'meetings') renderMeetings();
             else if (currentPage === 'opl') renderOPL();
-            else if (currentPage === 'risk') renderRisk();
             updateCounts();
         }
 
