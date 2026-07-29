@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.1
+                数据本地保存 &middot; BMU代工厂管理 v2.2
             </div>
         </aside>
 
@@ -651,7 +651,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v4-bmu';
+        const DATA_VERSION = 'v5-bmu';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -882,24 +882,44 @@
             const total = filtered.length;
             const open = filtered.filter(o => o.status === 'Open').length;
             const inProg = filtered.filter(o => o.status === 'In Progress').length;
+            const closed = filtered.filter(o => o.status === 'Closed').length;
             const overdue = filtered.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
+            const onTime = filtered.filter(o => o.status === 'Closed' && o.closedAt && new Date(o.closedAt) <= new Date(o.dueDate)).length;
+            const onTimeRate = closed > 0 ? Math.round(onTime / closed * 100) : '-';
 
             document.getElementById('oplStats').innerHTML = `
                 <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
                 <div class="stat-card warning"><div class="stat-label">待处理</div><div class="stat-value">${open}</div></div>
                 <div class="stat-card info"><div class="stat-label">进行中</div><div class="stat-value">${inProg}</div></div>
                 <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">已逾期</div><div class="stat-value">${overdue}</div></div>
+                <div class="stat-card success"><div class="stat-label">已关闭</div><div class="stat-value">${closed}</div></div>
+                <div class="stat-card"><div class="stat-label">按时完成率</div><div class="stat-value">${onTimeRate}${onTimeRate !== '-' ? '%' : ''}</div></div>
             `;
 
             const rows = filtered.map(o => {
                 const statusClass = o.status === 'In Progress' ? 'inprogress' : o.status.toLowerCase();
                 const priorityClass = o.priority.toLowerCase();
+                const isOverdue = o.status !== 'Closed' && new Date(o.dueDate) < new Date();
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                let dueDateDisplay = '';
+                if (o.status === 'Closed' && o.closedAt) {
+                    const onTime = new Date(o.closedAt) <= new Date(o.dueDate);
+                    dueDateDisplay = `<span style="text-decoration:${onTime?'none':'line-through'}; color:${onTime?'var(--success)':'var(--text-muted)'};">${o.dueDate}</span>`;
+                    if (!onTime) dueDateDisplay += `<br><span style="font-size:11px; color:var(--warning);">实际：${o.closedAt}</span>`;
+                    if (onTime) dueDateDisplay += `<br><span style="font-size:11px; color:var(--success);">✓ 按时完成</span>`;
+                } else if (isOverdue) {
+                    const days = Math.ceil((new Date() - new Date(o.dueDate)) / (1000*60*60*24));
+                    dueDateDisplay = `<span style="color:var(--danger); font-weight:600;">${o.dueDate}</span><br><span style="font-size:11px; color:var(--danger);">逾期${days}天</span>`;
+                } else {
+                    dueDateDisplay = o.dueDate;
+                }
+                if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">已延期${extCount}次</span>`;
                 return `<tr>
                     <td><strong>${o.id}</strong></td>
                     <td style="max-width:280px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
-                    <td>${o.dueDate}</td>
+                    <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
                     <td>
@@ -908,6 +928,7 @@
                             <option value="Open">设为待处理</option>
                             <option value="In Progress">进行中</option>
                             <option value="Closed">关闭</option>
+                            <option value="延期">申请延期</option>
                             <option value="delete">删除</option>
                         </select>
                     </td>
@@ -916,7 +937,7 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>截止/完成日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
                     <tbody>${rows || '<tr><td colspan="8"><div class="empty-state"><div class="es-desc">暂无问题项</div></div></td></tr>'}</tbody>
                 </table>
             `;
@@ -928,16 +949,52 @@
                     store.opls = store.opls.filter(o => o.id !== id);
                     addActivity(`已删除 ${id}`);
                 }
+            } else if (value === '延期') {
+                requestExtension(id);
+                return;
             } else {
                 const opl = store.opls.find(o => o.id === id);
                 if (opl) {
+                    const oldStatus = opl.status;
                     opl.status = value;
-                    addActivity(`${id} 状态变更为${statusCN(value)}`);
+                    if (value === 'Closed') {
+                        opl.closedAt = new Date().toISOString().split('T')[0];
+                        const due = new Date(opl.dueDate);
+                        const closed = new Date(opl.closedAt);
+                        if (closed <= due) {
+                            addActivity(`${id} 已按时关闭（完成日期：${opl.closedAt}）`);
+                        } else {
+                            const days = Math.ceil((closed - due) / (1000*60*60*24));
+                            addActivity(`${id} 已关闭，逾期${days}天（截止：${opl.dueDate}，完成：${opl.closedAt}）`);
+                        }
+                    } else {
+                        if (oldStatus === 'Closed') { opl.closedAt = ''; }
+                        addActivity(`${id} 状态变更为${statusCN(value)}`);
+                    }
                 }
             }
             saveStore();
             renderOPL();
             updateCounts();
+        }
+
+        function requestExtension(id) {
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            const reason = prompt(`申请延期 ${id}\n当前截止日期：${opl.dueDate}\n\n请输入延期原因（必填）：`);
+            if (!reason || !reason.trim()) { showToast('延期原因不能为空，已取消'); return; }
+            const newDate = prompt(`请输入新的截止日期（格式：YYYY-MM-DD）：\n例如：2025-08-15`);
+            if (!newDate || !/^\d{4}-\d{2}-\d{2}$/.test(newDate.trim())) { showToast('日期格式不正确，已取消'); return; }
+            if (new Date(newDate) <= new Date(opl.dueDate)) { showToast('新日期必须晚于当前截止日期'); return; }
+            const oldDate = opl.dueDate;
+            opl.dueDate = newDate.trim();
+            if (!opl.extensions) opl.extensions = [];
+            opl.extensions.push({ from: oldDate, to: newDate.trim(), reason: reason.trim(), date: new Date().toISOString().split('T')[0] });
+            addActivity(`${id} 申请延期：${oldDate} → ${newDate.trim()}（原因：${reason.trim()}）`);
+            saveStore();
+            renderOPL();
+            updateCounts();
+            showToast(`${id} 已延期至 ${newDate.trim()}`);
         }
 
         // ==================== Create Functions ====================
@@ -968,7 +1025,7 @@
             if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0] });
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
@@ -1039,9 +1096,10 @@
         }
 
         function exportCSV() {
-            let csv = '编号,描述,类别,负责人,截止日期,优先级,状态,行动方案\n';
+            let csv = '编号,描述,类别,负责人,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
             store.opls.forEach(o => {
-                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
             });
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -1373,7 +1431,7 @@
                                 <input type="text" value="${escapeHtml(item.owner)}" onchange="extractedOPLs[${idx}].owner=this.value" placeholder="未指定">
                             </div>
                             <div class="ec-field">
-                                <label>截止日期</label>
+                                <label>截止日期（确认后锁定）</label>
                                 <input type="date" value="${item.dueDate}" onchange="extractedOPLs[${idx}].dueDate=this.value">
                             </div>
                             <div class="ec-field">
@@ -1445,7 +1503,9 @@
                     id, desc: item.desc, category: item.category || 'Other',
                     owner: item.owner || '待指定', dueDate: item.dueDate || '',
                     priority: item.priority || 'Medium', status: 'Open',
-                    action: '', createdAt: new Date().toISOString().split('T')[0]
+                    action: '', createdAt: new Date().toISOString().split('T')[0],
+                    closedAt: '', extensions: [],
+                    source: '会议纪要导入'
                 });
                 oplCount++;
             });
