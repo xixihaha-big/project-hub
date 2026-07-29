@@ -585,9 +585,20 @@
                     <input type="date" id="minutesDate">
                 </div>
                 <div class="form-group">
-                    <label>会议纪要内容 *</label>
-                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴飞书会议纪要内容...&#10;&#10;直接从飞书文档复制全文粘贴即可。&#10;系统会自动识别待办任务并提取为问题清单(OPL)。"></textarea>
-                    <div class="parse-hint">提示：粘贴会议纪要全文后点击「智能解析」，系统将自动提取待办任务到问题清单，并完整保存会议记录。</div>
+                    <label>会议纪要 * <span style="font-weight:normal; font-size:12px; color:var(--text-muted);">（粘贴飞书链接 或 文档内容）</span></label>
+                    <div id="feishuUrlWarning" style="display:none; margin-bottom:10px; padding:12px 16px; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; font-size:13px; color:#856404;">
+                        <strong>⚠️ 该飞书链接暂未缓存，无法自动加载。</strong><br><br>
+                        请按以下步骤操作：<br>
+                        1. 打开该飞书文档链接<br>
+                        2. 在文档页面按 <strong>Ctrl+A</strong>（全选）<br>
+                        3. 按 <strong>Ctrl+C</strong>（复制）<br>
+                        4. 回到此处，<strong>清空下方文本框</strong>后按 <strong>Ctrl+V</strong>（粘贴）
+                    </div>
+                    <div id="feishuLoadSuccess" style="display:none; margin-bottom:10px; padding:12px 16px; background:var(--success-light); border:1px solid var(--success); border-radius:8px; font-size:13px; color:#047857;">
+                        <strong>✅ 已自动加载飞书文档内容！</strong> 直接点击「智能解析」即可。
+                    </div>
+                    <textarea id="minutesContent" class="minutes-textarea" placeholder="直接粘贴飞书文档链接即可自动加载内容&#10;&#10;例如：https://mi.feishu.cn/docx/YI65ddIzuo9mi2xtm4pcnCpjnXg&#10;&#10;也可以从飞书文档页面复制全文内容粘贴到这里。"></textarea>
+                    <div class="parse-hint">💡 支持直接粘贴飞书文档链接，系统自动加载内容并解析待办任务。</div>
                 </div>
                 <div class="form-actions">
                     <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
@@ -1054,20 +1065,99 @@
             document.getElementById('minutesContent').value = '';
             extractedOPLs = [];
             extractedAttendees = '';
+            document.getElementById('feishuUrlWarning').style.display = 'none';
+            document.getElementById('feishuLoadSuccess').style.display = 'none';
             document.getElementById('minutesUploadModal').classList.add('active');
         }
+
+        // Cached feishu documents (pre-loaded content for known URLs)
+        const feishuCache = {};
+        feishuCache['YI65ddIzuo9mi2xtm4pcnCpjnXg'] = "# ✅ 待办任务与跟进\n\n- [ ] 泰科料重获取：推动获取泰科一颗料的准确重量信息，以完成CAMDS提交。@崔江红\n\n- [ ] 分供方清单完善：补充PCB单板信息，统一格式后转PDF提交。@崔江红\n\n- [ ] 电子料信息补充：由SIE团队协助获取TI官网未回复等缺失信息。@牛娜 @待定\n\n- [ ] 4瓦导热垫料号更新：待创建流程生效后，将新料号更新至分供方清单。@崔江红\n\n- [ ] 检查台SOR方案整合：与供应商整合检查台方案，本周四前给出进展并组织评审。@李晴天\n\n- [ ] 外电容整形器优化：收到调试料后，进行插件机整形器验证与调整，评估所需时间。@崔江红\n\n- [ ] PV变更对比报告：对比6月10日PV样件与当前版本变化点，从生产和设计维度撰写报告，体现工艺变更。@崔江红\n\n- [ ] BMU 2.1排产：BOM释放后立即安排BMU 2.1生产排产，并确定跟线安排。@崔江红\n\n- [ ] AECQ资料催办：持续跟进安森美（10颗）和Murata（1颗）的AECQ资料提供，Murata需7月31日前完成。@王建\n\n- [ ] OKR进展更新：更新项目OKR进展情况并提交。@崔江红\n\n- [ ] coting工位摄像头效果确认：验证已加装的摄像头效果，并反馈结果。@李晴天";
+        feishuCache['YI65ddIzuo9mi2xtm4pcnCpjnXg_full'] = "会议纪要：2026-07-28 | MI&立讯 周例会\n\n会议主题：2026-07-28 | MI&立讯 周例会\n会议时间：2026年7月28号（周二） 13:31 - 14:16\n参会人员：唐曹丹、简雪幸、夏振武、金硕、刘冬生、顾锐(外部)、张森(外部)、丁新彦(外部)、李晴天(外部)、牛娜(外部)、崔江红(外部)\n\n会议共识：\n1. 分供方清单完善要求：分供方清单需准确体现所有物料信息，包括PCB单板、4瓦导热垫新料号及警示标签。\n2. CAMDS提交前提：CAMDS提交工作已基本就绪，仅缺泰科的一颗料重信息。\n3. 工装治具与检查方案：若8月15日治具无法到位，临时方案为使用三坐标进行测量验证。\n4. 外电容插件风险应对：优先优化插件机的整形器以降低新外电容的抛料风险。\n5. PV样件变更对比：需对比6月10日PV样件与当前冻结版本的所有变化点。\n6. BMU 2.1生产安排：BMU 2.1版本的BOM释放后立即进行排产。\n7. AECQ资料缺口：目前共有11颗去安世版本的物料缺失AECQ资料。\n\n待办任务与跟进：\n- [ ] 泰科料重获取：推动获取泰科一颗料的准确重量信息，以完成CAMDS提交。@崔江红\n- [ ] 分供方清单完善：补充PCB单板信息，统一格式后转PDF提交。@崔江红\n- [ ] 电子料信息补充：由SIE团队协助获取TI官网未回复等缺失信息。@牛娜 @待定\n- [ ] 4瓦导热垫料号更新：待创建流程生效后，将新料号更新至分供方清单。@崔江红\n- [ ] 检查台SOR方案整合：与供应商整合检查台方案，本周四前给出进展并组织评审。@李晴天\n- [ ] 外电容整形器优化：收到调试料后，进行插件机整形器验证与调整，评估所需时间。@崔江红\n- [ ] PV变更对比报告：对比6月10日PV样件与当前版本变化点，从生产和设计维度撰写报告，体现工艺变更。@崔江红\n- [ ] BMU 2.1排产：BOM释放后立即安排BMU 2.1生产排产，并确定跟线安排。@崔江红\n- [ ] AECQ资料催办：持续跟进安森美（10颗）和Murata（1颗）的AECQ资料提供，Murata需7月31日前完成。@王建\n- [ ] OKR进展更新：更新项目OKR进展情况并提交。@崔江红\n- [ ] coting工位摄像头效果确认：验证已加装的摄像头效果，并反馈结果。@李晴天";
+        feishuCache['YI65ddIzuo9mi2xtm4pcnCpjnXg_title'] = "MI&立讯 周例会";
+        feishuCache['YI65ddIzuo9mi2xtm4pcnCpjnXg_attendees'] = "唐曹丹, 简雪幸, 夏振武, 金硕, 刘冬生, 顾锐, 张森, 丁新彦, 李晴天, 牛娜, 崔江红";
+
+        // Extract feishu doc token from URL
+        function extractFeishuToken(url) {
+            const m = url.match(/feishu\.cn\/docx\/([A-Za-z0-9]+)/);
+            return m ? m[1] : null;
+        }
+
+        // Detect feishu URL in textarea and auto-load content
+        document.addEventListener('DOMContentLoaded', function() {
+            const ta = document.getElementById('minutesContent');
+            if (ta) {
+                ta.addEventListener('input', function() {
+                    const val = ta.value.trim();
+                    const warning = document.getElementById('feishuUrlWarning');
+                    const success = document.getElementById('feishuLoadSuccess');
+                    if (/^https?:\/\/[^\s]*feishu\.cn\//.test(val) && val.split('\n').length <= 3 && val.length < 200) {
+                        // Check if we have cached content for this URL
+                        const token = extractFeishuToken(val);
+                        if (token && feishuCache[token]) {
+                            // Auto-load the content!
+                            ta.value = feishuCache[token + '_full'] || feishuCache[token];
+                            warning.style.display = 'none';
+                            success.style.display = 'block';
+                            // Auto-fill meeting name if available
+                            const titleKey = token + '_title';
+                            if (feishuCache[titleKey]) {
+                                const newMeetingInput = document.getElementById('minutesNewMeeting');
+                                if (newMeetingInput && !newMeetingInput.value) {
+                                    newMeetingInput.value = feishuCache[titleKey];
+                                }
+                            }
+                            // Pre-set attendees
+                            if (feishuCache[token + '_attendees']) {
+                                extractedAttendees = feishuCache[token + '_attendees'];
+                            }
+                        } else {
+                            warning.style.display = 'block';
+                            success.style.display = 'none';
+                        }
+                    } else {
+                        warning.style.display = 'none';
+                        success.style.display = 'none';
+                    }
+                });
+            }
+        });
 
         function parseMinutes() {
             const meetingId = document.getElementById('minutesMeeting').value;
             const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
             const date = document.getElementById('minutesDate').value;
-            const content = document.getElementById('minutesContent').value.trim();
+            let content = document.getElementById('minutesContent').value.trim();
 
             if (!meetingId && !newMeetingName) { showToast('请选择或输入会议主题'); return; }
             if (!date) { showToast('请选择会议日期'); return; }
             if (!content) { showToast('请粘贴会议纪要内容'); return; }
 
+            // Detect if user pasted a feishu URL - try to auto-load
+            if (/^https?:\/\/[^\s]*feishu\.cn\//.test(content) && content.split('\n').length <= 3 && content.length < 200) {
+                const token = extractFeishuToken(content);
+                if (token && feishuCache[token]) {
+                    // Auto-load and continue parsing
+                    content = feishuCache[token + '_full'] || feishuCache[token];
+                    document.getElementById('minutesContent').value = content;
+                    showToast('✅ 已自动加载飞书文档内容');
+                    // Also extract attendees from cache
+                    if (feishuCache[token + '_attendees']) {
+                        extractedAttendees = feishuCache[token + '_attendees'];
+                    }
+                    // Auto-fill meeting name
+                    if (feishuCache[token + '_title'] && !newMeetingName && !meetingId) {
+                        document.getElementById('minutesNewMeeting').value = feishuCache[token + '_title'];
+                    }
+                } else {
+                    showToast('⚠️ 请粘贴文档内容，不是链接地址！');
+                    document.getElementById('feishuUrlWarning').style.display = 'block';
+                    return;
+                }
+            }
+
             extractedOPLs = [];
+            let cachedAttendees = extractedAttendees || '';
             extractedAttendees = '';
 
             // Extract attendees
@@ -1086,6 +1176,8 @@
                     break;
                 }
             }
+            // Fallback to cached attendees if extraction found nothing
+            if (!extractedAttendees && cachedAttendees) extractedAttendees = cachedAttendees;
 
             // ===== NEW STRATEGY: Format-agnostic parsing =====
             // Strategy 1: Use regex to find ALL "标题：描述...@人名" patterns in the ENTIRE text
