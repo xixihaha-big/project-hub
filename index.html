@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Hub - 项目管理看板</title>
+    <title>项目中心 - 项目管理看板</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -297,7 +297,6 @@
             font-size: 11px;
             font-weight: 600;
             display: inline-block;
-            text-transform: uppercase;
             letter-spacing: 0.3px;
         }
 
@@ -782,40 +781,40 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1><span class="logo">P</span> Project Hub</h1>
+                <h1><span class="logo">P</span> 项目中心</h1>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section">
-                    <div class="nav-section-title">Overview</div>
+                    <div class="nav-section-title">概览</div>
                     <div class="nav-item active" onclick="navigateTo('dashboard')">
-                        <span class="icon">&#9632;</span> Dashboard
+                        <span class="icon">&#9632;</span> 仪表盘
                     </div>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-title">Management</div>
+                    <div class="nav-section-title">管理</div>
                     <div class="nav-item" onclick="navigateTo('meetings')">
-                        <span class="icon">&#128197;</span> Meetings
+                        <span class="icon">&#128197;</span> 会议
                         <span class="badge-count" id="meetingCount">0</span>
                     </div>
                     <div class="nav-item" onclick="navigateTo('opl')">
-                        <span class="icon">&#9888;</span> OPL
+                        <span class="icon">&#9888;</span> 问题清单
                         <span class="badge-count" id="oplCount">0</span>
                     </div>
                     <div class="nav-item" onclick="navigateTo('risk')">
-                        <span class="icon">&#9889;</span> Risk
+                        <span class="icon">&#9889;</span> 风险
                         <span class="badge-count" id="riskCount">0</span>
                     </div>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-title">Projects</div>
+                    <div class="nav-section-title">项目</div>
                     <div class="project-list" id="sidebarProjectList"></div>
                     <div class="nav-item" onclick="openModal('project')" style="margin-top:8px; color:#64748b; font-size:12px;">
-                        <span class="icon">+</span> Add Project
+                        <span class="icon">+</span> 添加项目
                     </div>
                 </div>
             </nav>
             <div class="sidebar-footer">
-                Data saved locally &middot; Project Hub v1.0
+                数据本地保存 &middot; 项目中心 v1.0
             </div>
         </aside>
 
@@ -824,12 +823,12 @@
             <!-- Top Bar -->
             <header class="topbar">
                 <div class="topbar-left">
-                    <h2 id="pageTitle">Dashboard</h2>
+                    <h2 id="pageTitle">仪表盘</h2>
                     <span class="breadcrumb" id="pageBreadcrumb"></span>
                 </div>
                 <div class="topbar-right">
-                    <button class="btn btn-sm" onclick="exportAllCSV()">Export CSV</button>
-                    <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ Quick Add</button>
+                    <button class="btn btn-sm" onclick="exportAllCSV()">导出 CSV</button>
+                    <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ 快速添加</button>
                 </div>
             </header>
 
@@ -839,13 +838,13 @@
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">Recent Activity</span>
+                            <span class="card-title">最近动态</span>
                         </div>
                         <div class="card-body" id="recentActivity"></div>
                     </div>
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">Overdue Items</span>
+                            <span class="card-title">逾期项目</span>
                         </div>
                         <div class="card-body" id="overdueItems"></div>
                     </div>
@@ -853,8 +852,8 @@
                 <div style="margin-top: 24px;">
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">Projects</span>
-                            <button class="btn btn-sm btn-primary" onclick="openModal('project')">+ New Project</button>
+                            <span class="card-title">项目</span>
+                            <button class="btn btn-sm btn-primary" onclick="openModal('project')">+ 新建项目</button>
                         </div>
                         <div class="card-body">
                             <div class="projects-grid" id="projectsGrid"></div>
@@ -866,11 +865,11 @@
             <!-- Page: Meetings -->
             <div class="page-content" id="page-meetings" style="display:none;">
                 <div class="filter-bar">
-                    <input type="text" placeholder="Search meetings..." id="meetingSearch" oninput="renderMeetings()">
+                    <input type="text" placeholder="搜索会议..." id="meetingSearch" oninput="renderMeetings()">
                     <select id="meetingProjectFilter" onchange="renderMeetings()">
-                        <option value="">All Projects</option>
+                        <option value="">所有项目</option>
                     </select>
-                    <button class="btn btn-primary" onclick="openModal('meeting')">+ New Meeting Topic</button>
+                    <button class="btn btn-primary" onclick="openModal('meeting')">+ 新建会议主题</button>
                 </div>
                 <div class="meeting-list-grid" id="meetingListGrid"></div>
                 <!-- Meeting Detail View -->
@@ -882,27 +881,27 @@
                 <div class="stats-grid" id="oplStats"></div>
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">OPL List</span>
-                        <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ New OPL</button>
+                        <span class="card-title">问题清单</span>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ 新建问题</button>
                     </div>
                     <div class="card-body">
                         <div class="filter-bar">
-                            <input type="text" placeholder="Search..." id="oplSearch" oninput="renderOPL()">
+                            <input type="text" placeholder="搜索..." id="oplSearch" oninput="renderOPL()">
                             <select id="oplStatusFilter" onchange="renderOPL()">
-                                <option value="">All Status</option>
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Closed">Closed</option>
-                                <option value="Overdue">Overdue</option>
+                                <option value="">所有状态</option>
+                                <option value="Open">待处理</option>
+                                <option value="In Progress">进行中</option>
+                                <option value="Closed">已关闭</option>
+                                <option value="Overdue">已逾期</option>
                             </select>
                             <select id="oplProjectFilter" onchange="renderOPL()">
-                                <option value="">All Projects</option>
+                                <option value="">所有项目</option>
                             </select>
                             <select id="oplPriorityFilter" onchange="renderOPL()">
-                                <option value="">All Priority</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
+                                <option value="">所有优先级</option>
+                                <option value="High">高</option>
+                                <option value="Medium">中</option>
+                                <option value="Low">低</option>
                             </select>
                         </div>
                         <div class="table-container" id="oplTable"></div>
@@ -915,28 +914,28 @@
                 <div class="stats-grid" id="riskStats"></div>
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">Risk List</span>
-                        <button class="btn btn-primary btn-sm" onclick="openModal('risk')">+ New Risk</button>
+                        <span class="card-title">风险清单</span>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('risk')">+ 新建风险</button>
                     </div>
                     <div class="card-body">
                         <div class="filter-bar">
-                            <input type="text" placeholder="Search..." id="riskSearch" oninput="renderRisk()">
+                            <input type="text" placeholder="搜索..." id="riskSearch" oninput="renderRisk()">
                             <select id="riskStatusFilter" onchange="renderRisk()">
-                                <option value="">All Status</option>
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Mitigated">Mitigated</option>
-                                <option value="Closed">Closed</option>
-                                <option value="Accepted">Accepted</option>
+                                <option value="">所有状态</option>
+                                <option value="Open">待处理</option>
+                                <option value="In Progress">进行中</option>
+                                <option value="Mitigated">已缓解</option>
+                                <option value="Closed">已关闭</option>
+                                <option value="Accepted">已接受</option>
                             </select>
                             <select id="riskProjectFilter" onchange="renderRisk()">
-                                <option value="">All Projects</option>
+                                <option value="">所有项目</option>
                             </select>
                             <select id="riskLevelFilter" onchange="renderRisk()">
-                                <option value="">All Levels</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
+                                <option value="">所有级别</option>
+                                <option value="High">高</option>
+                                <option value="Medium">中</option>
+                                <option value="Low">低</option>
                             </select>
                         </div>
                         <div class="table-container" id="riskTable"></div>
@@ -950,30 +949,30 @@
     <!-- New Project Modal -->
     <div class="modal-overlay" id="projectModal">
         <div class="modal">
-            <h3>New Project</h3>
+            <h3>新建项目</h3>
             <div class="form-group">
-                <label>Project Name *</label>
-                <input type="text" id="projectName" placeholder="e.g. BMU2.0">
+                <label>项目名称 *</label>
+                <input type="text" id="projectName" placeholder="例如 BMU2.0">
             </div>
             <div class="form-group">
-                <label>Description</label>
-                <textarea id="projectDesc" placeholder="Brief project description..."></textarea>
+                <label>描述</label>
+                <textarea id="projectDesc" placeholder="项目简要描述..."></textarea>
             </div>
             <div class="form-group">
-                <label>Color</label>
+                <label>颜色</label>
                 <select id="projectColor">
-                    <option value="#4f46e5">Indigo</option>
-                    <option value="#0891b2">Teal</option>
-                    <option value="#ea580c">Orange</option>
-                    <option value="#16a34a">Green</option>
-                    <option value="#dc2626">Red</option>
-                    <option value="#7c3aed">Purple</option>
-                    <option value="#0284c7">Blue</option>
+                    <option value="#4f46e5">靛蓝</option>
+                    <option value="#0891b2">青色</option>
+                    <option value="#ea580c">橙色</option>
+                    <option value="#16a34a">绿色</option>
+                    <option value="#dc2626">红色</option>
+                    <option value="#7c3aed">紫色</option>
+                    <option value="#0284c7">蓝色</option>
                 </select>
             </div>
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('project')">Cancel</button>
-                <button class="btn btn-primary" onclick="createProject()">Create</button>
+                <button class="btn" onclick="closeModal('project')">取消</button>
+                <button class="btn btn-primary" onclick="createProject()">创建</button>
             </div>
         </div>
     </div>
@@ -981,35 +980,35 @@
     <!-- New Meeting Modal -->
     <div class="modal-overlay" id="meetingModal">
         <div class="modal">
-            <h3>New Meeting Topic</h3>
+            <h3>新建会议主题</h3>
             <div class="form-group">
-                <label>Meeting Name *</label>
-                <input type="text" id="meetingName" placeholder="e.g. Weekly APQP Review">
+                <label>会议名称 *</label>
+                <input type="text" id="meetingName" placeholder="例如 每周APQP评审">
             </div>
             <div class="form-group">
-                <label>Project *</label>
+                <label>所属项目 *</label>
                 <select id="meetingProject"></select>
             </div>
             <div class="form-group">
-                <label>Frequency</label>
+                <label>频率</label>
                 <select id="meetingFrequency">
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="adhoc">Ad-hoc</option>
+                    <option value="weekly">每周</option>
+                    <option value="biweekly">每两周</option>
+                    <option value="monthly">每月</option>
+                    <option value="adhoc">临时</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Feishu Doc URL</label>
+                <label>飞书文档链接</label>
                 <input type="url" id="meetingDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
             </div>
             <div class="form-group">
-                <label>Departments</label>
-                <input type="text" id="meetingDepts" placeholder="Comma separated, e.g. EE, ME, DQE">
+                <label>参与部门</label>
+                <input type="text" id="meetingDepts" placeholder="逗号分隔，例如 EE, ME, DQE">
             </div>
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('meeting')">Cancel</button>
-                <button class="btn btn-primary" onclick="createMeeting()">Create</button>
+                <button class="btn" onclick="closeModal('meeting')">取消</button>
+                <button class="btn btn-primary" onclick="createMeeting()">创建</button>
             </div>
         </div>
     </div>
@@ -1017,50 +1016,50 @@
     <!-- New OPL Modal -->
     <div class="modal-overlay" id="oplModal">
         <div class="modal">
-            <h3>New OPL Item</h3>
+            <h3>新建问题项</h3>
             <div class="form-group">
-                <label>Description *</label>
-                <textarea id="oplDesc" placeholder="Describe the issue..."></textarea>
+                <label>描述 *</label>
+                <textarea id="oplDesc" placeholder="描述问题..."></textarea>
             </div>
             <div class="form-group">
-                <label>Project *</label>
+                <label>所属项目 *</label>
                 <select id="oplProject"></select>
             </div>
             <div class="form-group">
-                <label>Category</label>
+                <label>类别</label>
                 <select id="oplCategory">
-                    <option value="Design">Design</option>
-                    <option value="Process">Process</option>
-                    <option value="Material">Material</option>
-                    <option value="Quality">Quality</option>
-                    <option value="Test">Test</option>
-                    <option value="Production">Production</option>
-                    <option value="Other">Other</option>
+                    <option value="Design">设计</option>
+                    <option value="Process">工艺</option>
+                    <option value="Material">材料</option>
+                    <option value="Quality">质量</option>
+                    <option value="Test">测试</option>
+                    <option value="Production">生产</option>
+                    <option value="Other">其他</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Owner *</label>
-                <input type="text" id="oplOwner" placeholder="Person responsible">
+                <label>负责人 *</label>
+                <input type="text" id="oplOwner" placeholder="负责人姓名">
             </div>
             <div class="form-group">
-                <label>Due Date *</label>
+                <label>截止日期 *</label>
                 <input type="date" id="oplDueDate">
             </div>
             <div class="form-group">
-                <label>Priority</label>
+                <label>优先级</label>
                 <select id="oplPriority">
-                    <option value="High">High</option>
-                    <option value="Medium" selected>Medium</option>
-                    <option value="Low">Low</option>
+                    <option value="High">高</option>
+                    <option value="Medium" selected>中</option>
+                    <option value="Low">低</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Action Plan</label>
-                <textarea id="oplAction" placeholder="Proposed solution..."></textarea>
+                <label>行动方案</label>
+                <textarea id="oplAction" placeholder="解决方案..."></textarea>
             </div>
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('opl')">Cancel</button>
-                <button class="btn btn-primary" onclick="createOPL()">Create</button>
+                <button class="btn" onclick="closeModal('opl')">取消</button>
+                <button class="btn btn-primary" onclick="createOPL()">创建</button>
             </div>
         </div>
     </div>
@@ -1068,50 +1067,50 @@
     <!-- New Risk Modal -->
     <div class="modal-overlay" id="riskModal">
         <div class="modal">
-            <h3>New Risk Item</h3>
+            <h3>新建风险项</h3>
             <div class="form-group">
-                <label>Risk Description *</label>
-                <textarea id="riskDesc" placeholder="Describe the risk..."></textarea>
+                <label>风险描述 *</label>
+                <textarea id="riskDesc" placeholder="描述风险..."></textarea>
             </div>
             <div class="form-group">
-                <label>Project *</label>
+                <label>所属项目 *</label>
                 <select id="riskProject"></select>
             </div>
             <div class="form-group">
-                <label>Category</label>
+                <label>类别</label>
                 <select id="riskCategory">
-                    <option value="Technical">Technical</option>
-                    <option value="Schedule">Schedule</option>
-                    <option value="Quality">Quality</option>
-                    <option value="Supply Chain">Supply Chain</option>
-                    <option value="Cost">Cost</option>
-                    <option value="Resource">Resource</option>
-                    <option value="Other">Other</option>
+                    <option value="Technical">技术</option>
+                    <option value="Schedule">进度</option>
+                    <option value="Quality">质量</option>
+                    <option value="Supply Chain">供应链</option>
+                    <option value="Cost">成本</option>
+                    <option value="Resource">资源</option>
+                    <option value="Other">其他</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Risk Level</label>
+                <label>风险级别</label>
                 <select id="riskLevel">
-                    <option value="High">High</option>
-                    <option value="Medium" selected>Medium</option>
-                    <option value="Low">Low</option>
+                    <option value="High">高</option>
+                    <option value="Medium" selected>中</option>
+                    <option value="Low">低</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Owner *</label>
-                <input type="text" id="riskOwner" placeholder="Person responsible">
+                <label>负责人 *</label>
+                <input type="text" id="riskOwner" placeholder="负责人姓名">
             </div>
             <div class="form-group">
-                <label>Target Close Date *</label>
+                <label>目标关闭日期 *</label>
                 <input type="date" id="riskDueDate">
             </div>
             <div class="form-group">
-                <label>Mitigation Plan</label>
-                <textarea id="riskMitigation" placeholder="How to mitigate..."></textarea>
+                <label>缓解方案</label>
+                <textarea id="riskMitigation" placeholder="如何缓解..."></textarea>
             </div>
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('risk')">Cancel</button>
-                <button class="btn btn-primary" onclick="createRisk()">Create</button>
+                <button class="btn" onclick="closeModal('risk')">取消</button>
+                <button class="btn btn-primary" onclick="createRisk()">创建</button>
             </div>
         </div>
     </div>
@@ -1119,28 +1118,28 @@
     <!-- Follow-up Modal -->
     <div class="modal-overlay" id="followupModal">
         <div class="modal">
-            <h3>Add Follow-up Meeting</h3>
+            <h3>添加跟进会议</h3>
             <div class="form-group">
-                <label>Date *</label>
+                <label>日期 *</label>
                 <input type="date" id="followupDate">
             </div>
             <div class="form-group">
-                <label>Feishu Minutes URL</label>
+                <label>飞书会议纪要链接</label>
                 <input type="url" id="followupDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
             </div>
             <div class="form-group">
-                <label>Meeting Notes</label>
-                <textarea id="followupNotes" placeholder="Key decisions and action items..." style="min-height:120px;"></textarea>
+                <label>会议记录</label>
+                <textarea id="followupNotes" placeholder="关键决策和行动项..." style="min-height:120px;"></textarea>
             </div>
             <div class="form-group">
-                <label>Attendees</label>
-                <input type="text" id="followupAttendees" placeholder="Comma separated names">
+                <label>参会人员</label>
+                <input type="text" id="followupAttendees" placeholder="逗号分隔姓名">
             </div>
             <input type="hidden" id="followupMeetingId">
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('followup')">Cancel</button>
-                <button class="btn btn-success" onclick="fetchMinutesFromFeishu()">Fetch from Feishu</button>
-                <button class="btn btn-primary" onclick="createFollowup()">Save</button>
+                <button class="btn" onclick="closeModal('followup')">取消</button>
+                <button class="btn btn-success" onclick="fetchMinutesFromFeishu()">从飞书获取</button>
+                <button class="btn btn-primary" onclick="createFollowup()">保存</button>
             </div>
         </div>
     </div>
@@ -1148,17 +1147,17 @@
     <!-- Quick Add Modal -->
     <div class="modal-overlay" id="quickAddModal">
         <div class="modal">
-            <h3>Quick Add</h3>
+            <h3>快速添加</h3>
             <div class="page-tabs" style="margin-bottom:16px;">
-                <div class="page-tab active" onclick="switchQuickTab('opl')">OPL</div>
-                <div class="page-tab" onclick="switchQuickTab('risk')">Risk</div>
-                <div class="page-tab" onclick="switchQuickTab('meeting')">Meeting</div>
+                <div class="page-tab active" onclick="switchQuickTab('opl')">问题清单</div>
+                <div class="page-tab" onclick="switchQuickTab('risk')">风险</div>
+                <div class="page-tab" onclick="switchQuickTab('meeting')">会议</div>
             </div>
             <div id="quickAddContent">
-                <p style="color:var(--text-secondary); font-size:13px;">Choose the type above, then fill in the corresponding form.</p>
+                <p style="color:var(--text-secondary); font-size:13px;">请选择上方类型，然后填写对应表单。</p>
             </div>
             <div class="form-actions">
-                <button class="btn" onclick="closeModal('quickAdd')">Close</button>
+                <button class="btn" onclick="closeModal('quickAdd')">关闭</button>
             </div>
         </div>
     </div>
@@ -1179,6 +1178,28 @@
         let currentPage = 'dashboard';
         let currentMeetingDetail = null;
         let currentProjectFilter = '';
+
+        // ==================== Display Helpers ====================
+        function statusCN(s) {
+            const map = {'Open':'待处理','In Progress':'进行中','Closed':'已关闭','Overdue':'已逾期','Mitigated':'已缓解','Accepted':'已接受'};
+            return map[s] || s;
+        }
+        function priorityCN(p) {
+            const map = {'High':'高','Medium':'中','Low':'低'};
+            return map[p] || p;
+        }
+        function levelCN(l) {
+            const map = {'High':'高','Medium':'中','Low':'低'};
+            return map[l] || l;
+        }
+        function categoryCN(c) {
+            const map = {'Design':'设计','Process':'工艺','Material':'材料','Quality':'质量','Test':'测试','Production':'生产','Other':'其他','Technical':'技术','Schedule':'进度','Supply Chain':'供应链','Cost':'成本','Resource':'资源'};
+            return map[c] || c;
+        }
+        function frequencyCN(f) {
+            const map = {'weekly':'每周','biweekly':'每两周','monthly':'每月','adhoc':'临时'};
+            return map[f] || f;
+        }
 
         // ==================== Persistence ====================
         function loadStore() {
@@ -1236,11 +1257,11 @@
             ];
 
             store.activities = [
-                { time: '2025-07-21 10:30', content: 'Created OPL-005: EMC pre-test failed', type: 'opl', projectId: 'P001' },
-                { time: '2025-07-21 10:25', content: 'Created RISK-003: Project delay risk', type: 'risk', projectId: 'P002' },
-                { time: '2025-07-21 10:00', content: 'Added meeting follow-up (Jul 21)', type: 'meeting', projectId: 'P001' },
-                { time: '2025-07-20 14:00', content: 'OPL-006 status changed to Closed', type: 'opl', projectId: 'P001' },
-                { time: '2025-07-14 11:00', content: 'Created RISK-001: Chip delivery risk', type: 'risk', projectId: 'P001' }
+                { time: '2025-07-21 10:30', content: '创建了 OPL-005：EMC 预测试失败', type: 'opl', projectId: 'P001' },
+                { time: '2025-07-21 10:25', content: '创建了 RISK-003：项目延期风险', type: 'risk', projectId: 'P002' },
+                { time: '2025-07-21 10:00', content: '添加了跟进会议（7月21日）', type: 'meeting', projectId: 'P001' },
+                { time: '2025-07-20 14:00', content: 'OPL-006 状态变更为已关闭', type: 'opl', projectId: 'P001' },
+                { time: '2025-07-14 11:00', content: '创建了 RISK-001：芯片交付风险', type: 'risk', projectId: 'P001' }
             ];
 
             saveStore();
@@ -1255,7 +1276,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             event && event.target && event.target.closest('.nav-item') && event.target.closest('.nav-item').classList.add('active');
 
-            const titles = { dashboard: 'Dashboard', meetings: 'Meetings', opl: 'OPL', risk: 'Risk' };
+            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单', risk: '风险' };
             document.getElementById('pageTitle').textContent = titles[page] || page;
             document.getElementById('pageBreadcrumb').textContent = '';
 
@@ -1274,24 +1295,24 @@
 
             document.getElementById('dashboardStats').innerHTML = `
                 <div class="stat-card info">
-                    <div class="stat-label">Open OPL</div>
+                    <div class="stat-label">待解决问题</div>
                     <div class="stat-value">${openOPL}</div>
-                    <div class="stat-detail">${store.opls.length} total items</div>
+                    <div class="stat-detail">${store.opls.length} 项总计</div>
                 </div>
                 <div class="stat-card ${overdueOPL > 0 ? 'danger' : 'success'}">
-                    <div class="stat-label">Overdue</div>
+                    <div class="stat-label">已逾期</div>
                     <div class="stat-value">${overdueOPL}</div>
-                    <div class="stat-detail">items past due date</div>
+                    <div class="stat-detail">项已超过截止日期</div>
                 </div>
                 <div class="stat-card ${highRisk > 0 ? 'warning' : 'success'}">
-                    <div class="stat-label">Open Risk</div>
+                    <div class="stat-label">待处理风险</div>
                     <div class="stat-value">${openRisk}</div>
-                    <div class="stat-detail">${highRisk} high priority</div>
+                    <div class="stat-detail">${highRisk} 高优先级</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Projects</div>
+                    <div class="stat-label">项目</div>
                     <div class="stat-value">${store.projects.length}</div>
-                    <div class="stat-detail">${store.meetings.length} meeting topics</div>
+                    <div class="stat-detail">${store.meetings.length} 个会议主题</div>
                 </div>
             `;
 
@@ -1302,14 +1323,14 @@
                     <span style="font-size:13px;">${a.content}</span>
                 </div>
             `).join('');
-            document.getElementById('recentActivity').innerHTML = actHtml || '<div class="empty-state"><div class="es-desc">No activity yet</div></div>';
+            document.getElementById('recentActivity').innerHTML = actHtml || '<div class="empty-state"><div class="es-desc">暂无动态</div></div>';
 
             // Overdue
             const overdueItems = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
             const overdueRisks = store.risks.filter(r => !['Closed','Mitigated','Accepted'].includes(r.status) && new Date(r.dueDate) < new Date());
             const allOverdue = [
-                ...overdueItems.map(o => ({ id: o.id, desc: o.desc, owner: o.owner, due: o.dueDate, type: 'OPL' })),
-                ...overdueRisks.map(r => ({ id: r.id, desc: r.desc, owner: r.owner, due: r.dueDate, type: 'Risk' }))
+                ...overdueItems.map(o => ({ id: o.id, desc: o.desc, owner: o.owner, due: o.dueDate, type: '问题' })),
+                ...overdueRisks.map(r => ({ id: r.id, desc: r.desc, owner: r.owner, due: r.dueDate, type: '风险' }))
             ].sort((a, b) => new Date(a.due) - new Date(b.due));
 
             const overdueHtml = allOverdue.slice(0, 6).map(item => `
@@ -1320,7 +1341,7 @@
                     <span style="font-size:11px; color:var(--danger);">${item.due}</span>
                 </div>
             `).join('');
-            document.getElementById('overdueItems').innerHTML = overdueHtml || '<div class="empty-state"><div class="es-desc">No overdue items</div></div>';
+            document.getElementById('overdueItems').innerHTML = overdueHtml || '<div class="empty-state"><div class="es-desc">暂无逾期项</div></div>';
 
             // Projects grid
             renderProjectsGrid();
@@ -1338,19 +1359,19 @@
                         <div class="pc-header">
                             <div>
                                 <div class="pc-name">${p.name}</div>
-                                <div class="pc-desc">${p.desc || 'No description'}</div>
+                                <div class="pc-desc">${p.desc || '暂无描述'}</div>
                             </div>
                             <div class="pc-color" style="background:${p.color}">${p.name.charAt(0)}</div>
                         </div>
                         <div class="pc-stats">
-                            <span><strong>${oplCount}</strong> open OPL</span>
-                            <span><strong>${riskCount}</strong> active risks</span>
-                            <span><strong>${meetingCount}</strong> meetings</span>
+                            <span><strong>${oplCount}</strong> 个待解决问题</span>
+                            <span><strong>${riskCount}</strong> 个活跃风险</span>
+                            <span><strong>${meetingCount}</strong> 个会议</span>
                         </div>
                     </div>
                 `;
             }).join('');
-            document.getElementById('projectsGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128193;</div><div class="es-title">No projects yet</div><div class="es-desc">Create your first project to get started</div></div>';
+            document.getElementById('projectsGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128193;</div><div class="es-title">暂无项目</div><div class="es-desc">创建第一个项目开始使用</div></div>';
         }
 
         function updateSidebarProjects() {
@@ -1392,18 +1413,18 @@
                 const project = store.projects.find(p => p.id === m.projectId);
                 return `
                     <div class="meeting-card" onclick="showMeetingDetail('${m.id}')">
-                        <div class="mc-project">${project ? project.name : 'Unknown'}</div>
+                        <div class="mc-project">${project ? project.name : '未知'}</div>
                         <div class="mc-title">${m.name}</div>
                         <div class="mc-meta">
-                            <span>&#128197; ${m.frequency}</span>
+                            <span>&#128197; ${frequencyCN(m.frequency)}</span>
                             <span>&#128101; ${(m.depts || []).join(', ')}</span>
                         </div>
-                        ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} follow-up(s)</div>` : ''}
+                        ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} 次跟进</div>` : ''}
                     </div>
                 `;
             }).join('');
 
-            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">No meetings</div><div class="es-desc">Create a meeting topic to track your team discussions</div></div>';
+            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">暂无会议</div><div class="es-desc">创建会议主题来跟踪团队讨论</div></div>';
         }
 
         function showMeetingDetail(id) {
@@ -1420,35 +1441,35 @@
                 ? `<div class="followup-timeline">${m.followups.map(f => `
                     <div class="followup-item">
                         <div class="fi-date">${f.date}</div>
-                        <div class="fi-notes">${f.notes || 'No notes'}</div>
+                        <div class="fi-notes">${f.notes || '暂无笔记'}</div>
                         ${f.attendees ? `<div class="fi-attendees">&#128101; ${f.attendees}</div>` : ''}
                     </div>
                 `).join('')}</div>`
-                : '<div class="empty-state"><div class="es-desc">No follow-up meetings yet</div></div>';
+                : '<div class="empty-state"><div class="es-desc">暂无跟进会议</div></div>';
 
             detailEl.innerHTML = `
                 <div class="meeting-detail-header">
-                    <button class="btn btn-ghost" onclick="backToMeetingList()">&#8592; Back</button>
+                    <button class="btn btn-ghost" onclick="backToMeetingList()">&#8592; 返回</button>
                     <h3 style="font-size:18px; font-weight:600;">${m.name}</h3>
                     <span class="badge badge-inprogress">${project ? project.name : ''}</span>
                 </div>
                 <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">Follow-up Timeline</span>
-                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ Add Follow-up</button>
+                            <span class="card-title">跟进时间线</span>
+                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ 添加跟进</button>
                         </div>
                         <div class="card-body">${followupsHtml}</div>
                     </div>
                     <div class="card">
-                        <div class="card-header"><span class="card-title">Details</span></div>
+                        <div class="card-header"><span class="card-title">详情</span></div>
                         <div class="card-body">
-                            <div style="font-size:13px; margin-bottom:10px;"><strong>Frequency:</strong> ${m.frequency}</div>
-                            <div style="font-size:13px; margin-bottom:10px;"><strong>Departments:</strong> ${(m.depts || []).join(', ') || 'N/A'}</div>
-                            <div style="font-size:13px; margin-bottom:10px;"><strong>Created:</strong> ${m.createdAt}</div>
-                            ${m.docUrl ? `<div style="font-size:13px;"><strong>Doc:</strong> <a href="${m.docUrl}" target="_blank" style="color:var(--primary);">Open in Feishu</a></div>` : ''}
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>频率：</strong> ${frequencyCN(m.frequency)}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>参与部门：</strong> ${(m.depts || []).join(', ') || 'N/A'}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>创建时间：</strong> ${m.createdAt}</div>
+                            ${m.docUrl ? `<div style="font-size:13px;"><strong>文档：</strong> <a href="${m.docUrl}" target="_blank" style="color:var(--primary);">在飞书中打开</a></div>` : ''}
                             <hr style="margin:16px 0; border:none; border-top:1px solid var(--border-light);">
-                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">Delete Meeting</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">删除会议</button>
                         </div>
                     </div>
                 </div>
@@ -1482,10 +1503,10 @@
             const overdue = filtered.filter(o => o.status === 'Overdue' || (o.status !== 'Closed' && new Date(o.dueDate) < new Date())).length;
 
             document.getElementById('oplStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
-                <div class="stat-card warning"><div class="stat-label">Open</div><div class="stat-value">${open}</div></div>
-                <div class="stat-card info"><div class="stat-label">In Progress</div><div class="stat-value">${inProg}</div></div>
-                <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div></div>
+                <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
+                <div class="stat-card warning"><div class="stat-label">待处理</div><div class="stat-value">${open}</div></div>
+                <div class="stat-card info"><div class="stat-label">进行中</div><div class="stat-value">${inProg}</div></div>
+                <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">已逾期</div><div class="stat-value">${overdue}</div></div>
             `;
 
             // Table
@@ -1497,18 +1518,18 @@
                     <td><strong>${o.id}</strong></td>
                     <td style="max-width:250px;">${o.desc}</td>
                     <td>${project ? project.name : '-'}</td>
-                    <td>${o.category}</td>
+                    <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
                     <td>${o.dueDate}</td>
-                    <td><span class="badge badge-${priorityClass}">${o.priority}</span></td>
-                    <td><span class="badge badge-${statusClass === 'inprogress' ? 'inprogress' : statusClass}">${o.status}</span></td>
+                    <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
+                    <td><span class="badge badge-${statusClass === 'inprogress' ? 'inprogress' : statusClass}">${statusCN(o.status)}</span></td>
                     <td class="actions-cell">
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
-                            <option value="" disabled selected>Action</option>
-                            <option value="Open">Set Open</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Closed">Close</option>
-                            <option value="delete">Delete</option>
+                            <option value="" disabled selected>操作</option>
+                            <option value="Open">设为待处理</option>
+                            <option value="In Progress">进行中</option>
+                            <option value="Closed">关闭</option>
+                            <option value="delete">删除</option>
                         </select>
                     </td>
                 </tr>`;
@@ -1516,23 +1537,23 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>ID</th><th>Description</th><th>Project</th><th>Category</th><th>Owner</th><th>Due Date</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">No OPL items found</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>项目</th><th>类别</th><th>负责人</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无问题项</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
 
         function updateOPLStatus(id, value) {
             if (value === 'delete') {
-                if (confirm('Delete this OPL item?')) {
+                if (confirm('确定删除此问题项？')) {
                     store.opls = store.opls.filter(o => o.id !== id);
-                    addActivity(`Deleted ${id}`, 'opl');
+                    addActivity(`已删除 ${id}`, 'opl');
                 }
             } else {
                 const opl = store.opls.find(o => o.id === id);
                 if (opl) {
                     opl.status = value;
-                    addActivity(`${id} status changed to ${value}`, 'opl', opl.projectId);
+                    addActivity(`${id} 状态变更为${statusCN(value)}`, 'opl', opl.projectId);
                 }
             }
             saveStore();
@@ -1560,10 +1581,10 @@
             const mitigated = filtered.filter(r => r.status === 'Mitigated').length;
 
             document.getElementById('riskStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
-                <div class="stat-card warning"><div class="stat-label">Open</div><div class="stat-value">${open}</div></div>
-                <div class="stat-card danger"><div class="stat-label">High Priority</div><div class="stat-value">${high}</div></div>
-                <div class="stat-card success"><div class="stat-label">Mitigated</div><div class="stat-value">${mitigated}</div></div>
+                <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
+                <div class="stat-card warning"><div class="stat-label">待处理</div><div class="stat-value">${open}</div></div>
+                <div class="stat-card danger"><div class="stat-label">高优先级</div><div class="stat-value">${high}</div></div>
+                <div class="stat-card success"><div class="stat-label">已缓解</div><div class="stat-value">${mitigated}</div></div>
             `;
 
             const rows = filtered.map(r => {
@@ -1574,20 +1595,20 @@
                     <td><strong>${r.id}</strong></td>
                     <td style="max-width:250px;">${r.desc}</td>
                     <td>${project ? project.name : '-'}</td>
-                    <td>${r.category}</td>
-                    <td><span class="badge badge-${levelClass}">${r.level}</span></td>
+                    <td>${categoryCN(r.category)}</td>
+                    <td><span class="badge badge-${levelClass}">${levelCN(r.level)}</span></td>
                     <td><span class="owner-tag">${r.owner}</span></td>
                     <td>${r.dueDate}</td>
-                    <td><span class="badge badge-${statusClass}">${r.status}</span></td>
+                    <td><span class="badge badge-${statusClass}">${statusCN(r.status)}</span></td>
                     <td class="actions-cell">
                         <select class="btn btn-sm" onchange="updateRiskStatus('${r.id}', this.value)" style="font-size:11px;padding:3px 6px;">
-                            <option value="" disabled selected>Action</option>
-                            <option value="Open">Set Open</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Mitigated">Mitigated</option>
-                            <option value="Closed">Close</option>
-                            <option value="Accepted">Accept</option>
-                            <option value="delete">Delete</option>
+                            <option value="" disabled selected>操作</option>
+                            <option value="Open">设为待处理</option>
+                            <option value="In Progress">进行中</option>
+                            <option value="Mitigated">已缓解</option>
+                            <option value="Closed">关闭</option>
+                            <option value="Accepted">接受</option>
+                            <option value="delete">删除</option>
                         </select>
                     </td>
                 </tr>`;
@@ -1595,23 +1616,23 @@
 
             document.getElementById('riskTable').innerHTML = `
                 <table>
-                    <thead><tr><th>ID</th><th>Description</th><th>Project</th><th>Category</th><th>Level</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">No Risk items found</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>项目</th><th>类别</th><th>级别</th><th>负责人</th><th>截止日期</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无风险项</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
 
         function updateRiskStatus(id, value) {
             if (value === 'delete') {
-                if (confirm('Delete this Risk item?')) {
+                if (confirm('确定删除此风险项？')) {
                     store.risks = store.risks.filter(r => r.id !== id);
-                    addActivity(`Deleted ${id}`, 'risk');
+                    addActivity(`已删除 ${id}`, 'risk');
                 }
             } else {
                 const risk = store.risks.find(r => r.id === id);
                 if (risk) {
                     risk.status = value;
-                    addActivity(`${id} status changed to ${value}`, 'risk', risk.projectId);
+                    addActivity(`${id} 状态变更为${statusCN(value)}`, 'risk', risk.projectId);
                 }
             }
             saveStore();
@@ -1624,14 +1645,14 @@
             const name = document.getElementById('projectName').value.trim();
             const desc = document.getElementById('projectDesc').value.trim();
             const color = document.getElementById('projectColor').value;
-            if (!name) { showToast('Project name is required'); return; }
+            if (!name) { showToast('请输入项目名称'); return; }
 
             const id = 'P' + String(store.projects.length + 1).padStart(3, '0');
             store.projects.push({ id, name, desc, color, createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`Created project: ${name}`, 'project', id);
+            addActivity(`创建了项目：${name}`, 'project', id);
             saveStore();
             closeModal('project');
-            showToast(`Project "${name}" created`);
+            showToast(`项目 "${name}" 已创建`);
             renderDashboard();
         }
 
@@ -1641,14 +1662,14 @@
             const frequency = document.getElementById('meetingFrequency').value;
             const docUrl = document.getElementById('meetingDocUrl').value.trim();
             const depts = document.getElementById('meetingDepts').value.split(',').map(d => d.trim()).filter(Boolean);
-            if (!name || !projectId) { showToast('Name and Project are required'); return; }
+            if (!name || !projectId) { showToast('请输入名称和选择项目'); return; }
 
             const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
             store.meetings.push({ id, name, projectId, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
-            addActivity(`Created meeting topic: ${name}`, 'meeting', projectId);
+            addActivity(`创建了会议主题：${name}`, 'meeting', projectId);
             saveStore();
             closeModal('meeting');
-            showToast(`Meeting "${name}" created`);
+            showToast(`会议 "${name}" 已创建`);
             renderMeetings();
             updateCounts();
         }
@@ -1661,14 +1682,14 @@
             const dueDate = document.getElementById('oplDueDate').value;
             const priority = document.getElementById('oplPriority').value;
             const action = document.getElementById('oplAction').value.trim();
-            if (!desc || !owner || !dueDate || !projectId) { showToast('Description, Owner, Due Date and Project are required'); return; }
+            if (!desc || !owner || !dueDate || !projectId) { showToast('请输入描述、负责人、截止日期和选择项目'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
             store.opls.push({ id, desc, projectId, category, owner, dueDate, priority, status: 'Open', action, result: '', createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`Created ${id}: ${desc.substring(0, 40)}...`, 'opl', projectId);
+            addActivity(`创建了 ${id}：${desc.substring(0, 40)}...`, 'opl', projectId);
             saveStore();
             closeModal('opl');
-            showToast(`OPL ${id} created`);
+            showToast(`问题 ${id} 已创建`);
             if (currentPage === 'opl') renderOPL();
             updateCounts();
         }
@@ -1681,14 +1702,14 @@
             const owner = document.getElementById('riskOwner').value.trim();
             const dueDate = document.getElementById('riskDueDate').value;
             const mitigation = document.getElementById('riskMitigation').value.trim();
-            if (!desc || !owner || !dueDate || !projectId) { showToast('Description, Owner, Due Date and Project are required'); return; }
+            if (!desc || !owner || !dueDate || !projectId) { showToast('请输入描述、负责人、截止日期和选择项目'); return; }
 
             const id = 'RISK-' + String(store.risks.length + 1).padStart(3, '0');
             store.risks.push({ id, desc, projectId, category, level, owner, dueDate, status: 'Open', mitigation, createdAt: new Date().toISOString().split('T')[0] });
-            addActivity(`Created ${id}: ${desc.substring(0, 40)}...`, 'risk', projectId);
+            addActivity(`创建了 ${id}：${desc.substring(0, 40)}...`, 'risk', projectId);
             saveStore();
             closeModal('risk');
-            showToast(`Risk ${id} created`);
+            showToast(`风险 ${id} 已创建`);
             if (currentPage === 'risk') renderRisk();
             updateCounts();
         }
@@ -1698,24 +1719,24 @@
             const date = document.getElementById('followupDate').value;
             const notes = document.getElementById('followupNotes').value.trim();
             const attendees = document.getElementById('followupAttendees').value.trim();
-            if (!date) { showToast('Date is required'); return; }
+            if (!date) { showToast('请选择日期'); return; }
 
             const meeting = store.meetings.find(m => m.id === meetingId);
             if (!meeting) return;
 
             const fid = 'F' + String(Date.now()).slice(-6);
             meeting.followups.unshift({ id: fid, date, notes, attendees });
-            addActivity(`Added follow-up to "${meeting.name}" (${date})`, 'meeting', meeting.projectId);
+            addActivity(`添加了跟进到"${meeting.name}"（${date}）`, 'meeting', meeting.projectId);
             saveStore();
             closeModal('followup');
-            showToast('Follow-up added');
+            showToast('跟进已添加');
             showMeetingDetail(meetingId);
         }
 
         function deleteMeeting(id) {
-            if (!confirm('Delete this meeting and all its follow-ups?')) return;
+            if (!confirm('确定删除此会议及所有跟进记录？')) return;
             store.meetings = store.meetings.filter(m => m.id !== id);
-            addActivity('Deleted a meeting topic', 'meeting');
+            addActivity('删除了一个会议主题', 'meeting');
             saveStore();
             backToMeetingList();
             renderMeetings();
@@ -1755,7 +1776,7 @@
             const options = store.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             ['meetingProject', 'oplProject', 'riskProject'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.innerHTML = '<option value="">Select project...</option>' + options;
+                if (el) el.innerHTML = '<option value="">选择项目...</option>' + options;
             });
         }
 
@@ -1765,7 +1786,7 @@
                 const el = document.getElementById(id);
                 if (el) {
                     const current = el.value;
-                    el.innerHTML = '<option value="">All Projects</option>' + options;
+                    el.innerHTML = '<option value="">所有项目</option>' + options;
                     el.value = current;
                 }
             });
@@ -1787,29 +1808,29 @@
 
         function fetchMinutesFromFeishu() {
             const url = document.getElementById('followupDocUrl').value.trim();
-            if (!url) { showToast('Please enter a Feishu document URL'); return; }
-            showToast('Fetching from Feishu... (requires backend API)');
+            if (!url) { showToast('请输入飞书文档链接'); return; }
+            showToast('正在从飞书获取...（需要后端接口）');
             // In production, this would call a backend API to fetch the document
         }
 
         function exportAllCSV() {
             // Export OPL
-            let csv = 'ID,Description,Project,Category,Owner,Due Date,Priority,Status,Action\n';
+            let csv = '编号,描述,项目,类别,负责人,截止日期,优先级,状态,行动方案\n';
             store.opls.forEach(o => {
                 const project = store.projects.find(p => p.id === o.projectId);
-                csv += `"${o.id}","${o.desc}","${project?project.name:''}","${o.category}","${o.owner}","${o.dueDate}","${o.priority}","${o.status}","${o.action}"\n`;
+                csv += `"${o.id}","${o.desc}","${project?project.name:''}","${categoryCN(o.category)}","${o.owner}","${o.dueDate}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action}"\n`;
             });
             downloadCSV(csv, 'OPL_Export.csv');
 
             // Export Risk
-            let riskCsv = 'ID,Description,Project,Category,Level,Owner,Due Date,Status,Mitigation\n';
+            let riskCsv = '编号,描述,项目,类别,级别,负责人,截止日期,状态,缓解方案\n';
             store.risks.forEach(r => {
                 const project = store.projects.find(p => p.id === r.projectId);
-                riskCsv += `"${r.id}","${r.desc}","${project?project.name:''}","${r.category}","${r.level}","${r.owner}","${r.dueDate}","${r.status}","${r.mitigation}"\n`;
+                riskCsv += `"${r.id}","${r.desc}","${project?project.name:''}","${categoryCN(r.category)}","${levelCN(r.level)}","${r.owner}","${r.dueDate}","${statusCN(r.status)}","${r.mitigation}"\n`;
             });
             downloadCSV(riskCsv, 'Risk_Export.csv');
 
-            showToast('Exported OPL and Risk CSVs');
+            showToast('已导出问题清单和风险 CSV');
         }
 
         function downloadCSV(content, filename) {
