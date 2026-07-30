@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.7
+                数据本地保存 &middot; BMU代工厂管理 v2.8
             </div>
         </aside>
 
@@ -557,10 +557,6 @@
                 <label>行动方案</label>
                 <textarea id="oplAction" placeholder="解决方案..."></textarea>
             </div>
-            <div class="form-group">
-                <label>备注</label>
-                <textarea id="oplNote" placeholder="关闭证据、备注信息..."></textarea>
-            </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('opl')">取消</button>
                 <button class="btn btn-primary" onclick="createOPL()">创建</button>
@@ -609,10 +605,6 @@
             <div class="form-group">
                 <label>行动方案</label>
                 <textarea id="editOPLAction" placeholder="解决方案..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>备注（关闭证据）</label>
-                <textarea id="editOPLNote" placeholder="填写关闭证据、备注信息..."></textarea>
             </div>
             <div class="form-group" id="editClosedAtGroup" style="display:none;">
                 <label>实际完成日期</label>
@@ -729,7 +721,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v6-bmu-clean';
+        const DATA_VERSION = 'v7-audit-155';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -750,1238 +742,180 @@
             localStorage.setItem('project-hub-data', JSON.stringify(store));
         }
 
+        const AUDIT_OPL_DATA = [
+            {id:"OPL-001",desc:"交付能力：立讯与小米采购确认量纲和产能一致，确保交付能力",category:"工业化",owner:"顾锐",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"2026-01-13",note:"措施: 双方会议确认; 进展: 1.确认按照RFQ包中 880日产能确保交付能力; 佐证: img_v3_02ts_d365351a-3374-4d20-bc4a-e3be5f29ebcg.jpg   2.定点函已双签（不展示）",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-002",desc:"产能与生产节拍计算：与SIE拉通节拍计算，瓶颈工位时间，",category:"工业化",owner:"李晴天, 丁亚伟",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 见附件表格; 进展: 2026/1/21 已邮件确认可关闭 参考附件评估表格; 佐证: BMU产能分析表1.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-003",desc:"专家（赵勇强）SMA数据现场校核，包括导热胶，纳米涂层胶, RTV胶，考虑胶对后续工艺的影响和后续工艺对胶的要求，考虑利用AI",category:"涂胶",owner:"李晴天",dueDate:"2026-02-26",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 参考附件调查分析; 进展: 2026/3/20 赵老师已来立讯现场审核，该问题关闭，转向跟踪赵老师问题清单。 2026/03/20 1. 报告增加RTV与纳米胶水兼容性报告 2. RTV胶水验证实验数据  3/25完成 2026/03/16 赵工3/17来立讯，现场确认 2026/02/09 赵工春节后来立讯确认 2026/01/31 下周赵工到立讯现场确认 2026/01/26 调查报告已经发给赵工，在确认中 2026/1; 佐证: BMU_胶水风险调查.xls",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-004",desc:"所有关键工序top10做8D分析和持续改善计划，良率和直通率达到行业TOP，误判有可能导致问题流出",category:"良率",owner:"张森",dueDate:"2026-05-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 关键工序问题点汇总; 进展: 2026/3/26 问题清单已review结束，无异常。问题持续收集，观察一个月后，无复现问题可关闭 2026/3/23 更新3月份试产问题点（共11个onepage）后续持续更新 2026/3/12 生产过程中问题收集并做整理分析，持续更新中 2026/2/2 更新组装问题点，问题持续更新中 2026/1/27 更新了SMT&DIP和涂敷的问题点，组装问题还在进行中。 2026/1/21 TOP; 佐证: 立讯产线质量TOP问题.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-005",desc:"长周期物料备计划拉通确认",category:"物料备料",owner:"柯冬梅, 崔江红, 顾锐",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 1.双方拉通需求 2.BOM物料锁定 3.MI 释放预测 4.LUX 下达订单; 进展: 2026/3/20 当前储备库存1100套，可用到9月1日所有交付订单需求 2026年交付订单量已滚动循环拉动 该问题金硕老师风险较低，可关闭 1.按照内部需求5.1W台备料 2.BOM物料已锁定 3.LUX 本周内下达PR&PO",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-006",desc:"红胶存储规范，温度，时间，日常维护记录",category:"SMT红胶",owner:"崔江红",dueDate:"2026-01-16",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 已邮件确认该问题可关闭 温度管控范围2-8度，回温时间4小时",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-007",desc:"锡膏doe结果，如何保证pcb板边缘的锡膏厚度",category:"SMT锡膏",owner:"李晴天",dueDate:"2026-04-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/18 金硕老师已确认该问题可以关闭 2026/04/11 全因子DOE参考附件 2026/04/10 要求做全因子 2026/04/10 DOE参数验证，参考附件 2026/04/09 生管临时插单，DOE实验移到4/12 2026/04/08 已预定生产线，4/9下午3点做DOE 2026/03/31 治具3/29到公司，上线确认治具底座平整度问题，放到设备支撑平台有间隙，治具返厂; 佐证: BMU印刷机工艺参数DOE验证0411.docx     BMU 印刷参数DOE0411.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-008",desc:"layout封装库规范，器件间隙，dfm结果， 锡膏涂敷质量，焊接焊接质量",category:"PCB设计与SMT DFM校核",owner:"李晴天",dueDate:"2026-03-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.layout封装库规范，器件间隙--设计端，立讯无法提供 2. 锡膏涂敷质量，焊接焊接质量（与焊接过程能力和过程管控合并）-立讯提供; 进展: 2026/02/25 年前已和冬生老师、冯普老师完成DFM报告review过，待MI端内部review 2026/02/09 已和冬生老师及冯普老师完成DFM报告review， 2026/2/3 和冬生老师拉会单独讨论 2026/1/29 DFM的检测规则，逻辑，30号会议沟通。 2026/1/28 前期验证难以通过CPK体现小概率风险，更应关注量产稳定后的波动。立讯将通过100%在线3D X-R",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-009",desc:"过程能力和过程管控：关键器件引脚焊接标准，检测能力，合格率，不合格的问题原因及改善，如虚焊，考虑问题横展，径向切片验证",category:"焊接T过程能力和过程管控：",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/2/25 切片已经完成；不良问题和TOP问题点合并 2026/2/2 物料清单，参考标准，检测能力等已更新，不良信息待收集 2026/1/21 物料清单，参考标准，检测能力，不良信息 2026/1/19 样品给到实验室，预计1/30号出结果 2026/1/15 待实验室排切片; 佐证: 焊接T过程能力和过程管控.pptx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-010",desc:"物料管控埋雷试验",category:"物料管控",owner:"张森, 李晴天",dueDate:"2026-01-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 工艺去埋雷，质量去检测，提前记录相关SN; 进展: 2026/1/21 炉前手动取下一颗电阻，炉前AOI有效识别出来 2026/1/15 预计1/21号生产，埋雷验证",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-011",desc:"关键器件焊接切片验证，批产后年度验证",category:"焊接质量",owner:"张森",dueDate:"2026-02-10",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: BGA和顺络变压器切片验证; 进展: 2026/2/2 已添加切片图片 2026/1/27 补充切片物料的数量。 1月16日送实验室切片 实验室回复切片结果1月30给出; 佐证: 切片位置图.docx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-012",desc:"BGA MCU 焊接切片，至少2片以上",category:"BGA MCU 焊接质量，",owner:"张森",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: BGA四周和中心位置做切片分析，至少送样2片; 进展: 2026/2/2 已添加切片图片 2026/1/27 补充切片物料的数量。 1月16日送实验室切片 实验室回复切片结果1月30给出; 佐证: 切片位置图.docx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-013",desc:"smt焊接与T对比，变更点及变更依据，验证结果，关注气泡率",category:"SMT产线对标",owner:"李晴天",dueDate:"2026-02-11",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 鉴于信息安全问题，无法提供",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-014",desc:"四新在其他产线的问题横展，包括2级供应商分供方物料及生产",category:"问题横展",owner:"孙伟琦",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 1/30 已和金硕老师汇报并按照要求整改确认ok 1/27已提交金硕老师，待老师反馈 2026/1/22 资料持续收集中; 佐证: M_BMU制造成熟度及四新物料20260130",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-015",desc:"屋顶风口正负压，过滤层数，点检方式，滤网更换周期",category:"车间出风口",owner:"崔江红",dueDate:"2026-01-19",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/21 提供点检与更换记录 1.空调高效过滤器，正压送风，约100-250pa。 2.空调系统过滤器分别是 初效过滤器，位置在夹层。 中效过滤器，位置在夹层。 高效过滤器，位置在车间。 3.万级车间高效过滤器风压的日常点检频率为每日1次，详细巡检频率为每周1次。  4.万级车间高效过滤器的更换周期无固定时长，核心判定依据是运行风压达到终阻力（300～500Pa），常规工况下更换周期约为",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-016",desc:"生产间隔或暂停时间的喷嘴表层氧化部分焊锡的保养操作规范",category:"选择焊喷嘴保养",owner:"李晴天, 张威",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/19 保养文件，参考附件 2026/1/15 保养SOP进行中，预计1/21号完成; 佐证: 选择焊喷嘴保养.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-017",desc:"选择焊doe验证",category:"选择焊doe验证",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/15 DOE验证已做，报告如附件; 佐证: 选择焊工艺DOE验证.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-018",desc:"dip 3d x-ray切层次数考虑气泡集中位置，允许大小",category:"选择焊 3D X-ray检测规范",owner:"张森",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 提供3D X-RAY的检验规范; 进展: 2026/1/22 贴片物料:5刀-25%;37.5%;50%;62.5%;75%， 通孔焊接物料:起始面/终止面/75%/50% 2026/1/19 已完成 LXQW-AIE-024(1)X-Ray 测试规范指引内有关于切层的要求和规范",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-019",desc:"ict测试覆盖率规范及计算",category:"ict测试覆盖率",owner:"韩林虎",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 会议沟通，该问题可关闭 2026/3/24 本周内完成风险评估（拉通MI） 2026/3/20 3/20新的layout释放后，重新评估一版最新的测试覆盖率。 2026/3/19 满足ICT夹具开设需求 2026/3/18 重新整理并总结报告，并输出结论性文字 2026/3/15 提供最新的测试覆盖率。 2026/2/25 计算方法以实测为主，结果3/12提供 2026/1/2; 佐证: ICT测试规范    BMU ICT.zip     BMU2.0全流程覆盖率20260313",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-020",desc:"切板 颗粒物管控达到10万级，定期检查颗粒物，观察吸嘴是否堵塞",category:"切板清洁度",owner:"李晴天, 张威",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/15 已会议确认可关闭该问题 2026/3/10 已邮件发金硕老师确认 2026/02/09 报告不合格，需要对残留物做成分分析，春节后寄样品给供应商出报告，预计3月6号出报告 2026/2/3 提供正式报告结案 2026/01/26 分板后产品已送检，测试洁净度，1/30号出结果 2026/1/21 分板洁净度: 1.分板完成后的PCBA进行洁净度测试，金属200um，非金属600; 佐证: BMU分板PCBA粉尘分析.docx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-021",desc:"pcb不同位置的吸力/风压分布，做金属异物验证试验， 是否圆孔改成扁嘴或大喇叭孔",category:"PCB清洁",owner:"李晴天, 李蒙恩",dueDate:"2026-02-28",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 金硕老师确认该问题可以关闭 2026/03/16 硕哥3/19来公司现场确认 2026/3/10 报告更新中，预计3/15出报告结果，参考附件 2026/02/09 报告准备中，预计3月6号出报告 2026/2/3 提供PCBA的实验报告 2026/1/26 清洁效果测试报告，如附件 2026/1/21 PCB清洁工站的犀利测试 金属碎屑、锡珠、锡丝(细小)，前后对比照片，出个",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-022",desc:"rtv胶管内部残胶半年清理一次，温湿度压力管控，是否凝固，冬天温度低是否凝固，胶瓶区域增加小环境控制恒温保温，控制冷凝水",category:"RTV胶涂敷",owner:"李晴天",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 1. RTV胶放车间 ，属于恒温恒湿控制，包括节假日，车间均控制温湿度（温度：25±3℃，湿度：40%-60%），不会因为冬天外面气温低，胶水凝固 2. 出胶管道配备压力报警传感器，出胶不顺，设备报警，停止生产，参考附件; 进展: 2026/3/24 计划3/25与金硕老师现场关闭 2026/03/23 参考附件，现场环境优于TDS推荐环境 现场环境： 湿度：40-60% 温度：25±3℃ TDC推荐环境： 湿度：20-80% 温度：≥0℃ 2026/3/20 根据TDS要求与现场环境一致（） 已增加温度计至胶桶外壁进行监控 增加赵老师需求跟踪 该问题关闭 2026/02/03 确认胶水在仓库和线边仓的存储温度要求，制定上线; 佐证: RTV存储及使用条件 (2).jpg     TDS推荐温湿度.jpg    TDS dowsil-se-9168-rtv-adhesive.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-023",desc:"纳米涂层胶嘴高度10cm，浪费较多， 是否可以下降高度，考虑降低成本并且充分涂敷",category:"纳米涂敷",owner:"李晴天, 杜斌",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 2026/1/28 验证一下范围（考虑公差和设备波动） 与胶水供应商确认，涂敷高度标准为10cm，高度变化会影响胶水附着力，; 进展: 2026/1/15 完成",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-024",desc:"绝缘垫片工位机械臂优化，有点头动作，PCB放置过程中板子跳动",category:"组装",owner:"丁亚伟",dueDate:"2026-01-31",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 调整导热垫片下落速度; 进展: 2026/1/26 红丹验证无干涉，应力PASS 2026/1/21 红丹测试预计1/23提供结果&应力测试待拿到到应力片提供 2026/1/15 1/21计划出结果 2026/1/13 验证中; 佐证: OP20站雅马哈机械手动作流程解析_20260115(1).xlsx   机械臂贴敷绝缘垫片红丹&应力测试报告.pptx   导热垫片贴敷验证.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-025",desc:"PCBA装配至上壳体工序，PCBA板有跳动，如何保证PCBA装配到位，是否有转动移位风险",category:"组装",owner:"丁亚伟",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: PCBA放置在壳体后，破真空时增加一秒延时并吹气，建议：同MI端评估涂胶避让位置供吸盘吸附PCBA。; 进展: 2026/4/8：待涂敷治具完成提供一块PCBA验证，预计4/13完成 2026/3/27 世运邮件确认吸力对树脂塞孔无影响，此问题可关闭 026/3/24 切片之后的 PCB与切片报告发世运判断，3/25已寄出 2026/3/17 1. 会议通过：涂敷避让治具可以启动。 2 吸盘的吸力是否会对PCB树脂塞孔造成影响。 3. PCB的平整度对吸盘吸附力的验证。 2026/3/15 3/16上午10; 佐证: PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-026",desc:"装配极限样品测试，压力40公斤要考虑分段装配，考虑瞬态应力，doe分析",category:"组装应力DOE",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 2026/2/6 极限样件垫片应力测试PASS 2026/1/28 通过在产; 佐证: XC-2601-000710-正式中文报告(1).pdf   曲线图片.zip   XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-027",desc:"卡扣微形变验证，5个以上极限样品验证边界",category:"组装卡扣分析",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/15：已跟金硕老师确认无异议 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复，已发送金硕老师3/14现场确认 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 ; 佐证: XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-028",desc:"卡扣装配以及PCBA装配至上壳体，尺寸极限样件装配验证",category:"组装卡扣分析",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 2026/2/6 极限样件垫片应力测试PASS 2026/1/28 通过在产; 佐证: XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-029",desc:"卡扣公差分析，计算，工装，夹具公差链计算",category:"组装卡扣分析",owner:"柳有伟, 丁亚伟",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/20：详情见附件 2026/1/12:已提供产品尺寸链分析，工装尺寸链分析待17号提供; 佐证: 小米BMU2.0 装配尺寸链检查_20260120.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-030",desc:"成品侧面检测ccd曝光效果很差，光源优化，对比度不够，如何保证检测有效性，考虑位置度和pin针折弯，设备检测位置度和高度精度对应pin针位置和弯曲角度，",category:"成品CCD检测",owner:"丁亚伟",dueDate:"2026-01-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 侧面检高清图保存本地，增加PIN位置度纵横轴间距量测; 进展: 2026/1/21 建议偏移角度转化为±0.15; 佐证: 侧面外观.bmp   纵横间距图示.png   XM BMU 新增PIN位置间距视觉检测 .pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-031",desc:"结构，产线设计专家校核，涂胶专家产线校核",category:"专家设计&产线评审",owner:"金硕",dueDate:"",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 专家产线现场校核; 进展: 2026/3/20 赵老师已来立讯现场审核，问题点转向赵老师问题跟踪，该问题关闭 2026/3/15 协调赵老师周四周五同步至立讯 专家产线现场校核",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-032",desc:"所有工位明确设计标准和判定标准，并且清楚标准来源和依据",category:"生产标准及规范",owner:"李晴天, 丁亚伟, 张波, 韩林虎, 翟",dueDate:"2026-03-20",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 分为SMT（设计标准：follow layout，判断标准：SOR+IPC；贴片焊接状态），DIP（设计标准：follow layout，判断标准：SOR+IPC，焊接填充度），coating（设计标准：涂敷图纸，），组装，测试（FCT/EOL测试设计标准和判定标准由MI输出相应的测试SPEC。）; 进展: 2026/03/26 已和金硕老师确认该问题点 2026/3/20 金硕老师以查看，文档中增加2列说明，重新提供资料 2026/03/16 硕哥3/19号来立讯现象确认 2026/3/13 立讯的标准再次进行REVIEW,mi同步review。 2026/02/09 更新如附件 2026/01/26 SMT/DIP/Coating判断标准参考附件 2026/1/21 进行中; 佐证: BMU SMT DIP Coating各工序标准.xlsx    SMT DIP Coating各工序标准.xlsx    测试SPEC:  https://mi.feishu.cn/sheets/Mc98sfORshS8b7t8QDHcrZmBnig   P000019561002已发布.p",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-033",desc:"完成全工艺成熟度文档矩阵表，按各个子系统完成完整闭环，以SPI工站为例，是否按照规范完成SPI程序，是否完成CPK，",category:"工艺成熟度文档完整性",owner:"李晴天",dueDate:"2026-02-12",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"进展: 2026/04/02 闭环文件完成，和金硕老师确认可以关闭 202603/31 SMT已完成工艺闭环文件输出，待测试文件完成即可关闭 2026/03/26 已和金硕老师确认关闭组装测试问题点 2026/03/20 增加工艺成熟度验证附件，该问题可关闭 2026/3/15 先做压测，OEE达到70%的情况下再次进行一轮DOE。 选焊&RTV 2026/02/09 更新如附件 2026/1/26 参考; 佐证: 小米BMU工艺开发验证闭环矩阵图.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-034",desc:"上下盖原材料的保质期限，存储环境，模具寿命定义等等",category:"原材料使用期限管理",owner:"孙伟琦",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 1/14已回复质保期限1年，存储环境温度10-30℃，湿度30-70%； 1/22模具寿命50w",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-035",desc:"SMT炉温曲线基于锡膏规范进行确认",category:"SMT炉温曲线",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/21金硕老师提出： 增加实测的炉温曲线 2026/1/15 参考附件; 佐证: XM-BMU20C01(90-EHB21169)-X2-TOP    12.23.pdf     Indium 10.8HF TDS.PDF",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-036",desc:"观察到PCBA SMT后器件有轻微偏斜，评审优化的可行性",category:"PCBA 焊接",owner:"李晴天",dueDate:"2026-02-10",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/19 物料准备中，预计1/21号完成; 佐证: BMU IC偏移改善.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-037",desc:"当前无高温老化工站，需要评估高温老化对壳体间隙和接插件pin位置度的影响",category:"高温老化",owner:"柳有伟, 张波",dueDate:"2026-03-29",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/26 老化前后数据对比最大误差0.18mm，未超过公差上限（公差1.0mm）符合要去，此问题点关闭 2026/3/24 数据正在正路，预计3/25出报告 2026/3/6：老化设备3/11进场，3/14电气网施工调试，3/16左右老化设备调试完成后进行 2026/1/14 待内部拉通资源; 佐证: 三坐标测量尺寸老化前后对比 - 副本.xls",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-038",desc:"散热过孔存在漏锡，剖切显示焊接质量无异常，X-Ray空洞率按照20%允收标准，积累空洞率数据",category:"功率器件焊接质量",owner:"张森",dueDate:"2025-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 1.mos管散热孔位置切片 2.统计nos管的X-RAY的气泡率; 进展: 1. 已明确X-Ray空洞率按照20%允收标准 2.切片已完成，显示焊接质量无异常，结果已于锦海老师拉通并认可； 3. 空洞率数据持续收集中。; 佐证: MOS管 X-RAY器件图片",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-039",desc:"双85试验后中间卡扣的重合度比角上卡扣重合度低，确认最新样品情况和改善措施",category:"卡扣重合度",owner:"柳有伟",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 需要MI输入重合度要求; 进展: 2026/3/23 改善样件老化实验后重合度与前期双85实验最大间隙量基本一致，详见附件报告 2026/3/19 改善样件重合度无明显变化，详见附表。老化实验进展中，待老化完成评估老化后状态。 2026/3/10 改善样件供应商端已完成制样，待到货立讯后验证。 2026/1/20 待验证老化之后的卡口重合度 2026/1/14已完成。3D理论间隙为0.47mm，最新壳体样品最大间隙0.5max，与; 佐证: BMU2.0 卡扣重合度调查",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-040",desc:"元器件偏移，找出偏移的器件，针对器件单独做验证",category:"SMT焊接位置精度",owner:"李晴天",dueDate:"2026-02-26",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/01/26 邹立老师现场看到的IC偏移量均在IPC 25%以内，邹立老师要求调整到中心位置，1/21号生产已调整贴片到中心位置，如附件 2026/1/21 AOI VS 三坐标 IPC 25%合格 2026/1/19 物料准备中，预计1/21号完成; 佐证: BMU IC偏移改善.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-041",desc:"干簧管Pin脚后脚跟焊盘小，导致无法达到100%爬锡，同时检查前脚跟的爬锡是否达到100%",category:"SMT焊接爬锡率",owner:"李晴天",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/03/31 3/30完成Layout优化后试生产，3/31完成切片报告，ok后可关闭问题 2026/3/26 3/29快板到厂进行验证（所有变更点的验证） 2026/03/16 3/13与米会议，DFM只有2个Open问题点，3/16与冬生确认，汇总报告已提交冬生 2026/02/25 年前已和冬生老师、冯普老师完成DFM报告review过，待MI端内部review 2026/02/09; 佐证: BMU C1 DFM",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-042",desc:"治具中每一个有抓夹的动作都要做应力测试和振动测试（振动测试可能性待确认）",category:"产线过程应力",owner:"李晴天, 李蒙恩",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 补充组装应力测试报告，该问题关闭 2026/03/16 金硕老师3/19来公司，现场确认 2026/02/25 已增加分板机应力报告 2026/02/05 增加分板机应力报告 2026/2/3 补充其他站别的应力测试报告 2026/01/26 RTV点胶轨道夹治具应力测试报告如附件，应力测试结果OK 2026/1/19 振动测试无法做，应力测试准备中; 佐证: 涂胶TOP    涂胶BOT    小米BMU_分板-应力测试    Akemond Strain_0_10.483_XM-BMU2(1)    RTV点胶轨道夹治具应力测试.xls     组装测试应力报告.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-043",desc:"厚度检测位置：coating轨迹和PCBA的投影图实际 是否能全覆盖薄弱分析与厚度检测，厚度不能低于DVC样品",category:"纳米涂层",owner:"李晴天, 杜斌",dueDate:"2026-04-09",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/02 报告完成，参考附件 2026/3/26 AOI、光谱仪、切片，三个方式的数据对标 2026/03/23 要求增加光谱仪测试原理，3/25完成 2026/03/19 已确认，1-2检测的是coating厚度，1-3检测的是coating上表面到油墨底部厚度，2-3检测的是表层绿油厚度，光谱检测时，如果光谱穿不透油墨的话，油墨厚度测量值会有偏差， 2026/3/15 报告中的参数; 佐证: 光谱仪 切片 UVAOI厚度对比    光谱仪测量厚度与切片对比    测量三防涂敷厚度.pdf    BOTk面路径显示.png   TOP面路径显示.png",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-044",desc:"禁涂区域如导热垫片区域无AOI（治具挡住了），无法防流出",category:"纳米涂层",owner:"李晴天",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 2026/1/21金硕老师 遮蔽治具验证OK后代表该区域可以做有效遮蔽。 提供治具的验收报告; 进展: 2026/2/3 提供治具验收报告 2026/1/21 遮蔽治具的验收报告 2026/1/19 待与金硕老师拉通; 佐证: XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-045",desc:"参照某客户接插件点红胶工艺是否适用于BMU项目，改善振动性能",category:"问题横展",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 无法执行 红胶污染扩散影响接插件; 佐证: BMU 点红胶工序.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-046",desc:"提供Flyback变压器焊接温度曲线和测点给顺络确认",category:"Flyback变压器焊接",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/15 已与锦海老师拉通，确认OK",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-047",desc:"立讯反馈的RTV胶节拍问题，评估共模电感点胶减少的可行性",category:"Top面RTV胶节拍问题",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/19 CT已优化完成，共模电感不需要取消点胶。维持以前点胶方式不变",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-048",desc:"对壳体进行蓝光扫描和表面模型重构，与理论3D数模对比",category:"壳体变形确认",owner:"孙伟琦",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 1/26 扫描完成，邮件已发锦海老师 1/15要求供方中亿腾确认蓝光扫描资源 1/20  供方集团内部协调资源，计划1/26完成",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-049",desc:"确认改善措施及时间",category:"壳体高温后局部变形，需修模改善",owner:"柳有伟",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 改善措施已与小米秦老师拉通确认，待塑壳DVC全部完成后（预计1/30），基于DVC所有实验结果最终确认改善方案，预计改善完成时间2/14; 进展: 2026/3/23 实验结束，原局部变形位置修模后经过高温摸底实验，壳体变形改善，间隙小于1mm，改善有效。 2026/3/17 实验样品已送至实验室，预计3/21完成实验 周四（3.19）提供尺寸报告review 2026/3/12 已修模完成，待3/13样品到货确认改善效果 2026/1/20 考虑DVC完成时间节点，前期与小米秦老师达成一致，DVC壳体实验使用T3壳体。 2026/1/14 ",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-050",desc:"部分接插件与卡扣间隙太小，需改善，其余位置横展校核",category:"壳体安装后与接插件间隙校核",owner:"柳有伟, 孙伟琦",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 需要MI输入最小尺寸要求; 进展: 2026/3/17 最新壳体间隙详见附件，经与秦亚文老师评估确认，间隙状态可接收，问题点关闭 2026/3/15 周四（3.19）提供尺寸报告review 2026/3/12 已修模完成，待3/13样品到货确认改善效果 2026/1/22  1/30 出壳体DVC结果 2月初确认修模方案 2/14初步修模结果 2026/1/14 已收集最新接插件与卡扣间隙数据。; 佐证: 连接器与壳体间隙统计_20260317.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-051",desc:"当前壳体DVC样品为T2+状态壳体，需考虑T3，T4状态壳体的测试及视同项",category:"壳体状态及验证",owner:"柳有伟",dueDate:"2026-02-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/28 经与小米杰龙清及秦亚文老师沟通评估，T3,T4状态壳体状态可视同，不影响实验验证。 2026/1/22 经排查T3、T4修模内容主要为改善IP40间隙及衬套孔位置度，立讯评估对DV实验无影响，待结构老师来立讯后进行现场评估确认。",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-052",desc:"T5修模壳体需按照变更点考虑Delta测试项",category:"壳体状态及验证",owner:"柳有伟, 孙伟琦",dueDate:"2026-02-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/28 经与小米杰龙清及秦亚文老师沟通评估，T5修模变更点对实验验证无影响，无需进行delta DV。修模后样件需补做一项摸底实验，实验条件：高温105℃ 48小时环境后总成状态及尺寸测量。 2026/1/22 待实验结束根据修模方案与小米老师评估确认",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-053",desc:"0PPM高质量交付落地",category:"全工序",owner:"TEAM",dueDate:"2025-12-31",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 拆分为 策划完成时间：2025/12/31 措施完成时间：2026/1/30; 进展: 2026/3/20 后续按照金硕老师提供的0PPM质量着陆道进行 该问题持续跟踪，补充各阶段的质量数据 2026/1/15 持续收集数据中 2025/12/24 待与客户review资料",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-054",desc:"电流精度测试域值SPEC 0.2%，程序里设定的是196A~201A @200A，排查全部测试报告，杜绝有问题的产品流出",category:"组装",owner:"张波, 张俊",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 2025/12/30 参数在生产前未经过质量确认，一切参数以SPEC为准，释放的标准以冬生老师输出为准。; 进展: 2026/1/15 持续收集数据并与客户确认中。 C01所有EOL测试排查完毕，未有测试结果超过2%，详细记录分析如附件所示; 佐证: SHUNT电流排查.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-055",desc:"coating治具（连接筋）未经过验证，应用到客户样品生产",category:"coating",owner:"杜斌, 李晴天",dueDate:"2026-01-12",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 申请样品提前验证工装治具，禁止用客户样品验证工装; 进展: 2026/1/15 链接筋已改善，该问题已解决。 2026/1/12 1/8号连接筋到公司验证，连接筋阴影部分，避开元件，阴影部分厚度大于40um，符合要求， 2026/1/5 连接筋重做，1/8到 2025/12/30 连接筋路径是否有元器件， 2025/12/29 已提供8D报告，如附件所示，改善后支架1/5号到，6号验证; 佐证: BMU 涂敷治具导致胶薄 8D改善报告.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-056",desc:"PCBA表层出现可移动锡珠（>0.13mm）问题，且AOI未拦截",category:"DIP",owner:"李晴天, 张森",dueDate:"2026-01-15",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 下次生产参照其他客户真空值改善，由300mbar改到400mbar，炉后100%放大镜检查，; 进展: 2026/01/26 1/21日生产无锡珠，已连续3次生产无锡珠， 2026/1/19 1/21号生产，观察确认 2026/1/12 1/9号生产样品，无锡珠 2026/1/6 参数已修改，待几批生产过程中观察，需要足够的样品数据支撑。; 佐证: BMU锡珠分析改善.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-057",desc:"从EOL问题，横展所有已交付产品，是否有流出的质量风险？",category:"质量风险",owner:"韩林虎&翟涛涛&张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-21",note:"措施: 排查从C01的所有测试log。; 进展: 1.EOL测试记录排查完毕，未发现风险项 2.ICT之前生产采用飞针方式，无风险项 3.FCT测试记录排查完毕，未发现风险项",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-058",desc:"如何确保工艺成熟度，四新",category:"工艺",owner:"李晴天, 丁亚伟",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 工艺成熟度参考附件评估表格; 进展: 2026/2/25 与上表格问题点重合，该问题项关闭 2026/02/09 已更新附件 2026/01/31 已完成工艺开发验证矩阵图，在准备相关验证，及文件输出 2026/01/26 参考SMT工艺开发闭环验证矩阵图 2026/1/19 1/21号与金硕老师确认 2026/1/12 评估工艺参数闭环验证矩阵图，已出初稿，1/15号立讯内部工艺，质量，体系讨论后，输出工艺闭环验证矩阵图，1/16号; 佐证: 小米BMU工艺开发验证闭环矩阵图.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-059",desc:"选焊预热温度不足（80℃），触波温差＞150℃",category:"DIP",owner:"李晴天, 张森",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 1.开班点检使用纸质版，需要责任人签字完成后，才开始生产。 2.PCBA段点检项（确保100%无遗漏），需要PCBA工艺提供，CFT小组评审，质量负责检验; 进展: 2026/1/22 已与金硕老师确认，该问题可关闭，点检项见附件 2026/1/6 已与金硕老师过完一版，待修改后再次review。; 佐证: 小米BMU DIP IPQC Check list.xlsx   小米BMU SMT IPQC Check list.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-060",desc:"哪些器件是喷涂有风险的（需要详细到具体的位置和具体的引脚，验证方法待讨论，测试方法标准化，不能防护的风险程度，导致的后果。）",category:"caoting",owner:"李晴天&杜斌",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 1.视觉上通过AOI和显微镜有没有涂敷。（目视手段充分识别），完成时间：2025/12/20  2.采用AOI检测涂敷厚度（找中国范围第三方实验室了解引脚厚度检测方法）完成时间：2025/12/20 3.根据已识别的零件做围坝试验，立讯做好样品到小米端进行测试。根据风险文件针对有风险区域进行围坝（小米老师协助测试资源）样品数量：2pcs。 完成时间：2026/1/10; 进展: 2026/3/24 3/25现场与金硕老师拉通，确认可关闭 2026/03/20 提供当前coating涂敷状态及各引脚涂敷覆盖率 赵老师问题转向至赵老师问题清单跟踪 2026/1/27 凝露摸底实验已通过 2026/01/26 参考附件实验室供应商联系方式 2026/1/20 提供具体沟通佐证，实验室名称，联系方式。 2026/1/19 一共联系18家实验室（立讯配合实验室）， 均不能检测阴影部; 佐证: BMU Coating 涂敷覆盖率     委外实验名单.xlsx      测量三防涂敷厚度.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-061",desc:"干簧管偏移定义的依据，给出定义偏移标准是否合适。 提供干簧管偏移的排查报告（包括MES数据与AOI大图）。  干簧管偏移切片报告分析。（NG板子分析切片与OK样件切片分析）。 横展其他元器件是否有相同问题和失效风险。",category:"SMT",owner:"张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 1.干簧管引脚尺寸为：0.9*2.0mm 对应PCB上焊盘尺寸为：1.8*2.1mm AOI根据IPC标准超出引脚尺寸20%设置0.18mm符合IPC标准。 2.调取此次生产50pcs的AOI大图，焊盘均无异常，MES上AOI数据也无该器件不良。; 进展: 2026/1/7 金硕老师review，关闭该问题 202525/12/26  已与金硕老师review，老师提出需要看下后面几批会不会再发生，待后续生产再跟进关闭。 2025/12/25 最近生产的50pcs已无该现象发生 待与金硕老师review",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-062",desc:"1. 1500套有9颗仍未到达立讯工厂： 现货与期货价格相差20W+，锁住现货物料，寻找其他渠道。  2. 2026全年备料有风险及时反馈。  3. 部分安世物料的晶圆需要切换PCN，在2026年1月切换新的PCN时评估导入。  4. 替代物料评估暂定为27年3月导入。",category:"物料",owner:"柯冬梅",dueDate:"2026-04-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 分阶段备料; 进展: 2026/3/20 当前储备库存1100套，可用到9月1日所有交付订单需求 2026年交付订单量已滚动循环拉动 该问题金硕老师风险较低，可关闭 2026/2/5 SOP后安世物料按照4/30目标节点拉回工厂 2026/1/15 sop前安世物料已拉回 2026/1/6 SOP前一颗物料未拉回工厂 2025/12/22 SOP前1500套剩余三颗物料未拉回工厂",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-063",desc:"MI端设计未锁定，C1样件相比C01阶段有变更",category:"设计",owner:"张俊&MI",dueDate:"2026-01-07",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-06",note:"措施: MI释放资料&立讯交付快板; 进展: 2025/12/23 快板已交付。 交付快板数量3pcs",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-064",desc:"镭雕位置换区域，需要与MI确认。",category:"SMT",owner:"张帆&李晴天",dueDate:"2025-12-20",createdAt:"2025-12-11",priority:"低",status:"Closed",closedAt:"2026-01-20",note:"措施: 镭雕位置下移2mm，已完成内部评审会议，并得到小米刘冬生老师认可; 进展: 2026/1/20 提供确认邮件 2026/1/15 镭雕位置已ok。 2025/12/24 待实际生产验证; 佐证: BMU C01 TOP面镭雕丝印下移说明.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-065",desc:"炉温需要统计器件是否超SPEC：提供具体位置一一对应SPEC（温度，时间等），评估超出SPEC风险评估。",category:"SMT",owner:"张帆&李晴天",dueDate:"2025-12-23",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 8颗温度敏感器件，C102/C103较大，设一个测温点220℃以上22秒，符合要求，C509/C510/C501/C502/C515大小相同，设一个测温点220℃以上38.68秒，符合要求，C713零件小，设一个测温点220℃以上74.55秒，超规范，; 进展: 2026/1/12 温度超标零件，供应商答复无风险，邮件告知硕哥 2026/1/6 文件已发金硕老师，待老师反馈，与超SEPC物料的供应商拉通。 2025/12/24 文件见附件，待与客户金硕老师review; 佐证: BMU热敏元件回流炉状况.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-066",desc:"有不同的原厂标签，确认原厂标签的一致性。",category:"物料",owner:"柯冬梅",dueDate:"2026-01-15",createdAt:"2025-12-11",priority:"低",status:"Closed",closedAt:"2026-01-22",note:"措施: 锁定BOM之后所有的样品均为收费样品; 进展: 2025/12/29 待客户释放锁定BOM",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-067",desc:"ICT连接器探针暴露在热缩管之外，未保护好探针，横展到所有有探针的测试工位检查",category:"DIP&组装",owner:"韩林虎&翟涛涛&张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: eol工位已完成自检，探针尾部无漏铜，安规工位尾部短接，无法套热缩管，采用护罩形式，确保无安全影响 EOL与FCT整改; 进展: 2026/1/6 所有整改工位提供所有整改之后的照片作为佐证。; 佐证: 整机工位接插件检查表.xlsx   治具热缩管包裹探针.zip",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-068",desc:"变压器通孔焊接需确认具体是哪个引脚焊接率达不到100%，C0&C01的焊接爬锡率状态。",category:"DIP",owner:"张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/15 已验证，拖焊时间由3s增加4s，改善完成 2026/1/7 增加拖焊时间验证 25/12/26 已与金硕老师讨论过，老师提出需要看下后面的生产数据，待后续生产跟进，暂不关闭",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-069",desc:"提供X-ray检查清单，根据所有器件封装，确认哪些器件需要做X-RAY，检查是否有遗漏器件。",category:"SMT&DIP",owner:"李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: BMU X RAY测试清单，参考附件; 进展: 2025/1/15 金硕老师已认可，该问题可关闭 2025/12/24 见附件，待与客户金硕老师review; 佐证: X-RAY BMU20C01测试清单",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-070",desc:"QFN的3D X-RAY剖切方式和检测标准",category:"SMT&DIP",owner:"李晴天&张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 焊脚侧面及底部吃锡量大于50%，参考图片说明; 进展: 2026/1/22 已与客户review。 2025/12/24 见附件待与客户金硕老师review; 佐证: QFN R-RAY.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-071",desc:"提供coating平面厚度检测多少点位",category:"coating",owner:"李晴天&杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 参考附件AOI coating厚度检测，已考虑支架阴影部分; 进展: 2026/1/15 coating AOI的监测点为裸板位置，确认OK 检测原理待确认 2025/12/30 参考附件AOI测厚，选点位，已考虑支架阴影部分点位; 佐证: BMU_AOI 测厚选点.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-072",desc:"确认遮蔽治具是否符合需求：coating治具公差尺寸链计算，有两个螺丝孔在设备上也需要提供尺寸链公差计算，尺寸链公差需要横展所有工位。",category:"全工序",owner:"杜斌",dueDate:"2025-01-06",createdAt:"2025-12-11",priority:"中",status:"Open",closedAt:"",note:"措施: coating尺寸公差链计算; 进展: 需要找龙清老师确认",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-073",desc:"装配壳体公差分析（因为看到装上壳类似于盲装），为了判断散热垫片在装配过程中不会造成位置偏差和扭曲。",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 导热垫装配通过引导相机定位，吸取垫片后拍照设定坐标，以PCBA定位孔和上边沿建立坐标系，调整导热垫与PCBA相对位置进行贴敷; 进展: 2026/1/29 已和锦海老师确认，需补充邮件 2026/1/20 需与锦海老师拉通 2026/1/15 已与金硕老师拉通，已确认OK。; 佐证: 小米BMU2.0 装配尺寸链检查_20260108.pptx   XM_BMU 导热垫片装配视觉逻辑.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-074",desc:"PIN针位置度检测方式与连接器供应商拉通确认，为了确定判定方法是否合理。",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 对照供应商图纸检测; 进展: 2026/3/20 按照供应商图纸0.225mm管控 CCD已确认，防错已完成，该问题关闭 2026/3/3：3/19生产在不紧急出货的情况小批量尝试0.15mm（30%）统计不良率 2026/2/3 后续小批量尝试0.15mm（30%）统计不良率 2026/1/20详情见附件 2026/1/15 文档整理中 2026/1/6 描述详细的测试方法 按照结构提供的供应商图纸检测; 佐证: PIN 位置度检测逻辑.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-075",desc:"PCBA组装过程中吸嘴真空释放时有跳动情况，可能会导致PCBA安装不到位",category:"组装",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 建议避让位置供吸盘吸附PCBA; 进展: 2026/3/16 与上述问题点重合，关闭此问题点 2026/03/13：邮件已发送客户刘冬生，待客户回复 2026/3/11：结构出正式图纸，提供给杜斌&供应商，预计3/23实装完成 2026/3/9：赵福爱需与客户拉通，确认地孔是否可以不涂敷,预计3/10锁定 2026/1/26 :红丹验证无干涉，应力PASS 2026/1/21：红丹测试预计1/23提供结果 2026/1/13：建议评估涂胶; 佐证: PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-076",desc:"组装过程中发现PCBA上有指纹",category:"组装",owner:"李晴天",dueDate:"2025-01-20",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-15",note:"措施: WI定义戴指套作业拿取PCBA; 进展: 2026/1/15 WI更新完成，已发放，金硕老师已review，确认OK。; 佐证: 戴指套拿PCBA.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-077",desc:"导热垫片的叠加对压缩量的影响&吸取垫片压装垫片时的压缩量，需要量化",category:"组装",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-07",note:"措施: 导热垫叠放三层，2/4/8/24/48小时量测; 进展: 2026/1/7  已完成量测 2025/12/30 已进行叠加对压缩量量测，待新吸盘安装后量测压缩量; 佐证: XM BMU 导热垫片压缩量.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-078",desc:"各工位接触到PCBA的分析应力最大点，针对最大应力点进行测试。",category:"全工序",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 2025/12/23：组装站测试应力如附件所示，所有应力均小于±500ue，符合IPC-9704要求; 进展: 2026/1/29 应力测试报告已与金硕老师和锦海老师拉通，补充佐证。 12/25：与锦海老师沟通确认应力点位 2024/12/24 见附件，待与客户金硕老师review; 佐证: XM_BMU 应力测试报告.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-079",desc:"工装平面度点检",category:"组装",owner:"张波",dueDate:"2026-02-28",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 季度使用压敏纸进行点检; 进展: 2026/1/22 需要提供Q1的执行状况图片 2026/1/20 提供点检表格 压敏纸采购中，预计1月中下旬到货，已与MI金硕老师review，后续季度点检。; 佐证: XM BMU 组装设备压敏纸点检.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-080",desc:"安规最多测试两次",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: MES管控测试次数，上限设为2; 进展: 已通过MES设定测试次数上限为2",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-081",desc:"点胶工站夹PCBA过程中PCBA跳动，需要调整",category:"coating",owner:"李晴天, 李蒙恩",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 识别生产线夹板重的工序，共3有3个，已安排设备供应商调整改善; 进展: 2026/01/26 应力测试参考附件 2026/1/19 待应力测试; 佐证: RTV点胶轨道夹治具应力测试.xls",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-082",desc:"RTV点胶后发现T500位置有点胶范围溢出检测范围，但AOI未识别",category:"coating",owner:"李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 识别点固定胶所有位置溢胶风险，只有T500那个位置靠板边，固定胶有溢出PCB板风险， 措施：板边增加检测框（参考附件），胶外溢设备报警，按不良品流程处理，; 进展: 改善完成; 佐证: T500固定胶说明.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-083",desc:"coating治具连接筋周围的厚度是否符合标准。",category:"coating",owner:"杜斌/李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 已检测数据35-37um，偏小，评估风险小，偏差放行; 进展: 2025/12/18 已检测数据35-37um，偏小，评估风险小，偏差放行",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-084",desc:"Coating治具（连接筋）可行性未论证，连接筋投影面积经过器件或过孔",category:"coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 减小连接筋尺寸，验证测试三防厚度要大于40um; 进展: 2026/2/3 提供治具验收报告 治具1月12号进厂，12号验证; 佐证: XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-085",desc:"导热垫片的毛边尺寸和检验标准, 检验实施方式",category:"组装",owner:"柳有伟/孙玮琦",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 更新导热垫片图纸和SIP定义毛边尺寸和检验标准; 进展: 2026/1/22 SIP已与客户确认 12/31 供应商已提供检验规范，待与MI老师确认 2026/01/06  SIP已和MI客户SQE确认，并下发IQC; 佐证: 90-B0004981_导热垫 _SIP_A2.pdf   90-B0004982_导热垫 _SIP_A2.pdf   90-B0004983_导热垫 _SIP_A2.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-086",desc:"板边毛屑&污染问题依然存在偶发",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 治具还在优化改善阶段，毛屑是贴在治具上的绒布， 治具改善好以后，无需贴绒布，不会有毛屑产生; 进展: 2026/01/15 ：新版治具已使用30次，无毛屑产生，持续观察中",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-087",desc:"连接器胶带防护需要改善",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 要求供应商改善治具，; 进展: 改善PPT报告参考PPT; 佐证: BMU Coating连接器粘胶治具改善汇总.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-088",desc:"BPS撕胶带方式需要变更（禁止镊子直接触碰器件）",category:"Coating",owner:"李晴天",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.已请购粘胶棒（消耗未带胶带的库存） 2.库存消耗后采用带麦拉的器件（快板验证后）; 进展: 2026/3/15 麦拉有小脚，方便接取，该问题可关闭 2026/03/25 3/13与米会议，方案还在讨论 2026/02/09 测试部门评估自动化贴麦拉 2026/01/26 新物料表面已贴麦拉，麦拉凸出零件，方便揭取， 待旧物料库存消耗完 2026/1/12 物料表面已贴麦拉，麦拉凸出零件，方便揭取，碰不到零件 8号胶棒到公司，9号验证; 佐证: ESD高粘胶棒.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-089",desc:"Coating治具的清洁问题（三种：上盖、下壳、设备治具）",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.MES管控使用次数，达到条件后无法上线使用; 进展: 2026/1/15  样品治具信息已录入 对应清洁次数通过MES管控; 佐证: 清洗次数管控.png",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-090",desc:"遮蔽弹簧下压的应力状态",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/01/15 应力报告已完成  看1月12号支架验证状况，改善OK的话，做应力报告; 佐证: Akemond Strain_0_10.007_XMBMU_001.xls",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-091",desc:"转运Tray的洁净度问题和清洁频次管理问题",category:"TLA",owner:"张森",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 产内有三级文件规定：LXQW-AWH-038(1) 可回收周转tray盘清洁指导书 LXQW-AWH-037包材回收管理作业办法; 进展: 26/2/2 新增包材回收管理作业办法 按照三级文件执行tray盘清洁",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-092",desc:"组装卡扣异常（未卡紧状态）*2pcs",category:"TLA",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 工装增加挂耳加强压合稳定; 进展: 1/5：已验证40PCS壳体无异常 12/29：待月底拿到壳体进行验证 12/22：工装预计26号到厂",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-093",desc:"线平衡优化问题（CCD卡滞、组装运输轨道）",category:"TLA",owner:"张波",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2025-12-18",note:"措施: 已修正程序漏洞; 进展: 已修正，现更改为INT类型触发MES上传",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-094",desc:"EOL软件通讯问题，EOL测试spec评审",category:"TLA",owner:"张波",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-02-02",note:"措施: 1.优化CAN 盒通讯方式，软件更改中， 2.后续均以spec为准，不接受口头通知; 进展: 2026/2/2 本次生产260pcs无该问题。 can盒通讯方式优化完毕，样件2pcs试跑20遍无异常，待批次生产验证",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-095",desc:"针对 BMU 项目从历史问题库（Lesson Learned）中提取典型工艺问题进行重点宣导和培训，以预防已知风险。",category:"审核问题",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 根据PCBA问题点&测试问题点&整机问题点选取问题点加入Lesson Learned中，给生产及现场质量人员进行培训; 进展: 2026/4/10 金硕老师已确认，该问题可关闭 2026/4/7 TOP问题点、试产问题点和质量警告已完成培训。 2026/3/30 TOP问题点已收集 试产问题点已收集 质量警告已收集 培训计划4月9日前完成 2026/3/20 用TOP问题点和试产问题点进行培训 3/10：待收集数据，计划3/30完成生产、质量人员进行培训; 佐证: 培训记录-TOP问题点 质量警告 试产问题点.pdf   立讯产线质量TOP问题.pptx   XCTR-DQA-033 质量警告.xlsx",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-096",desc:"确认三防漆等胶水在仓库和线边仓的存储温度要求，并制定上线前提前备料及温度平衡的具体方案。",category:"审核问题",owner:"李晴天, 杜斌",dueDate:"2026-03-15",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.化学品仓库储存温度8-25℃，车间温度25±3℃，胶水TDS最佳储存温度20-25℃ ，与供应商确认纳米胶实际的储存环境及影响状态。 2.纳米胶水执行专区、专架、专用标识管理，实行先进先出（FIFO）与批号全程追溯 3.纳米胶水领料、转运、存放全程密封避光、恒温管控，上线前温度平衡时间不低于 24小时，确保胶水温度达到 23℃～27℃ 后方可投入使用 4. 小米防爆柜和线体区域增加温湿度表实时; 进展: 3/16 赵工3/17来立讯现场确认 3/15 参考附件; 佐证: ANG T5备料及温度平衡方案",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-097",desc:"产线问题60%-80%的问题源于结构件分供方，需重点管控",category:"审核问题",owner:"孙伟琦",dueDate:"2026-03-28",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 建议关注SOP的可执行性、人员是否按规操作（可通过非通知式飞行检查验证），以及返工返修环节的风险。明确要求供应商不得使用回收料。; 进展: 2026/3/28 已与金硕老师沟通，可关闭 3/26邮件输出供方明确不使用回收料 3/20提供供应商评估报告（包含SOP的执行性和返工返修，符合作业要求） 3/19飞行检查，洁净度、SOP、回料等符合要求; 佐证: 08_BMU2.0_ Cover过程流程图SOP及评估.xls   08_BMU2.0 Housing 过程流程图SOP及评估.xls   飞行检查20260319   返工返修作业指导书   邮件.png",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-098",desc:"用负压离子风机清洁涂覆前的粉尘，定期评估生产环境变化对清洁效果的影响。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-09",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/08 4/9同金硕老师现场确认 2026/04/02 更新报告参考附件 2026/03/31 4/4出报告 2026/3/26 送实验室测试洁净度，预计4/4完成报告输出 2026/3/20 该问题与姚老师审核问题点22相同，提供佐证资料后可关闭问题点  3/19金硕老师来立讯，现场确认 3/15： 参考附件; 佐证: 等离子清洁验证",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-099",desc:"针对三防漆喷涂高度10cm导致的浪费，立讯基于供应商规范和DOE验证（尝试过低高度会导致附着力下降）认为无法降低。建议提供量化数据（如不同高度下的附着力变化曲线）和考虑设备公差的合理范围（如8-12cm），以便更充分说明。",category:"审核问题",owner:"李晴天",dueDate:"3月15日",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 8-12cm高度分开验证，确认涂敷质量，输出报告; 进展: 3/16： 3/17赵工来现场确认 3/15： 已提供验证报告，参考附件; 佐证: 纳米涂层高度验证(1).pdf",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-100",desc:"目前单壳体连接器开口处尺寸基于实际状态进行修模，需关注连接器厂商有无复制模的情况或新增复制模的计划，避免因复制模的样品状态差异导致间隙状态产生变化。",category:"审核问题",owner:"孙伟琦",dueDate:"2026-03-28",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.固化现有模具供货状态 2.框口尺寸纳入管控; 进展: 2026/3/28 已与客户沟通，可关闭 2026/3/25 TE目前没有复制模计划，后续有计划会提前告知立讯；已经更新SIP将框口尺寸纳入IQC管控；库存实测符合图纸 3/14 已邮件输出TE连接器模具情况咨询; 佐证: 90-B0003471检验指导书-A2.xls       123.png",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-101",desc:"下轮修模方案对DVC试验影响小，无需进行delta DV。需补做一项摸底试验，试验条件:105℃环境下停留48小时，观察样品状态并测量尺寸",category:"审核问题",owner:"柳有伟",dueDate:"2026-03-21",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 改善样品到货后补做摸底实验; 进展: 3/23 实验结束，改善后壳体间隙＜1mm，改善有效 3/17 实验样品已送至实验室 3/12 样品预计3/13到货，3/21完成实验",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-102",desc:"比对零件供应商规格书与焊盘进行器件封装库检查",category:"审核问题",owner:"赵福爱",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-06",note:"进展: 已完成封装库检查",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-103",desc:"工艺针对问题点1检查的差异点风险项进行确认",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10： 3/6完成，并输出报告",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-104",desc:"针对以上工艺输出最后的风险点及结论",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10： BMU C1 16项风险点，安世替代4项风险点，",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-105",desc:"工艺检查valor-VPL的正确性",category:"审核问题",owner:"张帆",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/24 已会议沟通，可关闭该问题 2026/03/21 增加漏建库说明 2026/3/18 补上VPL库缺少8个器件的信息后无误可关闭该问题 2026/03/15 参考附件Valor识别清单， 2026/3/12 补充list清单 2026/3/10： 3/6完成Valor-VPL识别，共11个建库问题，256种库，占比4%; 佐证: DFM valor漏建库说明.pdf     DFM valor建库错误清单.pdf",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-106",desc:"全制程DFMcheck，按照会议展示模板进行梳理",category:"审核问题",owner:"韩林虎",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/9 等ICT治具到用快板验证后无问题可关闭该问题点 2026/3/24 输出DFM风险评估报告后可关闭该问题 2026/3/12 组装段提供尺寸公差链分析 2026/3/10 组装DFM以提供，PCBA DFM明天提供",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-107",desc:"输出DFM报告，若需要改动设计，输出影响分析报告",category:"审核问题",owner:"刘华军",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/02 快板验证OK，参考附件 2026/3/24 1. valor软件跑DFM； 2. 快板到厂后验证； 2026/3/18 输出器件修改清单（必改项&建议修改项及原因） 2026/03/16 1. 尺寸量测完成，切片已安排，3/17出结果 2. 试生产贴片已安排，4个点切片，3/20出结果 3. C516/C518安排3/17验证，出结果 2026/03/15 3/13，2条问题; 佐证: 快板重要器件切片图     BMU C1 DFM",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-108",desc:"安世与去安世的物料有一个焊盘是否可以兼容，风险评估及结论输出",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10 已给出焊盘兼容设计方案",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-109",desc:"既往样件阶段RL400爬锡率未被识别的原因",category:"审核问题",owner:"李晴天",dueDate:"4月10日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/10 和金硕老师确认更改为每季度一次，该问题可以关闭 2026/4/3 增加重要器件清单，后续试产&量产按照要求执行 2026/3/29 已沟通，推迟提供特别零件检查清单--4/7 2026/3/18 附上对应流程图，质量补上特别检查零件清单（CCD检查） 2026/3/12 以前流程缺少人员对焊接质量检查确认，DFM检讨报告里增加了样品生产后，70倍CCD检查焊接确认，CCD检查不; 佐证: BMU 2.0重要器件清单",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-110",desc:"既往生产一次性直通率数据",category:"审核问题",owner:"张森",dueDate:"2026-03-08",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 金硕老师已查看直通率数据，该问题关闭 2026/3/10 汇总已完成; 佐证: BMU2.0 试生产数据（直通率）.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-111",desc:"AOI不良数据收集分类及提升直通率计划： 现阶段50%，量产要求95%",category:"审核问题",owner:"张森&李晴天",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/05/11 近2次生产直通率达到70%以上，问题关闭 2026/04/21 影响直通率主要因素U2000/U2001助焊剂误判短路问题，已改善，设备供应商韩国原厂优化软件，增加检测算法二值化算法， PPAP阶段直通率目标是70%，现在已达到84.93%， 2026/4/15 生产72pcs，BOT面直通率为84.93%，该问题已改善 2026/4/14 已拉通供应商调整了参数，待4/15",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-112",desc:"一次直通率不满足的原因",category:"审核问题",owner:"张森/张帆",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/10 拉通资源，要求AOI必须检测该项，不能改为x-ray检测。此次试产直通率单独拉出。和上个问题一样，该问题关闭 2026/3/30 此次验证板共8pcs，该问题改善效果不明显，待优化 2026/3/24 预计本月提供最终改善结果 2026/3/20 top1的改善措施未能改善，继续找设备供应商和生技改善该问题 2026/3/10 1.收集一次直通率NG的数据 2.列出TOP5问题",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-113",desc:"AOI偏移设定25%，实际现场抽查一个数据超过25%，查明原因",category:"审核问题",owner:"张森/王荣",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 现场人员当时未解释清楚AOI参数逻辑，3/18下午已现场和冬生老师解释清楚，该问题可以关闭 2026/3/18 提供计划检查AOI库里的所有元器件参数。 2026/3/16 已排查完毕，建立AOI-标准库，用于IPQC过程稽核 2026/3/10 现有AOI所有物料按照位号进行实际排查，3/12输出最终结果; 佐证: BMU 2.0-AOI库.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-114",desc:"提供AOI识别不到的器件类型清单，未拦截到器件其他工位是否能拦截； 基于目前未有AOI-NG样件，提供AOI判定标准和依据佐证，同步横站到其他样件",category:"审核问题",owner:"TEAM",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/25 6/15之前完成所有NG/OK样件 2026/4/9 25号之前完成所有NG/OK样件 2026/4/3 增加重要器件清单，后续试产&量产按照要求执行 2026/3/18 识别不到的器件定义标准判定流程（器件类型库检查项，检测频率等）。 1.提供AOI的测试覆盖率- 张俊 2026/3/12 2.提供AOI未拦截器件在其它工站上拦截汇总表- 张俊 2026/3/12 3.提供A; 佐证: BMU 2.0重要器件清单     BMU2.0全流程覆盖率20260312.xlsx   小米BMU SMT IPQC Check list.xlsx   BMU 2.0-AOI库.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-115",desc:"提供AOI无法识别的清单",category:"审核问题",owner:"张森",dueDate:"3月12日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 2026/3/10 提供AOI识别不到的器件清单; 佐证: BMU2.0全流程覆盖率20260312.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-116",desc:"1. 梳理所有试产问题点，给出关闭计划--3/4",category:"审核问题",owner:"张森",dueDate:"2026-03-04",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 已添加切片和实物图片链接，该问题可关闭 2026/3/30 快板试板已完成，AOI、X-RAY和CCD均已确认问题已改善，待3/31的切片结果出来后再闭环 2026/3/26 1.干簧管偏移已给改善完毕，待验证追踪闭环，预计4/4完成 2.通孔上锡率改善中，优化工艺参数，预计4/15批次生产确认闭环 3.33777芯片失效，供应商分析报告结论EIPD，预计下周三安排NXP厂商进; 佐证: BMU2.0 试生产问题点汇总.xlsx   C2重要器件切片图",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-117",desc:"2. 防错样件制作",category:"审核问题",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/3 NG样件和上面一条代办重复，该问题点可关闭 2026/3/10 1.总成NG样件已制作。 2.PCBA段待BOM锁定后生产时制作，预计4月15试产时制作",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-118",desc:"AOI+X-RAY+测试的总体测试覆盖率",category:"审核问题",owner:"张俊",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 测试覆盖率已提供，会议沟通，该问题项可关闭; 佐证: BMU2.0全流程覆盖率20260312.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-119",desc:"PCN流程： 1. PCN内部评估的流程和责任方，变更流程发给客户",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-05",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 变更流程见附件; 佐证: 变更流程.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-120",desc:"2. 基于审核，立讯项目组不清楚变更流程，需进行原材料变更培训，并作记录",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-05",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 体系部门已给团队成员做培训; 佐证: 原材料变更流程培训会议.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-121",desc:"3. 现阶段已发生的两颗物料的PCN评审，输出材料",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-07",note:"进展: 2026/3/18 如会议沟通，资料已邮箱提供，该问题项可关闭。 2026/3/11 SNP830BNCLE待供应商确认是否变更，立讯评估对工艺无影响 2026/3/10 本周提供AC05AT0001009JAC00-PPAP资料至MI 评审会议记录见附件; 佐证: 两颗物料变更评审记录.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-122",desc:"4.梳理errata'信息：BOM发给供应商，可以提供勘误表的由立讯提供给小米，不能提供的勘误表需要供应商提供给小米--3/17 立讯物料变更窗口负责人定义为：张俊",category:"审核问题",owner:"牛娜",dueDate:"2026-03-17",createdAt:"2026-03-03",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/13 已更新，待老师确认后关闭 2026/4/7 按照C2-BOM进行更新，预计本周完成 2026/4/2 已提供最新errata sheet 2026/3/17 已提供初版勘误表，持续更新中; 佐证: C2 BOM-Erratasheet进度-电子件.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-123",desc:"从项目角度，考虑PV时间节点待商讨（成熟度） 测试稳定性（BPS）、 1.需求邮件形式给到商务进行商务沟通； 2. 时间计划拆解-BY周 3. 压缩供应商时间 4. 设备到场之后进行CMK 老化（未固化） PV测试时间需要立讯反馈。",category:"审核问题",owner:"崔江红",dueDate:"2026-03-09",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 合并到风险点，该问题关闭 2026/3/17 会议通过 1. BPS方案EOL后，pin检前 2. 安规设备的位置待明天MI反馈 3. 提供批产项目的工序（注意） 2026/3/12 1. 按照按照方案四：来料带麦拉，FCT不测试BPS，涂敷后增加BPS测试机台使用压力罐等设备测试BPS精度（可进行精准压力测试且安规要转到老化后）推进 2. 时间计划见附件 3. PV建议：  ",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-124",desc:"分板应力报告",category:"审核问题",owner:"李晴天",dueDate:"3月11日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-09",note:"进展: 2026/3/9 分板应力测试报告MI已认可",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-125",desc:"从项目角度， 提供各个维度质量提升计划",category:"审核问题",owner:"崔江红",dueDate:"2026-03-18",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭; 佐证: 质量提升.pptx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-126",desc:"3. 小米标准对齐：小米与内部的站位管控标准",category:"审核问题",owner:"张森",dueDate:"3月19日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 2026/3/10 已与金硕老师沟通，按照SOR要求管控",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-127",desc:"实物封装尺寸与焊盘不匹配，A3/A2/A1需要扩焊盘",category:"审核问题",owner:"张森",dueDate:"2026-03-18",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 1. 找TE要引脚尺寸 2.送实物切片; 进展: 2026/3/20 和冬生老师飞书上确认，可以关闭 2026/3/19 切片已放入小米飞书文档中 2026/3/16 1.切片已送实验室，结果3/18提供。 2.邮件已找TE要引脚尺寸，TE没有尺寸，提供了3D图纸，测量尺寸为：0.3*1.46mm; 佐证: 连接器焊接效果切片     佐证.png",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-128",desc:"插件花焊盘设计，PTH零件散热快，影响焊接上锡高度",category:"审核问题",owner:"李晴天",dueDate:"2026-03-17",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.若满足通流能力，按照推荐修改设计；若通流能力不够，可接受现在设计 2.焊接引脚接触孔壁，通过工艺参数调整，达到焊锡高度要求; 进展: 2026/03/31 优化工艺参数后生产8PCS，无不良，需要批量验证 2026/03/20 参考附件，焊接工艺参数验证报告， 2026/03/16： 安排3/17验证爬锡高度，PIN脚孔壁接触，3/17出结果; 佐证: BMU2.0选择焊参数验证.xlsx",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-129",desc:"针对测试覆盖率的5种状况存在特殊情况下，通过什么方式监控(切片、目视检测）",category:"审核问题",owner:"张森",dueDate:"2026-03-17",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 针对小电容无法检测出错件，与研发拉会讨论; 进展: 2026/3/31 会议沟通可关闭",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-130",desc:"点胶技术图纸中规定了胶水的位置度、面积和高度，但缺少对胶形的要求和约束，以及对固化后胶水的技术要求。要求：拉齐总成件对RTV技术要求。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/21 待米端给总成要求， 2026/4/14 4/13与赵工拉通，待米端总成要求确认后，更新图纸要求 2026/04/08 同赵工会议沟通，将RTV胶水固化后的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认 2026/03/31 已约赵工下周一起过问题点，改善数据收集中",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-131",desc:"三防漆技术图纸中只规定了涂敷区域、面积和厚度，未对固化后涂层提出技术要求。要求：拉齐总成件工况对三防漆术要求，",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/21 待米端给总成要求， 2026/4/14 4/13与赵工拉通，待米端总成要求确认后，更新图纸要求 2026/04/08 同赵工会议沟通，将纳米涂敷固化后涂层技术要求，总成件工况对纳米涂层的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认 2026/03/31 已约赵工下周一起过问题点，改善数据收集中",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-132",desc:"三防漆、RTV、导热垫未完成准入流程，需提供技术协议、技术规格书、安全数据说明书、全套报告、封样来完成准入流程。重点提示：关注有机硅类环体含量要求。",category:"审核问题",owner:"崔江红",dueDate:"2026-03-25",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/4/21 需要拉通总成要求后更新技术协议 2026/4/8 技术协议已与赵老师会议沟通，按照赵老师的建议点进一轮更新技术协议； 封样样品已邮寄给赵老师 2026/3/30 已与赵老师沟通，技术协议审核中 2026/3/24 已提供资料：                     1. 三防漆：规格书，COA，MSDS，全套报告                     2. RTV：规格书，",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-133",desc:"Particle管控要求和实际效果",category:"审核问题",owner:"崔江红",dueDate:"2026-03-20",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/30 已与赵老师沟通，该问题可关闭 2026/3/24 已提供内部管控要求，待MI确认 2026/3/19 管控资料已收集，脱敏处理中，实际效果已现场给赵老师展示",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-134",desc:"点胶设备和喷涂设备的CMK报告",category:"审核问题",owner:"李晴天",dueDate:"2026-03-20",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/24 CMK报告已提供MI，可关闭该问题",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-135",desc:"控制计划未提供",category:"审核问题",owner:"张森",dueDate:"2026-03-19",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/19 今天内提供控制计划; 佐证: EDCU BMU控制计划 CP-A5  C1  260225",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-136",desc:"RTV涂胶工艺，考虑升高温度胶水增加流平效果，改善拖尾（待验证）",category:"审核问题",owner:"李晴天",dueDate:"2026-04-22",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/22 RTV胶水管道增加加热功能，改善报告参考附件，  对胶水加热45℃，对RTV点胶改善不明显 2026/04/21 加热带已到，4/21验证 2026/04/14 已购买加热带对出胶管加热，4/17加热带到公司，4/22完成验证 2026/04/08 赵工确认报告不合格，要求用设备点胶，已请RTV工程师重新验证RTV点胶拉丝验证 2026/04/03 胶水加温验证报告，参考附件",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-137",desc:"三防漆喷涂和遮蔽工艺有待提升，关注喷涂参数、利用率和一致性问题。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 4/21：多次与赵工确认，未得到答复，参考附件 4/8: 优化报告已给到赵工，确认中 3/31：完成汇总报告，参考附件 3/23: 程序优化完成，DOE验证中预计3/25完成",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-138",desc:"RTV胶需要增加罩子",category:"审核问题",owner:"李晴天",dueDate:"",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/2 罩子已经拉到生产线 2026/03/31 参考附件胶桶罩子，立讯统一标准购买的罩子 2026/3/24 3/31罩子可以放在产线上完成该问题。",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-139",desc:"插件第一站治具上板设计不合理，人员走动多",category:"审核问题",owner:"李晴天",dueDate:"2026-05-08",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/18 5/14验证生产73PCS，AGV满足生产要求，但需持续观察 2026/05/07 生产验证，AGV能满足生产 2026/05/06 5/7生产验证，80PCS 2026/4/29 生产线流动需14个治具，治具总数20个，6个治具用于AGV周转，生产CT 75秒，AGV运送治具往返时间160秒，每次周转3个治具可以满足生产节拍要求， 2026/04/28 生产线运行，速度慢，",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-140",desc:"选择焊治具设计不合理，没法让员工进行双手放板的操作",category:"审核问题",owner:"李晴天",dueDate:"2026-04-28",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 需持续观察 2026/04/29 节后与金硕老师确认 2026/04/25 SOP参考附件，第3步/第4部为SOP新增部分 2026/4/23 治具优化，增加取放位置，双侧对称结构--4/25到工厂，后续更新SOP， 2026/4/20 现有治具，工人放板位置增加开孔，验证有效性，4/21外发治具修改验证，预计4/25治具修改完成; 佐证: DIP治具改善对比图.jpg     DIP治具放PCBA及插件SOP.pdf",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-141",desc:"选择焊进板轨道晃动，平整度问题",category:"审核问题",owner:"粟本顺",dueDate:"2026-04-21",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/23 排查链速，平整度，停靠板的回弹，一圈轨道转动时的稳定性，滑轮本身平整度。 2026/4/20 轨道和机台之间水平存在微差异，水平标志存在微差异，调整轨道和机台的高度，保持水平对齐",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-142",desc:"DIP上板和取板，载具未采用AGV运输，人工运输",category:"审核问题",owner:"李晴天",dueDate:"2026-05-08",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/18 5/14验证生产73PCS满足生产要求，需持续观察 2026/05/07 生产验证，满足生产 2026/05/06 5/7生产80PCS验证， 2026/04/28 生产运行，可以使用，生产数量少，持续跟踪 2026/04/25 AGV验证取板上板可实现，4/28生产投入使用 2026/4/20 1. 生产线前端上板机&翻版机调试完成，验证可以正常生产 2. AGV软件deb",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-143",desc:"DIP段上板人员和下板人员未戴静电环作业",category:"审核问题",owner:"田言欣, 宋天生",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20  1.由于上扳机不能使用，临时增加人力手动投板，工作中导致忘记 佩戴静电环--维修上扳机正常作业，取消人员手动投板 流动人员增加无线静电手环，静电环设置防错报警       2.人员宣贯不到位，集合所有员工培训宣导，作业中及时佩戴静电环; 佐证: 教育培训佐证.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-144",desc:"FCT客户未更新测试规范，33777芯片测试试HG",category:"审核问题",owner:"MI",dueDate:"2026-04-17",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-17",note:"进展: 2026/4/17 客户更新测试规范",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-145",desc:"进车间风淋门打不开，需要确认问题点进行更换",category:"审核问题",owner:"田言欣",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20 防止人员从外部打开风淋门，风淋门有安装闭门器，导致开门时可能会锁死打不开--拆除闭门器恢复正常开关门; 佐证: 风淋门佐证.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-146",desc:"选焊2个炉子稳定性不同，设备参数如何设置无人可以解释清楚，氮气流 里报警阈值设定是否合理无法可视化，质量如何点检?",category:"审核问题",owner:"李晴天, 周其旭",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/21 5/21生产28pcs样品，观察改善效果 2026/05/18 优化Z轴高度及锡波功率，改善报告参考附加，持续观察 2026/05/14 MI 5/14现场审核再次提出，要改善锡炉1波形，同波峰焊专家探讨改善验证 2026/04/29 节后与金硕老师确认 2026/4/27 IPQC checklist中有体现氮气流量的参数，IPQC根据参数点检实际炉子下方的氮气流量阀 20; 佐证: 选择焊改善锡波1.pptx     小米BMU DIP IPQC Check list.xlsx",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-147",desc:"ICT设备看不到实时数据，质里如何点检?线长/班长如何确认?可操作性不强，生产管理运营如何考虑?整体协调性需要改善",category:"审核问题",owner:"韩林虎",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20 设备属于标机，目前厂内的设备均没有UI界面--已在测试界面增加相关测试信息，如备注; 佐证: ICT测试信息佐证.png",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-148",desc:"FMEA细节完全无法符合要求，需要1个月内改善完成",category:"审核问题",owner:"李晴天&丁亚伟",dueDate:"2026-05-15",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/14 PFMEA完成 2026/05/06 已完成初版PFMEA，评审中 2026/04/28 PFMEA培训完成，参考附件 2026/04/25 参考附件PFMEA培训记录 2026/4/23 需提供PFMEA MASTER软件培训的记录 2026/4/20 1. 4/24完成FMEA MASTER软件培训， 2. 4/30完成初版FMEA MASTER系统PFMEA 3. 5/; 佐证: PFMEA案例培训表2.jpg     PFMEA案例培训表1.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-149",desc:"分供方管理清单",category:"审核问题",owner:"王建",dueDate:"",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/4/28 2026/4/21 提出分供方管理的清单（易管理和不易管理）",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-150",desc:"转运Tray的洁净度问题",category:"审核问题",owner:"陈永祥",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 TRAY盘已定义清洁SOP，并按照SOP进行清洁作业; 佐证: TRAY盘清洁SOP.jpg",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-151",desc:"BMU DIP投板工站的清洁度问题 地面洁净度 投板机洁净度",category:"审核问题",owner:"田言欣",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 附件提供整改之后的佐证; 佐证: DIP清洁度.zip",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-152",desc:"BMU DIP焊接锡波高度漂移 →方向1:不干涉的情况下下探锡嘴高度 >方向2:载具材质(钛合金) (需要考虑焊接温度影响变化，重新制定焊接参数)",category:"审核问题",owner:"李晴天",dueDate:"2026-06-15",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/21 5/21生产28pcs样品，观察改善效果 2026/5/18 改善报告参考附件，验证生产10PCS，焊接满足要求，持续观察; 佐证: 选择焊改善锡波1.pptx",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-153",desc:"BMU 等离子清洁管路断开",category:"审核问题",owner:"李晴天",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 已整改完毕，佐证见附件",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-154",desc:"BMU coating 工站清洁度问题",category:"审核问题",owner:"冯海东",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 已整改完毕，佐证见附件; 佐证: coating清洁.jpg",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-155",desc:"BMU下线工序围板箱清洁度问题",category:"审核问题",owner:"刘云",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 周转箱已定义清洁SOP，并按照SOP进行清洁作业; 佐证: 回收周转箱Tray盘清洁SOP-A1.XLS",extensions:[],source:"0514SIE薛老师审核"}
+        ];
+
         function initSampleData() {
-            store.meetings = [{
-                id: 'M001', name: '审核问题点清单',
-                docUrl: 'https://mi-p.feishu.cn/docx/A1exdeHkvoOC2Qx9Xq0cn0Gqnne',
-                depts: ['质量', '工艺'], frequency: 'adhoc',
-                createdAt: '2025-12-11',
-                followups: [{
-                    id: 'F000001', date: '2026-07-30',
-                    notes: '从飞书审核问题点清单导入，包含历次审核问题及响应证据链。\n来源：https://mi-p.feishu.cn/docx/A1exdeHkvoOC2Qx9Xq0cn0Gqnne',
-                    attendees: '刘冬生, 金硕, 崔江红, 李晴天, 张森, 牛娜'
-                }]
-            }];
-            store.opls = [
-                {
-                  id: 'OPL-001',
-                  desc: '比对零件供应商规格书与焊盘进行器件封装库检查',
-                  category: 'DFM',
-                  owner: '赵福爱',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '已完成封装库检查',
-                  createdAt: '2026-03-06',
-                  closedAt: '2026-03-06',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-002',
-                  desc: '工艺针对问题点1检查的差异点风险项进行确认',
-                  category: 'DFM',
-                  owner: '张帆',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/10：\n3/6完成，并输出报告',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-003',
-                  desc: '针对以上工艺输出最后的风险点及结论',
-                  category: 'DFM',
-                  owner: '张帆',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/10：\nBMU C1 16项风险点，安世替代4项风险点，',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-004',
-                  desc: '工艺检查valor-VPL的正确性',
-                  category: 'DFM',
-                  owner: '张帆',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/24\n已会议沟通，可关闭该问题\n2026/03/21\n增加漏建库说明\n2026/3/18\n补上VPL库缺少8个器件的信息后无误可关闭该问题\n2026/03/15\n参考附件Valor识别清单，\n2026/3/12\n补充list清单\n2026/3/10：\n3/6完成Valor-VPL识别，共11个建库问题，256种库，占比4%',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: DFM valor漏建库说明.pdf(https://mi-p.feishu.cn/file/UiTybHG46oXl9IxFn4fcakhtn7f); DFM valor建库错误清单.pdf(https://mi-p.feishu.cn/file/RgBlbzFD4oNOPix7b4ocheuLnlV)'
-                },
-                {
-                  id: 'OPL-005',
-                  desc: '全制程DFMcheck，按照会议展示模板进行梳理',
-                  category: 'DFM',
-                  owner: '韩林虎',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/4/9\n等ICT治具到用快板验证后无问题可关闭该问题点\n2026/3/24\n输出DFM风险评估报告后可关闭该问题\n2026/3/12\n组装段提供尺寸公差链分析\n2026/3/10\n组装DFM以提供，PCBA DFM明天提供',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-006',
-                  desc: '输出DFM报告，若需要改动设计，输出影响分析报告',
-                  category: 'DFM',
-                  owner: '刘华军',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/04/02\n快板验证OK，参考附件\n2026/3/24\n1. valor软件跑DFM；\n2. 快板到厂后验证；\n2026/3/18\n输出器件修改清单（必改项&建议修改项及原因）\n2026/03/16\n1. 尺寸量测完成，切片已安排，3/17出结果\n2. 试生产贴片已安排，4个点切片，3/20出结果\n3. C516/C518安排3/17验证，出结果\n2026/03/15\n3/13，2条问题点待确认\n1. 泰克连接器引脚尺寸测量分析， 连接器切片， 责任人张森\n2. PTH孔零件C516/C518工艺参数优化，及pin脚移动看爬锡高度  责任人李晴天\n2026/3/12\nDFM报告已输出，识别无风险',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: 快板重要器件切片图(https://mi-p.feishu.cn/docx/E1lMd5CrlosMcSxG1iqcQz1knMb); BMU C1 DFM(https://mi-p.feishu.cn/slides/CR9qspBocl5jqCdofsKcjk65nvf)'
-                },
-                {
-                  id: 'OPL-007',
-                  desc: '安世与去安世的物料有一个焊盘是否可以兼容，风险评估及结论输出',
-                  category: 'DFM',
-                  owner: '张帆',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/10\n已给出焊盘兼容设计方案',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-008',
-                  desc: '既往样件阶段RL400爬锡率未被识别的原因',
-                  category: 'DFM',
-                  owner: '李晴天',
-                  dueDate: '2026-04-10',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/4/10\n和金硕老师确认更改为每季度一次，该问题可以关闭\n2026/4/3\n增加重要器件清单，后续试产&量产按照要求执行\n2026/3/29\n已沟通，推迟提供特别零件检查清单--4/7\n2026/3/18\n附上对应流程图，质量补上特别检查零件清单（CCD检查）\n2026/3/12\n以前流程缺少人员对焊接质量检查确认，DFM检讨报告里增加了样品生产后，70倍CCD检查焊接确认，CCD检查不到的部分，增加切片分析',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU 2.0重要器件清单(https://mi-p.feishu.cn/docx/IiG7dVaA9ogpa8xtlHZceWGNncb)'
-                },
-                {
-                  id: 'OPL-009',
-                  desc: '既往生产一次性直通率数据',
-                  category: 'AOI',
-                  owner: '张森',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/20\n金硕老师已查看直通率数据，该问题关闭\n2026/3/10\n汇总已完成',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU2.0 试生产数据（直通率）.xlsx'
-                },
-                {
-                  id: 'OPL-010',
-                  desc: 'AOI不良数据收集分类及提升直通率计划：\n现阶段50%，量产要求95%',
-                  category: 'AOI',
-                  owner: '张森&李晴天',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/05/11\n近2次生产直通率达到70%以上，问题关闭\n2026/04/21\n影响直通率主要因素U2000/U2001助焊剂误判短路问题，已改善，设备供应商韩国原厂优化软件，增加检测算法二值化算法，\nPPAP阶段直通率目标是70%，现在已达到84.93%，\n2026/4/15\n生产72pcs，BOT面直通率为84.93%，该问题已改善\n2026/4/14\n已拉通供应商调整了参数，待4/15生产再次验证\n2026/4/10\n拉通资源，要求AOI必须检测该项，不能改为x-ray检测。此次试产直通率单独拉出。\n2026/4/7\n增加AOI供应商提供的误报解答，该异常为AOI的痛点，现将该位置的短路检测由AOI改为x-ray检测。\n2026/4/2\n拉通AOI供应商提供AOI不能检测的报告，由AOI检测改为X-ray该项\n2026/03/31\nAOI误判高的位置U2000/U2001，已增加X-RAY检测PIN脚连焊，并做OK/NG样件验证有效性\n2026/3/26\nSIE要求4月份的直通率不能高于75%，建议直通率数据控制在70%以上。\n2026',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-011',
-                  desc: '一次直通率不满足的原因',
-                  category: 'AOI',
-                  owner: '张森/张帆',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/4/10\n拉通资源，要求AOI必须检测该项，不能改为x-ray检测。此次试产直通率单独拉出。和上个问题一样，该问题关闭\n2026/3/30\n此次验证板共8pcs，该问题改善效果不明显，待优化\n2026/3/24\n预计本月提供最终改善结果\n2026/3/20\ntop1的改善措施未能改善，继续找设备供应商和生技改善该问题\n2026/3/10\n1.收集一次直通率NG的数据\n2.列出TOP5问题点和原因分析及改善措施',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-012',
-                  desc: 'AOI偏移设定25%，实际现场抽查一个数据超过25%，查明原因',
-                  category: 'AOI',
-                  owner: '张森/王荣',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n现场人员当时未解释清楚AOI参数逻辑，3/18下午已现场和冬生老师解释清楚，该问题可以关闭\n2026/3/18\n提供计划检查AOI库里的所有元器件参数。\n2026/3/16\n已排查完毕，建立AOI-标准库，用于IPQC过程稽核\n2026/3/10\n现有AOI所有物料按照位号进行实际排查，3/12输出最终结果',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU 2.0-AOI库.xlsx'
-                },
-                {
-                  id: 'OPL-013',
-                  desc: '提供AOI识别不到的器件类型清单，未拦截到器件其他工位是否能拦截；\n基于目前未有AOI-NG样件，提供AOI判定标准和依据佐证，同步横站到其他样件',
-                  category: 'AOI',
-                  owner: 'TEAM',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/5/25\n6/15之前完成所有NG/OK样件\n2026/4/9\n25号之前完成所有NG/OK样件\n2026/4/3\n增加重要器件清单，后续试产&量产按照要求执行\n2026/3/18\n识别不到的器件定义标准判定流程（器件类型库检查项，检测频率等）。\n1.提供AOI的测试覆盖率- 张俊 2026/3/12\n2.提供AOI未拦截器件在其它工站上拦截汇总表- 张俊 2026/3/12\n3.提供AOI判定标准（建立AOI标准库）--王荣 2026/3/20\n4.IPQC开班前点检（点检表制定）--张森 2026/3/20\n5.AOI站别的NG样件计划在4月9日生产中制作---张森 2026/4/9',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU 2.0重要器件清单(https://mi-p.feishu.cn/docx/IiG7dVaA9ogpa8xtlHZceWGNncb); BMU2.0全流程覆盖率20260312.xlsx; 小米BMU SMT IPQC Check list.xlsx; BMU 2.0-AOI库.xlsx'
-                },
-                {
-                  id: 'OPL-014',
-                  desc: '提供AOI无法识别的清单',
-                  category: 'AOI',
-                  owner: '张森',
-                  dueDate: '2026-03-12',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n会议沟通，该问题项可关闭\n2026/3/10\n提供AOI识别不到的器件清单',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU2.0全流程覆盖率20260312.xlsx'
-                },
-                {
-                  id: 'OPL-015',
-                  desc: '1. 梳理所有试产问题点，给出关闭计划--3/4',
-                  category: '试生产',
-                  owner: '张森',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/31\n已添加切片和实物图片链接，该问题可关闭\n2026/3/30\n快板试板已完成，AOI、X-RAY和CCD均已确认问题已改善，待3/31的切片结果出来后再闭环\n2026/3/26\n1.干簧管偏移已给改善完毕，待验证追踪闭环，预计4/4完成\n2.通孔上锡率改善中，优化工艺参数，预计4/15批次生产确认闭环\n3.33777芯片失效，供应商分析报告结论EIPD，预计下周三安排NXP厂商进行现场确认，预计闭环时间4/4\n2026/3/16\n3/15晚和冬生老师、金硕老师确认3/19两位老师来现场一起review\n2026/3/10\n已回复冬生老师，待金硕老师review\n已与金硕老师沟通，计划3/14进行review',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU2.0 试生产问题点汇总.xlsx; C2重要器件切片图(https://mi-p.feishu.cn/docx/E1lMd5CrlosMcSxG1iqcQz1knMb)'
-                },
-                {
-                  id: 'OPL-016',
-                  desc: '2. 防错样件制作',
-                  category: '试生产',
-                  owner: '张森',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/4/3\nNG样件和上面一条代办重复，该问题点可关闭\n2026/3/10\n1.总成NG样件已制作。\n2.PCBA段待BOM锁定后生产时制作，预计4月15试产时制作',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-017',
-                  desc: 'AOI+X-RAY+测试的总体测试覆盖率',
-                  category: '测试覆盖率',
-                  owner: '张俊',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n测试覆盖率已提供，会议沟通，该问题项可关闭',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: BMU2.0全流程覆盖率20260312.xlsx'
-                },
-                {
-                  id: 'OPL-018',
-                  desc: 'PCN流程：\n1. PCN内部评估的流程和责任方，变更流程发给客户',
-                  category: '原材料',
-                  owner: '崔江红',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n会议沟通，该问题项可关闭\n变更流程见附件',
-                  createdAt: '2026-03-06',
-                  closedAt: '2026-03-05',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: 变更流程.docx(https://mi-p.feishu.cn/file/DrTub2CyZoDfS5xsNSqcGy7Snw8)'
-                },
-                {
-                  id: 'OPL-019',
-                  desc: '2. 基于审核，立讯项目组不清楚变更流程，需进行原材料变更培训，并作记录',
-                  category: '原材料',
-                  owner: '崔江红',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n会议沟通，该问题项可关闭\n体系部门已给团队成员做培训',
-                  createdAt: '2026-03-06',
-                  closedAt: '2026-03-05',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: 原材料变更流程培训会议.docx(https://mi-p.feishu.cn/file/KA1ibIzVio0maExK5Z9cF8Mynsh)'
-                },
-                {
-                  id: 'OPL-020',
-                  desc: '3. 现阶段已发生的两颗物料的PCN评审，输出材料',
-                  category: '原材料',
-                  owner: '崔江红',
-                  dueDate: '2026-03-06',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n如会议沟通，资料已邮箱提供，该问题项可关闭。\n2026/3/11\nSNP830BNCLE待供应商确认是否变更，立讯评估对工艺无影响\n2026/3/10\n本周提供AC05AT0001009JAC00-PPAP资料至MI\n评审会议记录见附件',
-                  createdAt: '2026-03-06',
-                  closedAt: '2026-03-07',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: 两颗物料变更评审记录.docx(https://mi-p.feishu.cn/file/Qjq1b4bV5oKMbtxiZJicS2c7nLf)'
-                },
-                {
-                  id: 'OPL-021',
-                  desc: '4.梳理errata\'信息：BOM发给供应商，可以提供勘误表的由立讯提供给小米，不能提供的勘误表需要供应商提供给小米--3/17\n立讯物料变更窗口负责人定义为：张俊',
-                  category: '原材料',
-                  owner: '牛娜',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/5/13\n已更新，待老师确认后关闭\n2026/4/7\n按照C2-BOM进行更新，预计本周完成\n2026/4/2\n已提供最新errata sheet\n2026/3/17\n已提供初版勘误表，持续更新中',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: C2 BOM-Erratasheet进度-电子件.xlsx'
-                },
-                {
-                  id: 'OPL-022',
-                  desc: '从项目角度，考虑PV时间节点待商讨（成熟度）\n测试稳定性（BPS）、\n1.需求邮件形式给到商务进行商务沟通；\n2. 时间计划拆解-BY周\n3. 压缩供应商时间\n4. 设备到场之后进行CMK\n老化（未固化）\nPV测试时间需要立讯反馈。',
-                  category: 'PV',
-                  owner: '崔江红',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/31\n合并到风险点，该问题关闭\n2026/3/17\n会议通过\n1. BPS方案EOL后，pin检前\n2. 安规设备的位置待明天MI反馈\n3. 提供批产项目的工序（注意）\n2026/3/12\n1. 按照按照方案四：来料带麦拉，FCT不测试BPS，涂敷后增加BPS测试机台使用压力罐等设备测试BPS精度（可进行精准压力测试且安规要转到老化后）推进\n2. 时间计划见附件\n3. PV建议：\n A.PV的样品先按照目前的生产状态进行，正常进行PV测试\n B.BPS设备就位后进行delta PV(现在PV的leg1，快速温变+机械振动，这个试验就是验证制程可靠性的，周期大概在40天)。\n2026/3/10\nBPS原先沟通的供应商放弃报价，其余供应商正在压缩评估',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-023',
-                  desc: '分板应力报告',
-                  category: 'PV',
-                  owner: '李晴天',
-                  dueDate: '2026-03-11',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/9\n分板应力测试报告MI已认可',
-                  createdAt: '2026-03-06',
-                  closedAt: '2026-03-09',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-024',
-                  desc: '从项目角度， 提供各个维度质量提升计划',
-                  category: 'PV',
-                  owner: '崔江红',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n会议沟通，该问题项可关闭',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: '佐证: 质量提升.pptx(https://mi-p.feishu.cn/file/IdoKbRYUuo2CiIxqATLcIL2bncT?from=space_personal_filelist&pre_pathname=%2Fdrive%2Ffolder%2FHxJUf5o3hld6jwdeB6vc9zMLn2f&previous_navigation_time=1773292657366)'
-                },
-                {
-                  id: 'OPL-025',
-                  desc: '3. 小米标准对齐：小米与内部的站位管控标准',
-                  category: 'PV',
-                  owner: '张森',
-                  dueDate: '2026-03-19',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/18\n会议沟通，该问题项可关闭\n2026/3/10\n已与金硕老师沟通，按照SOR要求管控',
-                  createdAt: '2026-03-06',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.3-3.4客户审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-026',
-                  desc: '点胶技术图纸中规定了胶水的位置度、面积和高度，但缺少对胶形的要求和约束，以及对固化后胶水的技术要求。要求：拉齐总成件对RTV技术要求。',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/04/21\n待米端给总成要求，\n2026/4/14\n4/13与赵工拉通，待米端总成要求确认后，更新图纸要求\n2026/04/08\n同赵工会议沟通，将RTV胶水固化后的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认\n2026/03/31\n已约赵工下周一起过问题点，改善数据收集中',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-027',
-                  desc: '三防漆技术图纸中只规定了涂敷区域、面积和厚度，未对固化后涂层提出技术要求。要求：拉齐总成件工况对三防漆术要求，',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/04/21\n待米端给总成要求，\n2026/4/14\n4/13与赵工拉通，待米端总成要求确认后，更新图纸要求\n2026/04/08\n同赵工会议沟通，将纳米涂敷固化后涂层技术要求，总成件工况对纳米涂层的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认\n2026/03/31\n已约赵工下周一起过问题点，改善数据收集中',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-028',
-                  desc: '三防漆、RTV、导热垫未完成准入流程，需提供技术协议、技术规格书、安全数据说明书、全套报告、封样来完成准入流程。重点提示：关注有机硅类环体含量要求。',
-                  category: '审核问题',
-                  owner: '崔江红',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/4/21\n需要拉通总成要求后更新技术协议\n2026/4/8\n技术协议已与赵老师会议沟通，按照赵老师的建议点进一轮更新技术协议；\n封样样品已邮寄给赵老师\n2026/3/30\n已与赵老师沟通，技术协议审核中\n2026/3/24\n已提供资料：\n                    1. 三防漆：规格书，COA，MSDS，全套报告\n                    2. RTV：规格书，COA，MSDS，全套报告\n                    3. 导热垫：规格书，COA，MSDS，全套报告\n未提供资料：1. 技术协议--内部没有胶水材料的技术协议，正在沟通中（3/25提供初版技术协议）',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-029',
-                  desc: 'Particle管控要求和实际效果',
-                  category: '审核问题',
-                  owner: '崔江红',
-                  dueDate: '2026-03-20',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/30\n已与赵老师沟通，该问题可关闭\n2026/3/24\n已提供内部管控要求，待MI确认\n2026/3/19\n管控资料已收集，脱敏处理中，实际效果已现场给赵老师展示',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-030',
-                  desc: '点胶设备和喷涂设备的CMK报告',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '2026-03-20',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/24\nCMK报告已提供MI，可关闭该问题',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-031',
-                  desc: '控制计划未提供',
-                  category: '审核问题',
-                  owner: '张森',
-                  dueDate: '2026-03-19',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/3/19\n今天内提供控制计划',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: '佐证: EDCU BMU控制计划 CP-A5  C1  260225(https://mi-p.feishu.cn/sheets/IwIVsk6iShyAnFtmEoycBXB1nse?from=space_personal_filelist&pre_pathname=%2Fdrive%2Ffolder%2FHxJUf5o3hld6jwdeB6vc9zMLn2f&previous_navigation_time=1773899515823)'
-                },
-                {
-                  id: 'OPL-032',
-                  desc: 'RTV涂胶工艺，考虑升高温度胶水增加流平效果，改善拖尾（待验证）',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '2026/04/22\nRTV胶水管道增加加热功能，改善报告参考附件， \n对胶水加热45℃，对RTV点胶改善不明显\n2026/04/21\n加热带已到，4/21验证\n2026/04/14\n已购买加热带对出胶管加热，4/17加热带到公司，4/22完成验证\n2026/04/08\n赵工确认报告不合格，要求用设备点胶，已请RTV工程师重新验证RTV点胶拉丝验证\n2026/04/03\n胶水加温验证报告，参考附件\n2026/03/31\n完成初版报告，报告整理中，本周完成报告汇总\n3/26：报告需要补充更新，3/27完成\n3/23:胶水加热已验证完成，加热45℃对胶水拉丝无改善',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-033',
-                  desc: '三防漆喷涂和遮蔽工艺有待提升，关注喷涂参数、利用率和一致性问题。',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '2026-04-15',
-                  priority: 'High',
-                  status: 'Open',
-                  action: '4/21：多次与赵工确认，未得到答复，参考附件\n4/8: 优化报告已给到赵工，确认中\n3/31：完成汇总报告，参考附件\n3/23: 程序优化完成，DOE验证中预计3/25完成',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-034',
-                  desc: 'RTV胶需要增加罩子',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'High',
-                  status: 'Closed',
-                  action: '2026/4/2\n罩子已经拉到生产线\n2026/03/31\n参考附件胶桶罩子，立讯统一标准购买的罩子\n2026/3/24\n3/31罩子可以放在产线上完成该问题。',
-                  createdAt: '2026-03-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-3.17审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-035',
-                  desc: '全工序',
-                  category: '审核问题',
-                  owner: '非常高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '高质量交付',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_32.webp); @朱治兵(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ko_237a84dd-444d-43d8-85d1-99c83cb1e97g_32.webp)'
-                },
-                {
-                  id: 'OPL-036',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '非常高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '治具方案',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-037',
-                  desc: 'DIP',
-                  category: '审核问题',
-                  owner: '非常高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '焊接锡珠',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-038',
-                  desc: '质量风险',
-                  category: '审核问题',
-                  owner: '非常高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '质量风险',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_32.webp); @朱治兵(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ko_237a84dd-444d-43d8-85d1-99c83cb1e97g_32.webp)'
-                },
-                {
-                  id: 'OPL-039',
-                  desc: 'DIP',
-                  category: '审核问题',
-                  owner: '非常高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '焊接参数',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-040',
-                  desc: 'caoting',
-                  category: '审核问题',
-                  owner: '高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '充分识别那些元器件的PIN脚有不能涂敷的风险',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_32.webp); @朱治兵(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ko_237a84dd-444d-43d8-85d1-99c83cb1e97g_32.webp)'
-                },
-                {
-                  id: 'OPL-041',
-                  desc: 'SMT',
-                  category: '审核问题',
-                  owner: '高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '干簧管偏移',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-042',
-                  desc: 'SMT',
-                  category: '审核问题',
-                  owner: '低',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'PCBA镭雕位置',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @刘冬生'
-                },
-                {
-                  id: 'OPL-043',
-                  desc: 'SMT',
-                  category: '审核问题',
-                  owner: '高',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '回流焊炉温',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-044',
-                  desc: 'DIP&组装',
-                  category: '审核问题',
-                  owner: '中',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '测试工装',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-045',
-                  desc: 'DIP',
-                  category: '审核问题',
-                  owner: '中',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '选择焊焊接质量',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-046',
-                  desc: 'SMT&DIP',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'X-RAY检查清单',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-047',
-                  desc: 'SMT&DIP',
-                  category: '审核问题',
-                  owner: '李晴天&张森',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'X-RAY剖切方式&检测标准',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-048',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '李晴天&杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'coating检测',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-049',
-                  desc: '全工序',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '尺寸链',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_32.webp); @陈锦海(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00kn_f97bede2-05c7-46f0-bae4-efbcec73084g_32.webp)'
-                },
-                {
-                  id: 'OPL-050',
-                  desc: '全工序',
-                  category: '审核问题',
-                  owner: '[object Object]',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '应力测试',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @陈锦海(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00kn_f97bede2-05c7-46f0-bae4-efbcec73084g_32.webp); @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_48.webp)'
-                },
-                {
-                  id: 'OPL-051',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '李晴天\n李蒙恩',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '工装治具',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-052',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'RTV点胶问题',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00ms_b2f0feda-3481-47c4-bd9e-39d6305c9b3g_32.webp); @陈锦海(https://s3-imfile.feishucdn.com/static-resource/avatar/v3_00kn_f97bede2-05c7-46f0-bae4-efbcec73084g_48.webp)'
-                },
-                {
-                  id: 'OPL-053',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '杜斌/李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '三防漆喷涂效果',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-054',
-                  desc: 'coating',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '治具方案',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-055',
-                  desc: 'Coating',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'Coating污染',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-056',
-                  desc: 'Coating',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'Coating污染',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-057',
-                  desc: 'Coating',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '人工取放',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-058',
-                  desc: 'Coating',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'Coating治具清洁',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-059',
-                  desc: 'Coating',
-                  category: '审核问题',
-                  owner: '杜斌',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'Coating设备',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-060',
-                  desc: 'TLA',
-                  category: '审核问题',
-                  owner: '张森',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'tray清洁',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-061',
-                  desc: 'TLA',
-                  category: '审核问题',
-                  owner: '张波',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '组装卡扣',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-062',
-                  desc: 'TLA',
-                  category: '审核问题',
-                  owner: '张波',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '组装设备致使生产停滞',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @金硕'
-                },
-                {
-                  id: 'OPL-063',
-                  desc: 'TLA',
-                  category: '审核问题',
-                  owner: '张波',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: 'EOL测试',
-                  createdAt: '2025-12-11',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2025/12朱治兵/金硕审核',
-                  note: '佐证: @冯普'
-                },
-                {
-                  id: 'OPL-064',
-                  desc: '分供方',
-                  category: '审核问题',
-                  owner: '[object Object]',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-01-20',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-2026/01/20龙清老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-065',
-                  desc: 'ICT',
-                  category: '审核问题',
-                  owner: '张森',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-03-13',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-项目汇报0313',
-                  note: ''
-                },
-                {
-                  id: 'OPL-066',
-                  desc: '陈永祥',
-                  category: '审核问题',
-                  owner: '46162',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-05-14',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0514 SIE薛老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-067',
-                  desc: '田言欣',
-                  category: '审核问题',
-                  owner: '46162',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-05-14',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0514 SIE薛老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-068',
-                  desc: '李晴天',
-                  category: '审核问题',
-                  owner: '46188',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-05-14',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0514 SIE薛老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-069',
-                  desc: '李晴天',
-                  category: '审核问题',
-                  owner: '46162',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-05-14',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0514 SIE薛老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-070',
-                  desc: '冯海东',
-                  category: '审核问题',
-                  owner: '46162',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-05-14',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0514 SIE薛老师审核',
-                  note: ''
-                },
-                {
-                  id: 'OPL-071',
-                  desc: '2026/05/18\n5/14验证生产73PCS，AGV满足生产要求，但需持续观察\n2026/05/07\n生产验证，AGV能满足生产\n2026/05/06\n5/7生产验证，80PCS\n2026/4/29\n生产线流动需14个治具，治具总数20个，6个治具用于AGV周转，生产CT 75秒，AGV运送治具往返时间160秒，每次周转3个治具可以满足生产节拍要求，\n2026/04/28\n生产线运行，速度慢，AGV工程师改善运行速度\n2026/04/25\n已规划小AGV运送载具，预计4/27完成AGV调试，4/28完成试运行\n2026/4/23\n临时措施：上板增加一个人力，一个人放治具，一个人盖板\n长期措施：增加AGV周转治具\n2026/4/20\n上板增加一个人力，一个人放治具，一个人盖板',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-072',
-                  desc: '2026/5/18\n需持续观察\n2026/04/29\n节后与金硕老师确认\n2026/04/25\nSOP参考附件，第3步/第4部为SOP新增部分\n2026/4/23\n治具优化，增加取放位置，双侧对称结构--4/25到工厂，后续更新SOP，\n2026/4/20\n现有治具，工人放板位置增加开孔，验证有效性，4/21外发治具修改验证，预计4/25治具修改完成',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-073',
-                  desc: '2026/4/23\n排查链速，平整度，停靠板的回弹，一圈轨道转动时的稳定性，滑轮本身平整度。\n2026/4/20\n轨道和机台之间水平存在微差异，水平标志存在微差异，调整轨道和机台的高度，保持水平对齐',
-                  category: '审核问题',
-                  owner: '粟本顺',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-074',
-                  desc: '2026/05/18\n5/14验证生产73PCS满足生产要求，需持续观察\n2026/05/07\n生产验证，满足生产\n2026/05/06\n5/7生产80PCS验证，\n2026/04/28\n生产运行，可以使用，生产数量少，持续跟踪\n2026/04/25\nAGV验证取板上板可实现，4/28生产投入使用\n2026/4/20\n1. 生产线前端上板机&翻版机调试完成，验证可以正常生产\n2. AGV软件debug中，预计5/10可以使用',
-                  category: '审核问题',
-                  owner: '李晴天',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-075',
-                  desc: '2026/4/20 \n1.由于上扳机不能使用，临时增加人力手动投板，工作中导致忘记 佩戴静电环--维修上扳机正常作业，取消人员手动投板 流动人员增加无线静电手环，静电环设置防错报警     \n 2.人员宣贯不到位，集合所有员工培训宣导，作业中及时佩戴静电环',
-                  category: '审核问题',
-                  owner: '田言欣\n宋天生',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-076',
-                  desc: '2026/4/17\n客户更新测试规范',
-                  category: '审核问题',
-                  owner: 'MI',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-077',
-                  desc: '2026/4/20\n防止人员从外部打开风淋门，风淋门有安装闭门器，导致开门时可能会锁死打不开--拆除闭门器恢复正常开关门',
-                  category: '审核问题',
-                  owner: '田言欣',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-078',
-                  desc: '2026/05/21\n5/21生产28pcs样品，观察改善效果\n2026/05/18\n优化Z轴高度及锡波功率，改善报告参考附加，持续观察\n2026/05/14\nMI 5/14现场审核再次提出，要改善锡炉1波形，同波峰焊专家探讨改善验证\n2026/04/29\n节后与金硕老师确认\n2026/4/27\nIPQC checklist中有体现氮气流量的参数，IPQC根据参数点检实际炉子下方的氮气流量阀\n2026/04/25\n氮气点检操作方法，参考附加\n2026/04/26\n1. 点检操作方法准备中，4/26号完成，\n2. 第1炉锡波功率设置88%参数原因：治具有连接筋，限制Z轴高度，锡波功率大才能焊接爬锡\n第2炉锡波功率设置85%参数原因：焊接T500，零件大吸热量大，锡波功率达到85%才能满足零件焊接引脚达到100%\n2026/4/21\n补充点检是如何操作的。\n2026/4/20\n1. 2个炉子焊接不同零件，工艺参数有差异，第1个炉子锡波功率88%，第2个炉子锡波功率85%，锡波功率越大，锡波稳定性相对越差，--不同零件焊接不同工艺参数，且工艺参数经过DO',
-                  category: '审核问题',
-                  owner: '李晴天\n周其旭',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-079',
-                  desc: '2026/4/20\n设备属于标机，目前厂内的设备均没有UI界面--已在测试界面增加相关测试信息，如备注',
-                  category: '审核问题',
-                  owner: '韩林虎',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-080',
-                  desc: '2026/05/14\nPFMEA完成\n2026/05/06\n已完成初版PFMEA，评审中\n2026/04/28\nPFMEA培训完成，参考附件\n2026/04/25\n参考附件PFMEA培训记录\n2026/4/23\n需提供PFMEA MASTER软件培训的记录\n2026/4/20\n1. 4/24完成FMEA MASTER软件培训，\n2. 4/30完成初版FMEA MASTER系统PFMEA\n3. 5/10完成系统PFMEA团队评审\n4. 5/15完成最终板PFMEA',
-                  category: '审核问题',
-                  owner: '李晴天&丁亚伟',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                },
-                {
-                  id: 'OPL-081',
-                  desc: '2026/4/28\n2026/4/21\n提出分供方管理的清单（易管理和不易管理）',
-                  category: '审核问题',
-                  owner: '王建',
-                  dueDate: '',
-                  priority: 'Medium',
-                  status: 'Closed',
-                  action: '',
-                  createdAt: '2026-04-17',
-                  closedAt: '',
-                  extensions: [],
-                  source: '审核导入-0417审核问题点',
-                  note: ''
-                }
-            ];
-            store.activities = [
-                { id: 'A001', text: '从飞书审核问题点清单导入了 81 个审核问题项（7 个待解决，74 个已关闭）', time: new Date().toISOString() }
-            ];
+            store.meetings = [];
+            store.opls = AUDIT_OPL_DATA.map(o => ({
+                id: o.id,
+                desc: o.desc,
+                category: o.category || '审核问题',
+                owner: o.owner || '待分配',
+                dueDate: o.dueDate || '',
+                createdAt: o.createdAt || '',
+                priority: o.priority || '中',
+                status: o.status || 'Open',
+                closedAt: o.closedAt || '',
+                note: o.note || '',
+                extensions: o.extensions || []
+            }));
+            store.activities = [];
             saveStore();
         }
 
@@ -2231,7 +1165,6 @@
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
-                    <td style="max-width:160px; font-size:12px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-word;">${escapeHtml(o.note || '-')}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -2248,8 +1181,8 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
-                    <tbody>${activeRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
 
@@ -2282,7 +1215,6 @@
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
-                    <td style="max-width:160px; font-size:12px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-word;">${escapeHtml(o.note || '-')}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -2296,8 +1228,8 @@
 
             document.getElementById('oplClosedTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>备注</th><th>操作</th></tr></thead>
-                    <tbody>${closedRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -2390,11 +1322,10 @@
             const dueDate = document.getElementById('oplDueDate').value;
             const priority = document.getElementById('oplPriority').value;
             const action = document.getElementById('oplAction').value.trim();
-            const note = document.getElementById('oplNote').value.trim();
             if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
@@ -2413,7 +1344,6 @@
             document.getElementById('editOPLDueDate').value = opl.dueDate || '';
             document.getElementById('editOPLPriority').value = opl.priority || 'Medium';
             document.getElementById('editOPLAction').value = opl.action || '';
-            document.getElementById('editOPLNote').value = opl.note || '';
             // Show closedAt field only for closed items
             const closedAtGroup = document.getElementById('editClosedAtGroup');
             if (opl.status === 'Closed') {
@@ -2439,7 +1369,6 @@
             opl.dueDate = document.getElementById('editOPLDueDate').value;
             opl.priority = document.getElementById('editOPLPriority').value;
             opl.action = document.getElementById('editOPLAction').value.trim();
-            opl.note = document.getElementById('editOPLNote').value.trim();
             if (opl.status === 'Closed') {
                 opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
             }
@@ -2513,10 +1442,10 @@
         }
 
         function exportCSV() {
-            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注\n';
+            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
             store.opls.forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
-                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}","${(o.note || '').replace(/"/g, '""')}"\n`;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
             });
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -2984,7 +1913,7 @@
                     id, desc: item.desc, category: item.category || 'Other',
                     owner: item.owner || '待指定', dueDate: item.dueDate || '',
                     priority: item.priority || 'Medium', status: 'Open',
-                    action: '', note: '', createdAt: new Date().toISOString().split('T')[0],
+                    action: '', createdAt: new Date().toISOString().split('T')[0],
                     closedAt: '', extensions: [],
                     source: '会议纪要导入'
                 });
