@@ -387,7 +387,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.6
+                数据本地保存 &middot; BMU代工厂管理 v2.7
             </div>
         </aside>
 
@@ -557,6 +557,10 @@
                 <label>行动方案</label>
                 <textarea id="oplAction" placeholder="解决方案..."></textarea>
             </div>
+            <div class="form-group">
+                <label>备注</label>
+                <textarea id="oplNote" placeholder="关闭证据、备注信息..."></textarea>
+            </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('opl')">取消</button>
                 <button class="btn btn-primary" onclick="createOPL()">创建</button>
@@ -605,6 +609,10 @@
             <div class="form-group">
                 <label>行动方案</label>
                 <textarea id="editOPLAction" placeholder="解决方案..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>备注（关闭证据）</label>
+                <textarea id="editOPLNote" placeholder="填写关闭证据、备注信息..."></textarea>
             </div>
             <div class="form-group" id="editClosedAtGroup" style="display:none;">
                 <label>实际完成日期</label>
@@ -995,6 +1003,7 @@
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
+                    <td style="max-width:160px; font-size:12px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-word;">${escapeHtml(o.note || '-')}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -1011,8 +1020,8 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${activeRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
 
@@ -1045,6 +1054,7 @@
                     <td style="min-width:100px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
+                    <td style="max-width:160px; font-size:12px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-word;">${escapeHtml(o.note || '-')}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -1058,8 +1068,8 @@
 
             document.getElementById('oplClosedTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
-                    <tbody>${closedRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>备注</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -1152,10 +1162,11 @@
             const dueDate = document.getElementById('oplDueDate').value;
             const priority = document.getElementById('oplPriority').value;
             const action = document.getElementById('oplAction').value.trim();
+            const note = document.getElementById('oplNote').value.trim();
             if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
@@ -1174,6 +1185,7 @@
             document.getElementById('editOPLDueDate').value = opl.dueDate || '';
             document.getElementById('editOPLPriority').value = opl.priority || 'Medium';
             document.getElementById('editOPLAction').value = opl.action || '';
+            document.getElementById('editOPLNote').value = opl.note || '';
             // Show closedAt field only for closed items
             const closedAtGroup = document.getElementById('editClosedAtGroup');
             if (opl.status === 'Closed') {
@@ -1199,6 +1211,7 @@
             opl.dueDate = document.getElementById('editOPLDueDate').value;
             opl.priority = document.getElementById('editOPLPriority').value;
             opl.action = document.getElementById('editOPLAction').value.trim();
+            opl.note = document.getElementById('editOPLNote').value.trim();
             if (opl.status === 'Closed') {
                 opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
             }
@@ -1272,10 +1285,10 @@
         }
 
         function exportCSV() {
-            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
+            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注\n';
             store.opls.forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
-                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}","${(o.note || '').replace(/"/g, '""')}"\n`;
             });
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -1743,7 +1756,7 @@
                     id, desc: item.desc, category: item.category || 'Other',
                     owner: item.owner || '待指定', dueDate: item.dueDate || '',
                     priority: item.priority || 'Medium', status: 'Open',
-                    action: '', createdAt: new Date().toISOString().split('T')[0],
+                    action: '', note: '', createdAt: new Date().toISOString().split('T')[0],
                     closedAt: '', extensions: [],
                     source: '会议纪要导入'
                 });
