@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMU代工厂管理</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #6366f1;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-layout { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #1e293b;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sidebar-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header .logo {
+            width: 32px; height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+
+        .sidebar-nav { flex: 1; padding: 12px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 8px;
+            cursor: pointer; font-size: 14px;
+            transition: all 0.15s; color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: #334155; color: #fff; }
+        .nav-item.active { background: var(--primary); color: #fff; font-weight: 500; }
+        .nav-item .icon { width: 20px; text-align: center; font-size: 15px; }
+        .nav-item .badge-count {
+            margin-left: auto;
+            background: rgba(255,255,255,0.15);
+            padding: 1px 7px; border-radius: 10px; font-size: 11px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #334155;
+            font-size: 12px; color: #64748b;
+        }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 240px; display: flex; flex-direction: column; }
+
+        .topbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar-left h2 { font-size: 18px; font-weight: 600; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .page-content { padding: 24px 32px; flex: 1; }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .card-title { font-size: 15px; font-weight: 600; }
+        .card-body { padding: 20px; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px; border-radius: var(--radius-sm);
+            border: 1px solid var(--border); background: var(--card-bg);
+            cursor: pointer; font-size: 13px; font-weight: 500;
+            transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--text);
+        }
+
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+        .btn-success:hover { opacity: 0.9; color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn-danger:hover { opacity: 0.9; color: #fff; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-ghost { border: none; background: none; color: var(--text-secondary); }
+        .btn-ghost:hover { color: var(--primary); background: var(--primary-light); }
+
+        /* Badges */
+        .badge {
+            padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-high, .badge-danger { background: var(--danger-light); color: var(--danger); }
+        .badge-medium, .badge-warning { background: var(--warning-light); color: #b45309; }
+        .badge-low, .badge-info { background: var(--info-light); color: var(--info); }
+        .badge-open { background: var(--warning-light); color: #b45309; }
+        .badge-inprogress { background: var(--info-light); color: var(--info); }
+        .badge-closed { background: var(--success-light); color: #047857; }
+        .badge-overdue { background: var(--danger-light); color: var(--danger); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .stat-card.warning { border-left: 4px solid var(--warning); }
+        .stat-card.danger { border-left: 4px solid var(--danger); }
+        .stat-card.success { border-left: 4px solid var(--success); }
+        .stat-card.info { border-left: 4px solid var(--info); }
+
+        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 12px; background: #f8fafc; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); font-size: 12px; }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+        tr:hover td { background: #f8fafc; }
+
+        .owner-tag {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 7px 12px; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 13px;
+            background: var(--card-bg);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px; width: 90%; max-width: 520px;
+            max-height: 85vh; overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-wide { max-width: 750px; }
+
+        .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 8px 12px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-size: 13px; font-family: inherit;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
+
+        /* Meeting cards */
+        .meeting-list-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .meeting-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 16px; cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .meeting-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+        .meeting-card .mc-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .meeting-card .mc-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 12px; }
+        .meeting-card .mc-followups { font-size: 12px; color: var(--primary); margin-top: 8px; }
+
+        /* Meeting detail */
+        .meeting-detail-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+        }
+
+        .followup-timeline { }
+        .followup-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .followup-item:last-child { border-bottom: none; }
+        .fi-date { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        .fi-notes { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+        .fi-attendees { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #1e293b; color: #fff;
+            padding: 12px 20px; border-radius: 8px;
+            font-size: 13px; z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show { transform: translateX(0); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state .es-title { font-size: 15px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+        .empty-state .es-desc { font-size: 13px; }
+
+        /* Minutes textarea */
+        .minutes-textarea { min-height: 200px; font-size: 13px; line-height: 1.7; }
+
+        .parsed-section-title {
+            font-size: 14px; font-weight: 600; margin-bottom: 10px;
+            padding-bottom: 6px; border-bottom: 1px solid var(--border-light);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .parsed-section-title .count-badge {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 10px; font-size: 11px;
+        }
+
+        .extracted-card {
+            background: #f8fafc; border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm); padding: 12px 14px;
+            margin-bottom: 10px; position: relative;
+        }
+
+        .extracted-card .ec-desc { font-size: 13px; font-weight: 500; margin-bottom: 8px; padding-right: 30px; }
+        .extracted-card .ec-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .extracted-card .ec-fields .ec-field { display: flex; flex-direction: column; gap: 3px; }
+        .extracted-card .ec-fields .ec-field label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .extracted-card .ec-fields .ec-field input,
+        .extracted-card .ec-fields .ec-field select { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; background: #fff; }
+
+        .extracted-card .ec-remove {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px;
+        }
+        .extracted-card .ec-remove:hover { background: var(--danger-light); }
+
+        .minutes-step { display: none; }
+        .minutes-step.active { display: block; }
+
+        .parse-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+        /* Minutes record display */
+        .minutes-content-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            .page-content { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1><span class="logo">B</span> BMU代工厂管理</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" onclick="navigateTo('dashboard')">
+                    <span class="icon">&#9632;</span> 仪表盘
+                </div>
+                <div class="nav-item" onclick="navigateTo('meetings')">
+                    <span class="icon">&#128197;</span> 会议
+                    <span class="badge-count" id="meetingCount">0</span>
+                </div>
+                <div class="nav-item" onclick="navigateTo('opl')">
+                    <span class="icon">&#9888;</span> 问题清单
+                    <span class="badge-count" id="oplCount">0</span>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                数据本地保存 &middot; BMU代工厂管理 v2.9
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h2 id="pageTitle">仪表盘</h2>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-sm" onclick="exportCSV()">导出 CSV</button>
+                    <button class="btn btn-success btn-sm" onclick="openMinutesUpload()">上传会议纪要</button>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ 新建问题</button>
+                </div>
+            </header>
+
+            <!-- Page: Dashboard -->
+            <div class="page-content" id="page-dashboard">
+                <div class="stats-grid" id="dashboardStats"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">最近动态</span></div>
+                        <div class="card-body" id="recentActivity"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">逾期问题</span></div>
+                        <div class="card-body" id="overdueItems"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Meetings -->
+            <div class="page-content" id="page-meetings" style="display:none;">
+                <div class="filter-bar">
+                    <input type="text" placeholder="搜索会议..." id="meetingSearch" oninput="renderMeetings()">
+                    <button class="btn btn-primary" onclick="openModal('meeting')">+ 新建会议主题</button>
+                </div>
+                <div class="meeting-list-grid" id="meetingListGrid"></div>
+                <div id="meetingDetailView" style="display:none;"></div>
+            </div>
+
+            <!-- Page: OPL -->
+            <div class="page-content" id="page-opl" style="display:none;">
+                <div class="stats-grid" id="oplStats"></div>
+                <!-- Tab switcher -->
+                <div style="display:flex; gap:0; margin-bottom:20px; border-bottom:2px solid var(--border);">
+                    <div class="opl-tab active" id="oplTabOpen" onclick="switchOPLTab('open')" style="padding:10px 20px; cursor:pointer; font-size:14px; font-weight:600; border-bottom:2px solid var(--primary); margin-bottom:-2px; color:var(--primary);">
+                        进行中 <span id="oplTabOpenCount" style="background:var(--warning-light);color:#b45309;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;">0</span>
+                    </div>
+                    <div class="opl-tab" id="oplTabClosed" onclick="switchOPLTab('closed')" style="padding:10px 20px; cursor:pointer; font-size:14px; font-weight:500; color:var(--text-muted); margin-bottom:-2px;">
+                        已关闭存档 <span id="oplTabClosedCount" style="background:var(--success-light);color:#047857;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;">0</span>
+                    </div>
+                </div>
+                <!-- Active OPL (Open / In Progress) -->
+                <div class="card" id="oplActiveCard">
+                    <div class="card-header">
+                        <span class="card-title">待处理 / 进行中</span>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('opl')">+ 新建问题</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <input type="text" placeholder="搜索..." id="oplSearch" oninput="renderOPL()">
+                            <select id="oplStatusFilter" onchange="renderOPL()">
+                                <option value="">所有状态</option>
+                                <option value="Open">待处理</option>
+                                <option value="In Progress">进行中</option>
+                            </select>
+                            <select id="oplPriorityFilter" onchange="renderOPL()">
+                                <option value="">所有优先级</option>
+                                <option value="High">高</option>
+                                <option value="Medium">中</option>
+                                <option value="Low">低</option>
+                            </select>
+                        </div>
+                        <div class="table-container" id="oplTable"></div>
+                    </div>
+                </div>
+                <!-- Archived OPL (Closed) -->
+                <div class="card" id="oplClosedCard" style="display:none;">
+                    <div class="card-header">
+                        <span class="card-title">已关闭存档</span>
+                        <span style="font-size:12px; color:var(--text-muted);">已完成的问题项归档记录</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <input type="text" placeholder="搜索已关闭问题..." id="oplClosedSearch" oninput="renderOPL()">
+                        </div>
+                        <div class="table-container" id="oplClosedTable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- New Meeting Modal -->
+    <div class="modal-overlay" id="meetingModal">
+        <div class="modal">
+            <h3>新建会议主题</h3>
+            <div class="form-group">
+                <label>会议名称 *</label>
+                <input type="text" id="meetingName" placeholder="例如 每周APQP评审">
+            </div>
+            <div class="form-group">
+                <label>频率</label>
+                <select id="meetingFrequency">
+                    <option value="weekly">每周</option>
+                    <option value="biweekly">每两周</option>
+                    <option value="monthly">每月</option>
+                    <option value="adhoc">临时</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>飞书文档链接</label>
+                <input type="url" id="meetingDocUrl" placeholder="https://mi-p.feishu.cn/docx/...">
+            </div>
+            <div class="form-group">
+                <label>参与部门</label>
+                <input type="text" id="meetingDepts" placeholder="逗号分隔，例如 EE, ME, DQE">
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('meeting')">取消</button>
+                <button class="btn btn-primary" onclick="createMeeting()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New OPL Modal -->
+    <div class="modal-overlay" id="oplModal">
+        <div class="modal">
+            <h3>新建问题项</h3>
+            <div class="form-group">
+                <label>描述 *</label>
+                <textarea id="oplDesc" placeholder="描述问题..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>类别</label>
+                <select id="oplCategory">
+                    <option value="Design">设计</option>
+                    <option value="Process">工艺</option>
+                    <option value="Material">材料</option>
+                    <option value="Quality">质量</option>
+                    <option value="Test">测试</option>
+                    <option value="Production">生产</option>
+                    <option value="Supply Chain">供应链</option>
+                    <option value="Other">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>负责人 *</label>
+                <input type="text" id="oplOwner" placeholder="负责人姓名">
+            </div>
+            <div class="form-group">
+                <label>截止日期 *</label>
+                <input type="date" id="oplDueDate">
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <select id="oplPriority">
+                    <option value="High">高</option>
+                    <option value="Medium" selected>中</option>
+                    <option value="Low">低</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>行动方案</label>
+                <textarea id="oplAction" placeholder="解决方案..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>佐证</label>
+                <textarea id="oplEvidence" placeholder="证据文件名、链接等..." rows="2"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('opl')">取消</button>
+                <button class="btn btn-primary" onclick="createOPL()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit OPL Modal -->
+    <div class="modal-overlay" id="editOPLModal">
+        <div class="modal">
+            <h3>编辑问题项</h3>
+            <input type="hidden" id="editOPLId">
+            <div class="form-group">
+                <label>描述 *</label>
+                <textarea id="editOPLDesc" placeholder="描述问题..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>类别</label>
+                <select id="editOPLCategory">
+                    <option value="Design">设计</option>
+                    <option value="Process">工艺</option>
+                    <option value="Material">材料</option>
+                    <option value="Quality">质量</option>
+                    <option value="Test">测试</option>
+                    <option value="Production">生产</option>
+                    <option value="Supply Chain">供应链</option>
+                    <option value="Other">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>负责人 *</label>
+                <input type="text" id="editOPOwner" placeholder="负责人姓名">
+            </div>
+            <div class="form-group">
+                <label>截止日期</label>
+                <input type="date" id="editOPLDueDate">
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <select id="editOPLPriority">
+                    <option value="High">高</option>
+                    <option value="Medium">中</option>
+                    <option value="Low">低</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>行动方案</label>
+                <textarea id="editOPLAction" placeholder="解决方案..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>佐证（关闭证据）</label>
+                <textarea id="editOPLEvidence" placeholder="证据文件名、链接等..." rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label>备注</label>
+                <textarea id="editOPLNote" placeholder="备注信息..." rows="2"></textarea>
+            </div>
+            <div class="form-group" id="editClosedAtGroup" style="display:none;">
+                <label>实际完成日期</label>
+                <input type="date" id="editOPLClosedAt">
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">修改后会影响按时完成率统计</div>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('editOPL')">取消</button>
+                <button class="btn btn-primary" onclick="saveOPL()">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Follow-up Modal -->
+    <div class="modal-overlay" id="followupModal">
+        <div class="modal">
+            <h3>添加跟进会议</h3>
+            <div class="form-group">
+                <label>日期 *</label>
+                <input type="date" id="followupDate">
+            </div>
+            <div class="form-group">
+                <label>参会人员</label>
+                <input type="text" id="followupAttendees" placeholder="逗号分隔姓名">
+            </div>
+            <div class="form-group">
+                <label>会议记录</label>
+                <textarea id="followupNotes" placeholder="会议内容..." style="min-height:150px;"></textarea>
+            </div>
+            <input type="hidden" id="followupMeetingId">
+            <div class="form-actions">
+                <button class="btn" onclick="closeModal('followup')">取消</button>
+                <button class="btn btn-primary" onclick="createFollowup()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minutes Upload Modal -->
+    <div class="modal-overlay" id="minutesUploadModal">
+        <div class="modal modal-wide">
+            <h3>上传会议纪要</h3>
+
+            <!-- Step 1: Input -->
+            <div class="minutes-step active" id="minutesStep1">
+                <div class="form-group">
+                    <label>会议主题 *</label>
+                    <select id="minutesMeeting">
+                        <option value="">选择已有会议主题...</option>
+                    </select>
+                    <input type="text" id="minutesNewMeeting" placeholder="或输入新的会议主题名称" style="margin-top:6px;">
+                </div>
+                <div class="form-group">
+                    <label>会议日期 *</label>
+                    <input type="date" id="minutesDate">
+                </div>
+                <div class="form-group">
+                    <label>会议纪要 * <span style="font-weight:normal; font-size:12px; color:var(--text-muted);">（粘贴飞书链接 或 文档内容）</span></label>
+                    <div id="feishuUrlWarning" style="display:none; margin-bottom:10px; padding:12px 16px; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; font-size:13px; color:#856404;">
+                    </div>
+                    <div id="feishuLoadSuccess" style="display:none; margin-bottom:10px; padding:12px 16px; background:var(--success-light); border:1px solid var(--success); border-radius:8px; font-size:13px; color:#047857;">
+                        <strong>✅ 已从飞书实时加载文档内容！</strong> 直接点击「智能解析」即可。
+                    </div>
+                    <textarea id="minutesContent" class="minutes-textarea" placeholder="粘贴飞书文档链接，系统自动实时获取内容并解析&#10;&#10;支持任意飞书文档链接（无需预先缓存）：&#10;https://mi.feishu.cn/docx/xxxxxx&#10;&#10;也可以直接粘贴文档内容。"></textarea>
+                    <div class="parse-hint">💡 粘贴任意飞书文档链接即可实时获取内容，无需预先缓存。也支持直接粘贴文档内容。</div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
+                    <button class="btn btn-primary" onclick="parseMinutes()">智能解析</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Preview & Confirm -->
+            <div class="minutes-step" id="minutesStep2">
+                <div class="parsed-results" id="parsedResults"></div>
+                <div class="form-actions">
+                    <button class="btn" onclick="backToMinutesInput()">返回修改</button>
+                    <button class="btn" onclick="closeModal('minutesUpload')">取消</button>
+                    <button class="btn btn-primary" onclick="confirmMinutesImport()">确认添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== Data Store ====================
+        let store = {
+            meetings: [],
+            opls: [],
+            activities: []
+        };
+
+        let currentPage = 'dashboard';
+        let currentMeetingDetail = null;
+
+        // ==================== Display Helpers ====================
+        function statusCN(s) {
+            const map = {'Open':'待处理','In Progress':'进行中','Closed':'已关闭','Overdue':'已逾期'};
+            return map[s] || s;
+        }
+        function priorityCN(p) {
+            const map = {'High':'高','Medium':'中','Low':'低'};
+            return map[p] || p;
+        }
+        function categoryCN(c) {
+            const map = {'Design':'设计','Process':'工艺','Material':'材料','Quality':'质量','Test':'测试','Production':'生产','Other':'其他','Supply Chain':'供应链'};
+            return map[c] || c;
+        }
+        function frequencyCN(f) {
+            const map = {'weekly':'每周','biweekly':'每两周','monthly':'每月','adhoc':'临时'};
+            return map[f] || f;
+        }
+
+        // ==================== Persistence ====================
+        const DATA_VERSION = 'v8-evidence';
+        function loadStore() {
+            const ver = localStorage.getItem('project-hub-version');
+            if (ver !== DATA_VERSION) {
+                localStorage.removeItem('project-hub-data');
+                localStorage.setItem('project-hub-version', DATA_VERSION);
+                initSampleData();
+                return;
+            }
+            const saved = localStorage.getItem('project-hub-data');
+            if (saved) {
+                store = JSON.parse(saved);
+            } else {
+                initSampleData();
+            }
+        }
+
+        function saveStore() {
+            localStorage.setItem('project-hub-data', JSON.stringify(store));
+        }
+
+        const AUDIT_OPL_DATA = [
+            {id:"OPL-001",desc:"交付能力：立讯与小米采购确认量纲和产能一致，确保交付能力",category:"工业化",owner:"顾锐",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"2026-01-13",note:"措施: 双方会议确认; 进展: 1.确认按照RFQ包中 880日产能确保交付能力; 佐证: img_v3_02ts_d365351a-3374-4d20-bc4a-e3be5f29ebcg.jpg   2.定点函已双签（不展示）",evidence:"img_v3_02ts_d365351a-3374-4d20-bc4a-e3be5f29ebcg.jpg   2.定点函已双签（不展示）",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-002",desc:"产能与生产节拍计算：与SIE拉通节拍计算，瓶颈工位时间，",category:"工业化",owner:"李晴天, 丁亚伟",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 见附件表格; 进展: 2026/1/21 已邮件确认可关闭 参考附件评估表格; 佐证: BMU产能分析表1.xlsx",evidence:"BMU产能分析表1.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-003",desc:"专家（赵勇强）SMA数据现场校核，包括导热胶，纳米涂层胶, RTV胶，考虑胶对后续工艺的影响和后续工艺对胶的要求，考虑利用AI",category:"涂胶",owner:"李晴天",dueDate:"2026-02-26",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 参考附件调查分析; 进展: 2026/3/20 赵老师已来立讯现场审核，该问题关闭，转向跟踪赵老师问题清单。 2026/03/20 1. 报告增加RTV与纳米胶水兼容性报告 2. RTV胶水验证实验数据  3/25完成 2026/03/16 赵工3/17来立讯，现场确认 2026/02/09 赵工春节后来立讯确认 2026/01/31 下周赵工到立讯现场确认 2026/01/26 调查报告已经发给赵工，在确认中 2026/1; 佐证: BMU_胶水风险调查.xls",evidence:"BMU_胶水风险调查.xls",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-004",desc:"所有关键工序top10做8D分析和持续改善计划，良率和直通率达到行业TOP，误判有可能导致问题流出",category:"良率",owner:"张森",dueDate:"2026-05-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 关键工序问题点汇总; 进展: 2026/3/26 问题清单已review结束，无异常。问题持续收集，观察一个月后，无复现问题可关闭 2026/3/23 更新3月份试产问题点（共11个onepage）后续持续更新 2026/3/12 生产过程中问题收集并做整理分析，持续更新中 2026/2/2 更新组装问题点，问题持续更新中 2026/1/27 更新了SMT&DIP和涂敷的问题点，组装问题还在进行中。 2026/1/21 TOP; 佐证: 立讯产线质量TOP问题.pptx",evidence:"立讯产线质量TOP问题.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-005",desc:"长周期物料备计划拉通确认",category:"物料备料",owner:"柯冬梅, 崔江红, 顾锐",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 1.双方拉通需求 2.BOM物料锁定 3.MI 释放预测 4.LUX 下达订单; 进展: 2026/3/20 当前储备库存1100套，可用到9月1日所有交付订单需求 2026年交付订单量已滚动循环拉动 该问题金硕老师风险较低，可关闭 1.按照内部需求5.1W台备料 2.BOM物料已锁定 3.LUX 本周内下达PR&PO",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-006",desc:"红胶存储规范，温度，时间，日常维护记录",category:"SMT红胶",owner:"崔江红",dueDate:"2026-01-16",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 已邮件确认该问题可关闭 温度管控范围2-8度，回温时间4小时",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-007",desc:"锡膏doe结果，如何保证pcb板边缘的锡膏厚度",category:"SMT锡膏",owner:"李晴天",dueDate:"2026-04-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/18 金硕老师已确认该问题可以关闭 2026/04/11 全因子DOE参考附件 2026/04/10 要求做全因子 2026/04/10 DOE参数验证，参考附件 2026/04/09 生管临时插单，DOE实验移到4/12 2026/04/08 已预定生产线，4/9下午3点做DOE 2026/03/31 治具3/29到公司，上线确认治具底座平整度问题，放到设备支撑平台有间隙，治具返厂; 佐证: BMU印刷机工艺参数DOE验证0411.docx     BMU 印刷参数DOE0411.xlsx",evidence:"BMU印刷机工艺参数DOE验证0411.docx     BMU 印刷参数DOE0411.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-008",desc:"layout封装库规范，器件间隙，dfm结果， 锡膏涂敷质量，焊接焊接质量",category:"PCB设计与SMT DFM校核",owner:"李晴天",dueDate:"2026-03-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.layout封装库规范，器件间隙--设计端，立讯无法提供 2. 锡膏涂敷质量，焊接焊接质量（与焊接过程能力和过程管控合并）-立讯提供; 进展: 2026/02/25 年前已和冬生老师、冯普老师完成DFM报告review过，待MI端内部review 2026/02/09 已和冬生老师及冯普老师完成DFM报告review， 2026/2/3 和冬生老师拉会单独讨论 2026/1/29 DFM的检测规则，逻辑，30号会议沟通。 2026/1/28 前期验证难以通过CPK体现小概率风险，更应关注量产稳定后的波动。立讯将通过100%在线3D X-R",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-009",desc:"过程能力和过程管控：关键器件引脚焊接标准，检测能力，合格率，不合格的问题原因及改善，如虚焊，考虑问题横展，径向切片验证",category:"焊接T过程能力和过程管控：",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/2/25 切片已经完成；不良问题和TOP问题点合并 2026/2/2 物料清单，参考标准，检测能力等已更新，不良信息待收集 2026/1/21 物料清单，参考标准，检测能力，不良信息 2026/1/19 样品给到实验室，预计1/30号出结果 2026/1/15 待实验室排切片; 佐证: 焊接T过程能力和过程管控.pptx   各类重要器件切片图",evidence:"焊接T过程能力和过程管控.pptx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-010",desc:"物料管控埋雷试验",category:"物料管控",owner:"张森, 李晴天",dueDate:"2026-01-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 工艺去埋雷，质量去检测，提前记录相关SN; 进展: 2026/1/21 炉前手动取下一颗电阻，炉前AOI有效识别出来 2026/1/15 预计1/21号生产，埋雷验证",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-011",desc:"关键器件焊接切片验证，批产后年度验证",category:"焊接质量",owner:"张森",dueDate:"2026-02-10",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: BGA和顺络变压器切片验证; 进展: 2026/2/2 已添加切片图片 2026/1/27 补充切片物料的数量。 1月16日送实验室切片 实验室回复切片结果1月30给出; 佐证: 切片位置图.docx   各类重要器件切片图",evidence:"切片位置图.docx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-012",desc:"BGA MCU 焊接切片，至少2片以上",category:"BGA MCU 焊接质量，",owner:"张森",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: BGA四周和中心位置做切片分析，至少送样2片; 进展: 2026/2/2 已添加切片图片 2026/1/27 补充切片物料的数量。 1月16日送实验室切片 实验室回复切片结果1月30给出; 佐证: 切片位置图.docx   各类重要器件切片图",evidence:"切片位置图.docx   各类重要器件切片图",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-013",desc:"smt焊接与T对比，变更点及变更依据，验证结果，关注气泡率",category:"SMT产线对标",owner:"李晴天",dueDate:"2026-02-11",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 鉴于信息安全问题，无法提供",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-014",desc:"四新在其他产线的问题横展，包括2级供应商分供方物料及生产",category:"问题横展",owner:"孙伟琦",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 1/30 已和金硕老师汇报并按照要求整改确认ok 1/27已提交金硕老师，待老师反馈 2026/1/22 资料持续收集中; 佐证: M_BMU制造成熟度及四新物料20260130",evidence:"M_BMU制造成熟度及四新物料20260130",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-015",desc:"屋顶风口正负压，过滤层数，点检方式，滤网更换周期",category:"车间出风口",owner:"崔江红",dueDate:"2026-01-19",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/21 提供点检与更换记录 1.空调高效过滤器，正压送风，约100-250pa。 2.空调系统过滤器分别是 初效过滤器，位置在夹层。 中效过滤器，位置在夹层。 高效过滤器，位置在车间。 3.万级车间高效过滤器风压的日常点检频率为每日1次，详细巡检频率为每周1次。  4.万级车间高效过滤器的更换周期无固定时长，核心判定依据是运行风压达到终阻力（300～500Pa），常规工况下更换周期约为",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-016",desc:"生产间隔或暂停时间的喷嘴表层氧化部分焊锡的保养操作规范",category:"选择焊喷嘴保养",owner:"李晴天, 张威",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/19 保养文件，参考附件 2026/1/15 保养SOP进行中，预计1/21号完成; 佐证: 选择焊喷嘴保养.pdf",evidence:"选择焊喷嘴保养.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-017",desc:"选择焊doe验证",category:"选择焊doe验证",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/15 DOE验证已做，报告如附件; 佐证: 选择焊工艺DOE验证.pdf",evidence:"选择焊工艺DOE验证.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-018",desc:"dip 3d x-ray切层次数考虑气泡集中位置，允许大小",category:"选择焊 3D X-ray检测规范",owner:"张森",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 提供3D X-RAY的检验规范; 进展: 2026/1/22 贴片物料:5刀-25%;37.5%;50%;62.5%;75%， 通孔焊接物料:起始面/终止面/75%/50% 2026/1/19 已完成 LXQW-AIE-024(1)X-Ray 测试规范指引内有关于切层的要求和规范",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-019",desc:"ict测试覆盖率规范及计算",category:"ict测试覆盖率",owner:"韩林虎",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 会议沟通，该问题可关闭 2026/3/24 本周内完成风险评估（拉通MI） 2026/3/20 3/20新的layout释放后，重新评估一版最新的测试覆盖率。 2026/3/19 满足ICT夹具开设需求 2026/3/18 重新整理并总结报告，并输出结论性文字 2026/3/15 提供最新的测试覆盖率。 2026/2/25 计算方法以实测为主，结果3/12提供 2026/1/2; 佐证: ICT测试规范    BMU ICT.zip     BMU2.0全流程覆盖率20260313",evidence:"ICT测试规范    BMU ICT.zip     BMU2.0全流程覆盖率20260313",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-020",desc:"切板 颗粒物管控达到10万级，定期检查颗粒物，观察吸嘴是否堵塞",category:"切板清洁度",owner:"李晴天, 张威",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/15 已会议确认可关闭该问题 2026/3/10 已邮件发金硕老师确认 2026/02/09 报告不合格，需要对残留物做成分分析，春节后寄样品给供应商出报告，预计3月6号出报告 2026/2/3 提供正式报告结案 2026/01/26 分板后产品已送检，测试洁净度，1/30号出结果 2026/1/21 分板洁净度: 1.分板完成后的PCBA进行洁净度测试，金属200um，非金属600; 佐证: BMU分板PCBA粉尘分析.docx",evidence:"BMU分板PCBA粉尘分析.docx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-021",desc:"pcb不同位置的吸力/风压分布，做金属异物验证试验， 是否圆孔改成扁嘴或大喇叭孔",category:"PCB清洁",owner:"李晴天, 李蒙恩",dueDate:"2026-02-28",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 金硕老师确认该问题可以关闭 2026/03/16 硕哥3/19来公司现场确认 2026/3/10 报告更新中，预计3/15出报告结果，参考附件 2026/02/09 报告准备中，预计3月6号出报告 2026/2/3 提供PCBA的实验报告 2026/1/26 清洁效果测试报告，如附件 2026/1/21 PCB清洁工站的犀利测试 金属碎屑、锡珠、锡丝(细小)，前后对比照片，出个",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-022",desc:"rtv胶管内部残胶半年清理一次，温湿度压力管控，是否凝固，冬天温度低是否凝固，胶瓶区域增加小环境控制恒温保温，控制冷凝水",category:"RTV胶涂敷",owner:"李晴天",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 1. RTV胶放车间 ，属于恒温恒湿控制，包括节假日，车间均控制温湿度（温度：25±3℃，湿度：40%-60%），不会因为冬天外面气温低，胶水凝固 2. 出胶管道配备压力报警传感器，出胶不顺，设备报警，停止生产，参考附件; 进展: 2026/3/24 计划3/25与金硕老师现场关闭 2026/03/23 参考附件，现场环境优于TDS推荐环境 现场环境： 湿度：40-60% 温度：25±3℃ TDC推荐环境： 湿度：20-80% 温度：≥0℃ 2026/3/20 根据TDS要求与现场环境一致（） 已增加温度计至胶桶外壁进行监控 增加赵老师需求跟踪 该问题关闭 2026/02/03 确认胶水在仓库和线边仓的存储温度要求，制定上线; 佐证: RTV存储及使用条件 (2).jpg     TDS推荐温湿度.jpg    TDS dowsil-se-9168-rtv-adhesive.pdf",evidence:"RTV存储及使用条件 (2).jpg     TDS推荐温湿度.jpg    TDS dowsil-se-9168-rtv-adhesive.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-023",desc:"纳米涂层胶嘴高度10cm，浪费较多， 是否可以下降高度，考虑降低成本并且充分涂敷",category:"纳米涂敷",owner:"李晴天, 杜斌",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 2026/1/28 验证一下范围（考虑公差和设备波动） 与胶水供应商确认，涂敷高度标准为10cm，高度变化会影响胶水附着力，; 进展: 2026/1/15 完成",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-024",desc:"绝缘垫片工位机械臂优化，有点头动作，PCB放置过程中板子跳动",category:"组装",owner:"丁亚伟",dueDate:"2026-01-31",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 调整导热垫片下落速度; 进展: 2026/1/26 红丹验证无干涉，应力PASS 2026/1/21 红丹测试预计1/23提供结果&应力测试待拿到到应力片提供 2026/1/15 1/21计划出结果 2026/1/13 验证中; 佐证: OP20站雅马哈机械手动作流程解析_20260115(1).xlsx   机械臂贴敷绝缘垫片红丹&应力测试报告.pptx   导热垫片贴敷验证.xlsx",evidence:"OP20站雅马哈机械手动作流程解析_20260115(1).xlsx   机械臂贴敷绝缘垫片红丹&应力测试报告.pptx   导热垫片贴敷验证.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-025",desc:"PCBA装配至上壳体工序，PCBA板有跳动，如何保证PCBA装配到位，是否有转动移位风险",category:"组装",owner:"丁亚伟",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: PCBA放置在壳体后，破真空时增加一秒延时并吹气，建议：同MI端评估涂胶避让位置供吸盘吸附PCBA。; 进展: 2026/4/8：待涂敷治具完成提供一块PCBA验证，预计4/13完成 2026/3/27 世运邮件确认吸力对树脂塞孔无影响，此问题可关闭 026/3/24 切片之后的 PCB与切片报告发世运判断，3/25已寄出 2026/3/17 1. 会议通过：涂敷避让治具可以启动。 2 吸盘的吸力是否会对PCB树脂塞孔造成影响。 3. PCB的平整度对吸盘吸附力的验证。 2026/3/15 3/16上午10; 佐证: PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",evidence:"PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-026",desc:"装配极限样品测试，压力40公斤要考虑分段装配，考虑瞬态应力，doe分析",category:"组装应力DOE",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 2026/2/6 极限样件垫片应力测试PASS 2026/1/28 通过在产; 佐证: XC-2601-000710-正式中文报告(1).pdf   曲线图片.zip   XM_BMU 应力测试报告0312.pptx",evidence:"XC-2601-000710-正式中文报告(1).pdf   曲线图片.zip   XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-027",desc:"卡扣微形变验证，5个以上极限样品验证边界",category:"组装卡扣分析",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/15：已跟金硕老师确认无异议 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复，已发送金硕老师3/14现场确认 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 ; 佐证: XM_BMU 应力测试报告0312.pptx",evidence:"XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-028",desc:"卡扣装配以及PCBA装配至上壳体，尺寸极限样件装配验证",category:"组装卡扣分析",owner:"丁亚伟, 柳有伟, 孙伟琦",dueDate:"2026-02-06",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/16：已跟亚文老师确认，可以关闭该问题点 2026/3/13：锦海老师已同意，已发送亚文老师待确认回复 2026/3/12：已完成压力上限应力测试报告 2026/3/9：需添加一份定义的压力上限应力测试报告，预计3/11完成 2026/3/5:已与锦海老师沟通，需把每个通道的应变陈列出来 ，需与亚文老师拉通 2026/2/6 极限样件垫片应力测试PASS 2026/1/28 通过在产; 佐证: XM_BMU 应力测试报告0312.pptx",evidence:"XM_BMU 应力测试报告0312.pptx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-029",desc:"卡扣公差分析，计算，工装，夹具公差链计算",category:"组装卡扣分析",owner:"柳有伟, 丁亚伟",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/20：详情见附件 2026/1/12:已提供产品尺寸链分析，工装尺寸链分析待17号提供; 佐证: 小米BMU2.0 装配尺寸链检查_20260120.pdf",evidence:"小米BMU2.0 装配尺寸链检查_20260120.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-030",desc:"成品侧面检测ccd曝光效果很差，光源优化，对比度不够，如何保证检测有效性，考虑位置度和pin针折弯，设备检测位置度和高度精度对应pin针位置和弯曲角度，",category:"成品CCD检测",owner:"丁亚伟",dueDate:"2026-01-15",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 侧面检高清图保存本地，增加PIN位置度纵横轴间距量测; 进展: 2026/1/21 建议偏移角度转化为±0.15; 佐证: 侧面外观.bmp   纵横间距图示.png   XM BMU 新增PIN位置间距视觉检测 .pdf",evidence:"侧面外观.bmp   纵横间距图示.png   XM BMU 新增PIN位置间距视觉检测 .pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-031",desc:"结构，产线设计专家校核，涂胶专家产线校核",category:"专家设计&产线评审",owner:"金硕",dueDate:"",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"措施: 专家产线现场校核; 进展: 2026/3/20 赵老师已来立讯现场审核，问题点转向赵老师问题跟踪，该问题关闭 2026/3/15 协调赵老师周四周五同步至立讯 专家产线现场校核",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-032",desc:"所有工位明确设计标准和判定标准，并且清楚标准来源和依据",category:"生产标准及规范",owner:"李晴天, 丁亚伟, 张波, 韩林虎, 翟",dueDate:"2026-03-20",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 分为SMT（设计标准：follow layout，判断标准：SOR+IPC；贴片焊接状态），DIP（设计标准：follow layout，判断标准：SOR+IPC，焊接填充度），coating（设计标准：涂敷图纸，），组装，测试（FCT/EOL测试设计标准和判定标准由MI输出相应的测试SPEC。）; 进展: 2026/03/26 已和金硕老师确认该问题点 2026/3/20 金硕老师以查看，文档中增加2列说明，重新提供资料 2026/03/16 硕哥3/19号来立讯现象确认 2026/3/13 立讯的标准再次进行REVIEW,mi同步review。 2026/02/09 更新如附件 2026/01/26 SMT/DIP/Coating判断标准参考附件 2026/1/21 进行中; 佐证: BMU SMT DIP Coating各工序标准.xlsx    SMT DIP Coating各工序标准.xlsx    测试SPEC:  https://mi.feishu.cn/sheets/Mc98sfORshS8b7t8QDHcrZmBnig   P000019561002已发布.p",evidence:"BMU SMT DIP Coating各工序标准.xlsx    SMT DIP Coating各工序标准.xlsx    测试SPEC:  https://mi.feishu.cn/sheets/Mc98sfORshS8b7t8QDHcrZmBnig   P000019561002已发布.p",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-033",desc:"完成全工艺成熟度文档矩阵表，按各个子系统完成完整闭环，以SPI工站为例，是否按照规范完成SPI程序，是否完成CPK，",category:"工艺成熟度文档完整性",owner:"李晴天",dueDate:"2026-02-12",createdAt:"2026-01-09",priority:"高",status:"Closed",closedAt:"",note:"进展: 2026/04/02 闭环文件完成，和金硕老师确认可以关闭 202603/31 SMT已完成工艺闭环文件输出，待测试文件完成即可关闭 2026/03/26 已和金硕老师确认关闭组装测试问题点 2026/03/20 增加工艺成熟度验证附件，该问题可关闭 2026/3/15 先做压测，OEE达到70%的情况下再次进行一轮DOE。 选焊&RTV 2026/02/09 更新如附件 2026/1/26 参考; 佐证: 小米BMU工艺开发验证闭环矩阵图.xlsx",evidence:"小米BMU工艺开发验证闭环矩阵图.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-034",desc:"上下盖原材料的保质期限，存储环境，模具寿命定义等等",category:"原材料使用期限管理",owner:"孙伟琦",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 1/14已回复质保期限1年，存储环境温度10-30℃，湿度30-70%； 1/22模具寿命50w",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-035",desc:"SMT炉温曲线基于锡膏规范进行确认",category:"SMT炉温曲线",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/21金硕老师提出： 增加实测的炉温曲线 2026/1/15 参考附件; 佐证: XM-BMU20C01(90-EHB21169)-X2-TOP    12.23.pdf     Indium 10.8HF TDS.PDF",evidence:"XM-BMU20C01(90-EHB21169)-X2-TOP    12.23.pdf     Indium 10.8HF TDS.PDF",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-036",desc:"观察到PCBA SMT后器件有轻微偏斜，评审优化的可行性",category:"PCBA 焊接",owner:"李晴天",dueDate:"2026-02-10",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/19 物料准备中，预计1/21号完成; 佐证: BMU IC偏移改善.pdf",evidence:"BMU IC偏移改善.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-037",desc:"当前无高温老化工站，需要评估高温老化对壳体间隙和接插件pin位置度的影响",category:"高温老化",owner:"柳有伟, 张波",dueDate:"2026-03-29",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/26 老化前后数据对比最大误差0.18mm，未超过公差上限（公差1.0mm）符合要去，此问题点关闭 2026/3/24 数据正在正路，预计3/25出报告 2026/3/6：老化设备3/11进场，3/14电气网施工调试，3/16左右老化设备调试完成后进行 2026/1/14 待内部拉通资源; 佐证: 三坐标测量尺寸老化前后对比 - 副本.xls",evidence:"三坐标测量尺寸老化前后对比 - 副本.xls",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-038",desc:"散热过孔存在漏锡，剖切显示焊接质量无异常，X-Ray空洞率按照20%允收标准，积累空洞率数据",category:"功率器件焊接质量",owner:"张森",dueDate:"2025-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"措施: 1.mos管散热孔位置切片 2.统计nos管的X-RAY的气泡率; 进展: 1. 已明确X-Ray空洞率按照20%允收标准 2.切片已完成，显示焊接质量无异常，结果已于锦海老师拉通并认可； 3. 空洞率数据持续收集中。; 佐证: MOS管 X-RAY器件图片",evidence:"MOS管 X-RAY器件图片",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-039",desc:"双85试验后中间卡扣的重合度比角上卡扣重合度低，确认最新样品情况和改善措施",category:"卡扣重合度",owner:"柳有伟",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 需要MI输入重合度要求; 进展: 2026/3/23 改善样件老化实验后重合度与前期双85实验最大间隙量基本一致，详见附件报告 2026/3/19 改善样件重合度无明显变化，详见附表。老化实验进展中，待老化完成评估老化后状态。 2026/3/10 改善样件供应商端已完成制样，待到货立讯后验证。 2026/1/20 待验证老化之后的卡口重合度 2026/1/14已完成。3D理论间隙为0.47mm，最新壳体样品最大间隙0.5max，与; 佐证: BMU2.0 卡扣重合度调查",evidence:"BMU2.0 卡扣重合度调查",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-040",desc:"元器件偏移，找出偏移的器件，针对器件单独做验证",category:"SMT焊接位置精度",owner:"李晴天",dueDate:"2026-02-26",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/01/26 邹立老师现场看到的IC偏移量均在IPC 25%以内，邹立老师要求调整到中心位置，1/21号生产已调整贴片到中心位置，如附件 2026/1/21 AOI VS 三坐标 IPC 25%合格 2026/1/19 物料准备中，预计1/21号完成; 佐证: BMU IC偏移改善.pdf",evidence:"BMU IC偏移改善.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-041",desc:"干簧管Pin脚后脚跟焊盘小，导致无法达到100%爬锡，同时检查前脚跟的爬锡是否达到100%",category:"SMT焊接爬锡率",owner:"李晴天",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/03/31 3/30完成Layout优化后试生产，3/31完成切片报告，ok后可关闭问题 2026/3/26 3/29快板到厂进行验证（所有变更点的验证） 2026/03/16 3/13与米会议，DFM只有2个Open问题点，3/16与冬生确认，汇总报告已提交冬生 2026/02/25 年前已和冬生老师、冯普老师完成DFM报告review过，待MI端内部review 2026/02/09; 佐证: BMU C1 DFM",evidence:"BMU C1 DFM",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-042",desc:"治具中每一个有抓夹的动作都要做应力测试和振动测试（振动测试可能性待确认）",category:"产线过程应力",owner:"李晴天, 李蒙恩",dueDate:"2026-02-27",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 补充组装应力测试报告，该问题关闭 2026/03/16 金硕老师3/19来公司，现场确认 2026/02/25 已增加分板机应力报告 2026/02/05 增加分板机应力报告 2026/2/3 补充其他站别的应力测试报告 2026/01/26 RTV点胶轨道夹治具应力测试报告如附件，应力测试结果OK 2026/1/19 振动测试无法做，应力测试准备中; 佐证: 涂胶TOP    涂胶BOT    小米BMU_分板-应力测试    Akemond Strain_0_10.483_XM-BMU2(1)    RTV点胶轨道夹治具应力测试.xls     组装测试应力报告.xlsx",evidence:"涂胶TOP    涂胶BOT    小米BMU_分板-应力测试    Akemond Strain_0_10.483_XM-BMU2(1)    RTV点胶轨道夹治具应力测试.xls     组装测试应力报告.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-043",desc:"厚度检测位置：coating轨迹和PCBA的投影图实际 是否能全覆盖薄弱分析与厚度检测，厚度不能低于DVC样品",category:"纳米涂层",owner:"李晴天, 杜斌",dueDate:"2026-04-09",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/02 报告完成，参考附件 2026/3/26 AOI、光谱仪、切片，三个方式的数据对标 2026/03/23 要求增加光谱仪测试原理，3/25完成 2026/03/19 已确认，1-2检测的是coating厚度，1-3检测的是coating上表面到油墨底部厚度，2-3检测的是表层绿油厚度，光谱检测时，如果光谱穿不透油墨的话，油墨厚度测量值会有偏差， 2026/3/15 报告中的参数; 佐证: 光谱仪 切片 UVAOI厚度对比    光谱仪测量厚度与切片对比    测量三防涂敷厚度.pdf    BOTk面路径显示.png   TOP面路径显示.png",evidence:"光谱仪 切片 UVAOI厚度对比    光谱仪测量厚度与切片对比    测量三防涂敷厚度.pdf    BOTk面路径显示.png   TOP面路径显示.png",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-044",desc:"禁涂区域如导热垫片区域无AOI（治具挡住了），无法防流出",category:"纳米涂层",owner:"李晴天",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 2026/1/21金硕老师 遮蔽治具验证OK后代表该区域可以做有效遮蔽。 提供治具的验收报告; 进展: 2026/2/3 提供治具验收报告 2026/1/21 遮蔽治具的验收报告 2026/1/19 待与金硕老师拉通; 佐证: XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",evidence:"XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-045",desc:"参照某客户接插件点红胶工艺是否适用于BMU项目，改善振动性能",category:"问题横展",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/21 无法执行 红胶污染扩散影响接插件; 佐证: BMU 点红胶工序.pdf",evidence:"BMU 点红胶工序.pdf",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-046",desc:"提供Flyback变压器焊接温度曲线和测点给顺络确认",category:"Flyback变压器焊接",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/15 已与锦海老师拉通，确认OK",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-047",desc:"立讯反馈的RTV胶节拍问题，评估共模电感点胶减少的可行性",category:"Top面RTV胶节拍问题",owner:"李晴天",dueDate:"2026-01-23",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"2026-01-21",note:"进展: 2026/1/19 CT已优化完成，共模电感不需要取消点胶。维持以前点胶方式不变",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-048",desc:"对壳体进行蓝光扫描和表面模型重构，与理论3D数模对比",category:"壳体变形确认",owner:"孙伟琦",dueDate:"2026-01-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 1/26 扫描完成，邮件已发锦海老师 1/15要求供方中亿腾确认蓝光扫描资源 1/20  供方集团内部协调资源，计划1/26完成",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-049",desc:"确认改善措施及时间",category:"壳体高温后局部变形，需修模改善",owner:"柳有伟",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 改善措施已与小米秦老师拉通确认，待塑壳DVC全部完成后（预计1/30），基于DVC所有实验结果最终确认改善方案，预计改善完成时间2/14; 进展: 2026/3/23 实验结束，原局部变形位置修模后经过高温摸底实验，壳体变形改善，间隙小于1mm，改善有效。 2026/3/17 实验样品已送至实验室，预计3/21完成实验 周四（3.19）提供尺寸报告review 2026/3/12 已修模完成，待3/13样品到货确认改善效果 2026/1/20 考虑DVC完成时间节点，前期与小米秦老师达成一致，DVC壳体实验使用T3壳体。 2026/1/14 ",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-050",desc:"部分接插件与卡扣间隙太小，需改善，其余位置横展校核",category:"壳体安装后与接插件间隙校核",owner:"柳有伟, 孙伟琦",dueDate:"2026-03-30",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"措施: 需要MI输入最小尺寸要求; 进展: 2026/3/17 最新壳体间隙详见附件，经与秦亚文老师评估确认，间隙状态可接收，问题点关闭 2026/3/15 周四（3.19）提供尺寸报告review 2026/3/12 已修模完成，待3/13样品到货确认改善效果 2026/1/22  1/30 出壳体DVC结果 2月初确认修模方案 2/14初步修模结果 2026/1/14 已收集最新接插件与卡扣间隙数据。; 佐证: 连接器与壳体间隙统计_20260317.xlsx",evidence:"连接器与壳体间隙统计_20260317.xlsx",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-051",desc:"当前壳体DVC样品为T2+状态壳体，需考虑T3，T4状态壳体的测试及视同项",category:"壳体状态及验证",owner:"柳有伟",dueDate:"2026-02-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/28 经与小米杰龙清及秦亚文老师沟通评估，T3,T4状态壳体状态可视同，不影响实验验证。 2026/1/22 经排查T3、T4修模内容主要为改善IP40间隙及衬套孔位置度，立讯评估对DV实验无影响，待结构老师来立讯后进行现场评估确认。",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-052",desc:"T5修模壳体需按照变更点考虑Delta测试项",category:"壳体状态及验证",owner:"柳有伟, 孙伟琦",dueDate:"2026-02-14",createdAt:"2026-01-09",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/1/28 经与小米杰龙清及秦亚文老师沟通评估，T5修模变更点对实验验证无影响，无需进行delta DV。修模后样件需补做一项摸底实验，实验条件：高温105℃ 48小时环境后总成状态及尺寸测量。 2026/1/22 待实验结束根据修模方案与小米老师评估确认",evidence:"",extensions:[],source:"1/9立讯产线姚老师审核"},
+            {id:"OPL-053",desc:"0PPM高质量交付落地",category:"全工序",owner:"TEAM",dueDate:"2025-12-31",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 拆分为 策划完成时间：2025/12/31 措施完成时间：2026/1/30; 进展: 2026/3/20 后续按照金硕老师提供的0PPM质量着陆道进行 该问题持续跟踪，补充各阶段的质量数据 2026/1/15 持续收集数据中 2025/12/24 待与客户review资料",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-054",desc:"电流精度测试域值SPEC 0.2%，程序里设定的是196A~201A @200A，排查全部测试报告，杜绝有问题的产品流出",category:"组装",owner:"张波, 张俊",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 2025/12/30 参数在生产前未经过质量确认，一切参数以SPEC为准，释放的标准以冬生老师输出为准。; 进展: 2026/1/15 持续收集数据并与客户确认中。 C01所有EOL测试排查完毕，未有测试结果超过2%，详细记录分析如附件所示; 佐证: SHUNT电流排查.xlsx",evidence:"SHUNT电流排查.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-055",desc:"coating治具（连接筋）未经过验证，应用到客户样品生产",category:"coating",owner:"杜斌, 李晴天",dueDate:"2026-01-12",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 申请样品提前验证工装治具，禁止用客户样品验证工装; 进展: 2026/1/15 链接筋已改善，该问题已解决。 2026/1/12 1/8号连接筋到公司验证，连接筋阴影部分，避开元件，阴影部分厚度大于40um，符合要求， 2026/1/5 连接筋重做，1/8到 2025/12/30 连接筋路径是否有元器件， 2025/12/29 已提供8D报告，如附件所示，改善后支架1/5号到，6号验证; 佐证: BMU 涂敷治具导致胶薄 8D改善报告.pdf",evidence:"BMU 涂敷治具导致胶薄 8D改善报告.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-056",desc:"PCBA表层出现可移动锡珠（>0.13mm）问题，且AOI未拦截",category:"DIP",owner:"李晴天, 张森",dueDate:"2026-01-15",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 下次生产参照其他客户真空值改善，由300mbar改到400mbar，炉后100%放大镜检查，; 进展: 2026/01/26 1/21日生产无锡珠，已连续3次生产无锡珠， 2026/1/19 1/21号生产，观察确认 2026/1/12 1/9号生产样品，无锡珠 2026/1/6 参数已修改，待几批生产过程中观察，需要足够的样品数据支撑。; 佐证: BMU锡珠分析改善.pdf",evidence:"BMU锡珠分析改善.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-057",desc:"从EOL问题，横展所有已交付产品，是否有流出的质量风险？",category:"质量风险",owner:"韩林虎&翟涛涛&张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-21",note:"措施: 排查从C01的所有测试log。; 进展: 1.EOL测试记录排查完毕，未发现风险项 2.ICT之前生产采用飞针方式，无风险项 3.FCT测试记录排查完毕，未发现风险项",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-058",desc:"如何确保工艺成熟度，四新",category:"工艺",owner:"李晴天, 丁亚伟",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 工艺成熟度参考附件评估表格; 进展: 2026/2/25 与上表格问题点重合，该问题项关闭 2026/02/09 已更新附件 2026/01/31 已完成工艺开发验证矩阵图，在准备相关验证，及文件输出 2026/01/26 参考SMT工艺开发闭环验证矩阵图 2026/1/19 1/21号与金硕老师确认 2026/1/12 评估工艺参数闭环验证矩阵图，已出初稿，1/15号立讯内部工艺，质量，体系讨论后，输出工艺闭环验证矩阵图，1/16号; 佐证: 小米BMU工艺开发验证闭环矩阵图.xlsx",evidence:"小米BMU工艺开发验证闭环矩阵图.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-059",desc:"选焊预热温度不足（80℃），触波温差＞150℃",category:"DIP",owner:"李晴天, 张森",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 1.开班点检使用纸质版，需要责任人签字完成后，才开始生产。 2.PCBA段点检项（确保100%无遗漏），需要PCBA工艺提供，CFT小组评审，质量负责检验; 进展: 2026/1/22 已与金硕老师确认，该问题可关闭，点检项见附件 2026/1/6 已与金硕老师过完一版，待修改后再次review。; 佐证: 小米BMU DIP IPQC Check list.xlsx   小米BMU SMT IPQC Check list.xlsx",evidence:"小米BMU DIP IPQC Check list.xlsx   小米BMU SMT IPQC Check list.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-060",desc:"哪些器件是喷涂有风险的（需要详细到具体的位置和具体的引脚，验证方法待讨论，测试方法标准化，不能防护的风险程度，导致的后果。）",category:"caoting",owner:"李晴天&杜斌",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"",note:"措施: 1.视觉上通过AOI和显微镜有没有涂敷。（目视手段充分识别），完成时间：2025/12/20  2.采用AOI检测涂敷厚度（找中国范围第三方实验室了解引脚厚度检测方法）完成时间：2025/12/20 3.根据已识别的零件做围坝试验，立讯做好样品到小米端进行测试。根据风险文件针对有风险区域进行围坝（小米老师协助测试资源）样品数量：2pcs。 完成时间：2026/1/10; 进展: 2026/3/24 3/25现场与金硕老师拉通，确认可关闭 2026/03/20 提供当前coating涂敷状态及各引脚涂敷覆盖率 赵老师问题转向至赵老师问题清单跟踪 2026/1/27 凝露摸底实验已通过 2026/01/26 参考附件实验室供应商联系方式 2026/1/20 提供具体沟通佐证，实验室名称，联系方式。 2026/1/19 一共联系18家实验室（立讯配合实验室）， 均不能检测阴影部; 佐证: BMU Coating 涂敷覆盖率     委外实验名单.xlsx      测量三防涂敷厚度.pdf",evidence:"BMU Coating 涂敷覆盖率     委外实验名单.xlsx      测量三防涂敷厚度.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-061",desc:"干簧管偏移定义的依据，给出定义偏移标准是否合适。 提供干簧管偏移的排查报告（包括MES数据与AOI大图）。  干簧管偏移切片报告分析。（NG板子分析切片与OK样件切片分析）。 横展其他元器件是否有相同问题和失效风险。",category:"SMT",owner:"张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 1.干簧管引脚尺寸为：0.9*2.0mm 对应PCB上焊盘尺寸为：1.8*2.1mm AOI根据IPC标准超出引脚尺寸20%设置0.18mm符合IPC标准。 2.调取此次生产50pcs的AOI大图，焊盘均无异常，MES上AOI数据也无该器件不良。; 进展: 2026/1/7 金硕老师review，关闭该问题 202525/12/26  已与金硕老师review，老师提出需要看下后面几批会不会再发生，待后续生产再跟进关闭。 2025/12/25 最近生产的50pcs已无该现象发生 待与金硕老师review",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-062",desc:"1. 1500套有9颗仍未到达立讯工厂： 现货与期货价格相差20W+，锁住现货物料，寻找其他渠道。  2. 2026全年备料有风险及时反馈。  3. 部分安世物料的晶圆需要切换PCN，在2026年1月切换新的PCN时评估导入。  4. 替代物料评估暂定为27年3月导入。",category:"物料",owner:"柯冬梅",dueDate:"2026-04-30",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 分阶段备料; 进展: 2026/3/20 当前储备库存1100套，可用到9月1日所有交付订单需求 2026年交付订单量已滚动循环拉动 该问题金硕老师风险较低，可关闭 2026/2/5 SOP后安世物料按照4/30目标节点拉回工厂 2026/1/15 sop前安世物料已拉回 2026/1/6 SOP前一颗物料未拉回工厂 2025/12/22 SOP前1500套剩余三颗物料未拉回工厂",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-063",desc:"MI端设计未锁定，C1样件相比C01阶段有变更",category:"设计",owner:"张俊&MI",dueDate:"2026-01-07",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-06",note:"措施: MI释放资料&立讯交付快板; 进展: 2025/12/23 快板已交付。 交付快板数量3pcs",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-064",desc:"镭雕位置换区域，需要与MI确认。",category:"SMT",owner:"张帆&李晴天",dueDate:"2025-12-20",createdAt:"2025-12-11",priority:"低",status:"Closed",closedAt:"2026-01-20",note:"措施: 镭雕位置下移2mm，已完成内部评审会议，并得到小米刘冬生老师认可; 进展: 2026/1/20 提供确认邮件 2026/1/15 镭雕位置已ok。 2025/12/24 待实际生产验证; 佐证: BMU C01 TOP面镭雕丝印下移说明.pdf",evidence:"BMU C01 TOP面镭雕丝印下移说明.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-065",desc:"炉温需要统计器件是否超SPEC：提供具体位置一一对应SPEC（温度，时间等），评估超出SPEC风险评估。",category:"SMT",owner:"张帆&李晴天",dueDate:"2025-12-23",createdAt:"2025-12-11",priority:"高",status:"Closed",closedAt:"2026-01-22",note:"措施: 8颗温度敏感器件，C102/C103较大，设一个测温点220℃以上22秒，符合要求，C509/C510/C501/C502/C515大小相同，设一个测温点220℃以上38.68秒，符合要求，C713零件小，设一个测温点220℃以上74.55秒，超规范，; 进展: 2026/1/12 温度超标零件，供应商答复无风险，邮件告知硕哥 2026/1/6 文件已发金硕老师，待老师反馈，与超SEPC物料的供应商拉通。 2025/12/24 文件见附件，待与客户金硕老师review; 佐证: BMU热敏元件回流炉状况.pdf",evidence:"BMU热敏元件回流炉状况.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-066",desc:"有不同的原厂标签，确认原厂标签的一致性。",category:"物料",owner:"柯冬梅",dueDate:"2026-01-15",createdAt:"2025-12-11",priority:"低",status:"Closed",closedAt:"2026-01-22",note:"措施: 锁定BOM之后所有的样品均为收费样品; 进展: 2025/12/29 待客户释放锁定BOM",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-067",desc:"ICT连接器探针暴露在热缩管之外，未保护好探针，横展到所有有探针的测试工位检查",category:"DIP&组装",owner:"韩林虎&翟涛涛&张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: eol工位已完成自检，探针尾部无漏铜，安规工位尾部短接，无法套热缩管，采用护罩形式，确保无安全影响 EOL与FCT整改; 进展: 2026/1/6 所有整改工位提供所有整改之后的照片作为佐证。; 佐证: 整机工位接插件检查表.xlsx   治具热缩管包裹探针.zip",evidence:"整机工位接插件检查表.xlsx   治具热缩管包裹探针.zip",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-068",desc:"变压器通孔焊接需确认具体是哪个引脚焊接率达不到100%，C0&C01的焊接爬锡率状态。",category:"DIP",owner:"张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/1/15 已验证，拖焊时间由3s增加4s，改善完成 2026/1/7 增加拖焊时间验证 25/12/26 已与金硕老师讨论过，老师提出需要看下后面的生产数据，待后续生产跟进，暂不关闭",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-069",desc:"提供X-ray检查清单，根据所有器件封装，确认哪些器件需要做X-RAY，检查是否有遗漏器件。",category:"SMT&DIP",owner:"李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: BMU X RAY测试清单，参考附件; 进展: 2025/1/15 金硕老师已认可，该问题可关闭 2025/12/24 见附件，待与客户金硕老师review; 佐证: X-RAY BMU20C01测试清单",evidence:"X-RAY BMU20C01测试清单",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-070",desc:"QFN的3D X-RAY剖切方式和检测标准",category:"SMT&DIP",owner:"李晴天&张森",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 焊脚侧面及底部吃锡量大于50%，参考图片说明; 进展: 2026/1/22 已与客户review。 2025/12/24 见附件待与客户金硕老师review; 佐证: QFN R-RAY.jpg",evidence:"QFN R-RAY.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-071",desc:"提供coating平面厚度检测多少点位",category:"coating",owner:"李晴天&杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 参考附件AOI coating厚度检测，已考虑支架阴影部分; 进展: 2026/1/15 coating AOI的监测点为裸板位置，确认OK 检测原理待确认 2025/12/30 参考附件AOI测厚，选点位，已考虑支架阴影部分点位; 佐证: BMU_AOI 测厚选点.pdf",evidence:"BMU_AOI 测厚选点.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-072",desc:"确认遮蔽治具是否符合需求：coating治具公差尺寸链计算，有两个螺丝孔在设备上也需要提供尺寸链公差计算，尺寸链公差需要横展所有工位。",category:"全工序",owner:"杜斌",dueDate:"2025-01-06",createdAt:"2025-12-11",priority:"中",status:"Open",closedAt:"",note:"措施: coating尺寸公差链计算; 进展: 需要找龙清老师确认",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-073",desc:"装配壳体公差分析（因为看到装上壳类似于盲装），为了判断散热垫片在装配过程中不会造成位置偏差和扭曲。",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 导热垫装配通过引导相机定位，吸取垫片后拍照设定坐标，以PCBA定位孔和上边沿建立坐标系，调整导热垫与PCBA相对位置进行贴敷; 进展: 2026/1/29 已和锦海老师确认，需补充邮件 2026/1/20 需与锦海老师拉通 2026/1/15 已与金硕老师拉通，已确认OK。; 佐证: 小米BMU2.0 装配尺寸链检查_20260108.pptx   XM_BMU 导热垫片装配视觉逻辑.pptx",evidence:"小米BMU2.0 装配尺寸链检查_20260108.pptx   XM_BMU 导热垫片装配视觉逻辑.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-074",desc:"PIN针位置度检测方式与连接器供应商拉通确认，为了确定判定方法是否合理。",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 对照供应商图纸检测; 进展: 2026/3/20 按照供应商图纸0.225mm管控 CCD已确认，防错已完成，该问题关闭 2026/3/3：3/19生产在不紧急出货的情况小批量尝试0.15mm（30%）统计不良率 2026/2/3 后续小批量尝试0.15mm（30%）统计不良率 2026/1/20详情见附件 2026/1/15 文档整理中 2026/1/6 描述详细的测试方法 按照结构提供的供应商图纸检测; 佐证: PIN 位置度检测逻辑.pptx",evidence:"PIN 位置度检测逻辑.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-075",desc:"PCBA组装过程中吸嘴真空释放时有跳动情况，可能会导致PCBA安装不到位",category:"组装",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 建议避让位置供吸盘吸附PCBA; 进展: 2026/3/16 与上述问题点重合，关闭此问题点 2026/03/13：邮件已发送客户刘冬生，待客户回复 2026/3/11：结构出正式图纸，提供给杜斌&供应商，预计3/23实装完成 2026/3/9：赵福爱需与客户拉通，确认地孔是否可以不涂敷,预计3/10锁定 2026/1/26 :红丹验证无干涉，应力PASS 2026/1/21：红丹测试预计1/23提供结果 2026/1/13：建议评估涂胶; 佐证: PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",evidence:"PCBA装配上壳体红丹验证报告.pptx   XM_BMU 涂敷避让PCBA吸盘点位.pptx   小米 Nano Coating硅胶-2吸盘.dwg   BMU组装吸盘位置图 模型.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-076",desc:"组装过程中发现PCBA上有指纹",category:"组装",owner:"李晴天",dueDate:"2025-01-20",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-15",note:"措施: WI定义戴指套作业拿取PCBA; 进展: 2026/1/15 WI更新完成，已发放，金硕老师已review，确认OK。; 佐证: 戴指套拿PCBA.jpg",evidence:"戴指套拿PCBA.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-077",desc:"导热垫片的叠加对压缩量的影响&吸取垫片压装垫片时的压缩量，需要量化",category:"组装",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-07",note:"措施: 导热垫叠放三层，2/4/8/24/48小时量测; 进展: 2026/1/7  已完成量测 2025/12/30 已进行叠加对压缩量量测，待新吸盘安装后量测压缩量; 佐证: XM BMU 导热垫片压缩量.pptx",evidence:"XM BMU 导热垫片压缩量.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-078",desc:"各工位接触到PCBA的分析应力最大点，针对最大应力点进行测试。",category:"全工序",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 2025/12/23：组装站测试应力如附件所示，所有应力均小于±500ue，符合IPC-9704要求; 进展: 2026/1/29 应力测试报告已与金硕老师和锦海老师拉通，补充佐证。 12/25：与锦海老师沟通确认应力点位 2024/12/24 见附件，待与客户金硕老师review; 佐证: XM_BMU 应力测试报告.pptx",evidence:"XM_BMU 应力测试报告.pptx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-079",desc:"工装平面度点检",category:"组装",owner:"张波",dueDate:"2026-02-28",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 季度使用压敏纸进行点检; 进展: 2026/1/22 需要提供Q1的执行状况图片 2026/1/20 提供点检表格 压敏纸采购中，预计1月中下旬到货，已与MI金硕老师review，后续季度点检。; 佐证: XM BMU 组装设备压敏纸点检.xlsx",evidence:"XM BMU 组装设备压敏纸点检.xlsx",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-080",desc:"安规最多测试两次",category:"组装",owner:"张波",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: MES管控测试次数，上限设为2; 进展: 已通过MES设定测试次数上限为2",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-081",desc:"点胶工站夹PCBA过程中PCBA跳动，需要调整",category:"coating",owner:"李晴天, 李蒙恩",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 识别生产线夹板重的工序，共3有3个，已安排设备供应商调整改善; 进展: 2026/01/26 应力测试参考附件 2026/1/19 待应力测试; 佐证: RTV点胶轨道夹治具应力测试.xls",evidence:"RTV点胶轨道夹治具应力测试.xls",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-082",desc:"RTV点胶后发现T500位置有点胶范围溢出检测范围，但AOI未识别",category:"coating",owner:"李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 识别点固定胶所有位置溢胶风险，只有T500那个位置靠板边，固定胶有溢出PCB板风险， 措施：板边增加检测框（参考附件），胶外溢设备报警，按不良品流程处理，; 进展: 改善完成; 佐证: T500固定胶说明.jpg",evidence:"T500固定胶说明.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-083",desc:"coating治具连接筋周围的厚度是否符合标准。",category:"coating",owner:"杜斌/李晴天",dueDate:"2025-12-30",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 已检测数据35-37um，偏小，评估风险小，偏差放行; 进展: 2025/12/18 已检测数据35-37um，偏小，评估风险小，偏差放行",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-084",desc:"Coating治具（连接筋）可行性未论证，连接筋投影面积经过器件或过孔",category:"coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 减小连接筋尺寸，验证测试三防厚度要大于40um; 进展: 2026/2/3 提供治具验收报告 治具1月12号进厂，12号验证; 佐证: XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",evidence:"XM BMU涂覆治具红丹验证.xlsx   治具验收单.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-085",desc:"导热垫片的毛边尺寸和检验标准, 检验实施方式",category:"组装",owner:"柳有伟/孙玮琦",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 更新导热垫片图纸和SIP定义毛边尺寸和检验标准; 进展: 2026/1/22 SIP已与客户确认 12/31 供应商已提供检验规范，待与MI老师确认 2026/01/06  SIP已和MI客户SQE确认，并下发IQC; 佐证: 90-B0004981_导热垫 _SIP_A2.pdf   90-B0004982_导热垫 _SIP_A2.pdf   90-B0004983_导热垫 _SIP_A2.pdf",evidence:"90-B0004981_导热垫 _SIP_A2.pdf   90-B0004982_导热垫 _SIP_A2.pdf   90-B0004983_导热垫 _SIP_A2.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-086",desc:"板边毛屑&污染问题依然存在偶发",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 治具还在优化改善阶段，毛屑是贴在治具上的绒布， 治具改善好以后，无需贴绒布，不会有毛屑产生; 进展: 2026/01/15 ：新版治具已使用30次，无毛屑产生，持续观察中",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-087",desc:"连接器胶带防护需要改善",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 要求供应商改善治具，; 进展: 改善PPT报告参考PPT; 佐证: BMU Coating连接器粘胶治具改善汇总.pdf",evidence:"BMU Coating连接器粘胶治具改善汇总.pdf",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-088",desc:"BPS撕胶带方式需要变更（禁止镊子直接触碰器件）",category:"Coating",owner:"李晴天",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.已请购粘胶棒（消耗未带胶带的库存） 2.库存消耗后采用带麦拉的器件（快板验证后）; 进展: 2026/3/15 麦拉有小脚，方便接取，该问题可关闭 2026/03/25 3/13与米会议，方案还在讨论 2026/02/09 测试部门评估自动化贴麦拉 2026/01/26 新物料表面已贴麦拉，麦拉凸出零件，方便揭取， 待旧物料库存消耗完 2026/1/12 物料表面已贴麦拉，麦拉凸出零件，方便揭取，碰不到零件 8号胶棒到公司，9号验证; 佐证: ESD高粘胶棒.jpg",evidence:"ESD高粘胶棒.jpg",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-089",desc:"Coating治具的清洁问题（三种：上盖、下壳、设备治具）",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.MES管控使用次数，达到条件后无法上线使用; 进展: 2026/1/15  样品治具信息已录入 对应清洁次数通过MES管控; 佐证: 清洗次数管控.png",evidence:"清洗次数管控.png",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-090",desc:"遮蔽弹簧下压的应力状态",category:"Coating",owner:"杜斌",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"进展: 2026/01/15 应力报告已完成  看1月12号支架验证状况，改善OK的话，做应力报告; 佐证: Akemond Strain_0_10.007_XMBMU_001.xls",evidence:"Akemond Strain_0_10.007_XMBMU_001.xls",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-091",desc:"转运Tray的洁净度问题和清洁频次管理问题",category:"TLA",owner:"张森",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"",note:"措施: 产内有三级文件规定：LXQW-AWH-038(1) 可回收周转tray盘清洁指导书 LXQW-AWH-037包材回收管理作业办法; 进展: 26/2/2 新增包材回收管理作业办法 按照三级文件执行tray盘清洁",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-092",desc:"组装卡扣异常（未卡紧状态）*2pcs",category:"TLA",owner:"张波",dueDate:"2026-01-06",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-01-22",note:"措施: 工装增加挂耳加强压合稳定; 进展: 1/5：已验证40PCS壳体无异常 12/29：待月底拿到壳体进行验证 12/22：工装预计26号到厂",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-093",desc:"线平衡优化问题（CCD卡滞、组装运输轨道）",category:"TLA",owner:"张波",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2025-12-18",note:"措施: 已修正程序漏洞; 进展: 已修正，现更改为INT类型触发MES上传",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-094",desc:"EOL软件通讯问题，EOL测试spec评审",category:"TLA",owner:"张波",dueDate:"2026-01-10",createdAt:"2025-12-11",priority:"中",status:"Closed",closedAt:"2026-02-02",note:"措施: 1.优化CAN 盒通讯方式，软件更改中， 2.后续均以spec为准，不接受口头通知; 进展: 2026/2/2 本次生产260pcs无该问题。 can盒通讯方式优化完毕，样件2pcs试跑20遍无异常，待批次生产验证",evidence:"",extensions:[],source:"12/11&12/17朱治兵/金硕审核"},
+            {id:"OPL-095",desc:"针对 BMU 项目从历史问题库（Lesson Learned）中提取典型工艺问题进行重点宣导和培训，以预防已知风险。",category:"审核问题",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 根据PCBA问题点&测试问题点&整机问题点选取问题点加入Lesson Learned中，给生产及现场质量人员进行培训; 进展: 2026/4/10 金硕老师已确认，该问题可关闭 2026/4/7 TOP问题点、试产问题点和质量警告已完成培训。 2026/3/30 TOP问题点已收集 试产问题点已收集 质量警告已收集 培训计划4月9日前完成 2026/3/20 用TOP问题点和试产问题点进行培训 3/10：待收集数据，计划3/30完成生产、质量人员进行培训; 佐证: 培训记录-TOP问题点 质量警告 试产问题点.pdf   立讯产线质量TOP问题.pptx   XCTR-DQA-033 质量警告.xlsx",evidence:"培训记录-TOP问题点 质量警告 试产问题点.pdf   立讯产线质量TOP问题.pptx   XCTR-DQA-033 质量警告.xlsx",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-096",desc:"确认三防漆等胶水在仓库和线边仓的存储温度要求，并制定上线前提前备料及温度平衡的具体方案。",category:"审核问题",owner:"李晴天, 杜斌",dueDate:"2026-03-15",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.化学品仓库储存温度8-25℃，车间温度25±3℃，胶水TDS最佳储存温度20-25℃ ，与供应商确认纳米胶实际的储存环境及影响状态。 2.纳米胶水执行专区、专架、专用标识管理，实行先进先出（FIFO）与批号全程追溯 3.纳米胶水领料、转运、存放全程密封避光、恒温管控，上线前温度平衡时间不低于 24小时，确保胶水温度达到 23℃～27℃ 后方可投入使用 4. 小米防爆柜和线体区域增加温湿度表实时; 进展: 3/16 赵工3/17来立讯现场确认 3/15 参考附件; 佐证: ANG T5备料及温度平衡方案",evidence:"ANG T5备料及温度平衡方案",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-097",desc:"产线问题60%-80%的问题源于结构件分供方，需重点管控",category:"审核问题",owner:"孙伟琦",dueDate:"2026-03-28",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 建议关注SOP的可执行性、人员是否按规操作（可通过非通知式飞行检查验证），以及返工返修环节的风险。明确要求供应商不得使用回收料。; 进展: 2026/3/28 已与金硕老师沟通，可关闭 3/26邮件输出供方明确不使用回收料 3/20提供供应商评估报告（包含SOP的执行性和返工返修，符合作业要求） 3/19飞行检查，洁净度、SOP、回料等符合要求; 佐证: 08_BMU2.0_ Cover过程流程图SOP及评估.xls   08_BMU2.0 Housing 过程流程图SOP及评估.xls   飞行检查20260319   返工返修作业指导书   邮件.png",evidence:"08_BMU2.0_ Cover过程流程图SOP及评估.xls   08_BMU2.0 Housing 过程流程图SOP及评估.xls   飞行检查20260319   返工返修作业指导书   邮件.png",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-098",desc:"用负压离子风机清洁涂覆前的粉尘，定期评估生产环境变化对清洁效果的影响。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-09",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/08 4/9同金硕老师现场确认 2026/04/02 更新报告参考附件 2026/03/31 4/4出报告 2026/3/26 送实验室测试洁净度，预计4/4完成报告输出 2026/3/20 该问题与姚老师审核问题点22相同，提供佐证资料后可关闭问题点  3/19金硕老师来立讯，现场确认 3/15： 参考附件; 佐证: 等离子清洁验证",evidence:"等离子清洁验证",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-099",desc:"针对三防漆喷涂高度10cm导致的浪费，立讯基于供应商规范和DOE验证（尝试过低高度会导致附着力下降）认为无法降低。建议提供量化数据（如不同高度下的附着力变化曲线）和考虑设备公差的合理范围（如8-12cm），以便更充分说明。",category:"审核问题",owner:"李晴天",dueDate:"3月15日",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 8-12cm高度分开验证，确认涂敷质量，输出报告; 进展: 3/16： 3/17赵工来现场确认 3/15： 已提供验证报告，参考附件; 佐证: 纳米涂层高度验证(1).pdf",evidence:"纳米涂层高度验证(1).pdf",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-100",desc:"目前单壳体连接器开口处尺寸基于实际状态进行修模，需关注连接器厂商有无复制模的情况或新增复制模的计划，避免因复制模的样品状态差异导致间隙状态产生变化。",category:"审核问题",owner:"孙伟琦",dueDate:"2026-03-28",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.固化现有模具供货状态 2.框口尺寸纳入管控; 进展: 2026/3/28 已与客户沟通，可关闭 2026/3/25 TE目前没有复制模计划，后续有计划会提前告知立讯；已经更新SIP将框口尺寸纳入IQC管控；库存实测符合图纸 3/14 已邮件输出TE连接器模具情况咨询; 佐证: 90-B0003471检验指导书-A2.xls       123.png",evidence:"90-B0003471检验指导书-A2.xls       123.png",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-101",desc:"下轮修模方案对DVC试验影响小，无需进行delta DV。需补做一项摸底试验，试验条件:105℃环境下停留48小时，观察样品状态并测量尺寸",category:"审核问题",owner:"柳有伟",dueDate:"2026-03-21",createdAt:"2026-01-20",priority:"中",status:"Closed",closedAt:"",note:"措施: 改善样品到货后补做摸底实验; 进展: 3/23 实验结束，改善后壳体间隙＜1mm，改善有效 3/17 实验样品已送至实验室 3/12 样品预计3/13到货，3/21完成实验",evidence:"",extensions:[],source:"1/20龙清老师审核"},
+            {id:"OPL-102",desc:"比对零件供应商规格书与焊盘进行器件封装库检查",category:"审核问题",owner:"赵福爱",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-06",note:"进展: 已完成封装库检查",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-103",desc:"工艺针对问题点1检查的差异点风险项进行确认",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10： 3/6完成，并输出报告",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-104",desc:"针对以上工艺输出最后的风险点及结论",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10： BMU C1 16项风险点，安世替代4项风险点，",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-105",desc:"工艺检查valor-VPL的正确性",category:"审核问题",owner:"张帆",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/24 已会议沟通，可关闭该问题 2026/03/21 增加漏建库说明 2026/3/18 补上VPL库缺少8个器件的信息后无误可关闭该问题 2026/03/15 参考附件Valor识别清单， 2026/3/12 补充list清单 2026/3/10： 3/6完成Valor-VPL识别，共11个建库问题，256种库，占比4%; 佐证: DFM valor漏建库说明.pdf     DFM valor建库错误清单.pdf",evidence:"DFM valor漏建库说明.pdf     DFM valor建库错误清单.pdf",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-106",desc:"全制程DFMcheck，按照会议展示模板进行梳理",category:"审核问题",owner:"韩林虎",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/9 等ICT治具到用快板验证后无问题可关闭该问题点 2026/3/24 输出DFM风险评估报告后可关闭该问题 2026/3/12 组装段提供尺寸公差链分析 2026/3/10 组装DFM以提供，PCBA DFM明天提供",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-107",desc:"输出DFM报告，若需要改动设计，输出影响分析报告",category:"审核问题",owner:"刘华军",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/04/02 快板验证OK，参考附件 2026/3/24 1. valor软件跑DFM； 2. 快板到厂后验证； 2026/3/18 输出器件修改清单（必改项&建议修改项及原因） 2026/03/16 1. 尺寸量测完成，切片已安排，3/17出结果 2. 试生产贴片已安排，4个点切片，3/20出结果 3. C516/C518安排3/17验证，出结果 2026/03/15 3/13，2条问题; 佐证: 快板重要器件切片图     BMU C1 DFM",evidence:"快板重要器件切片图     BMU C1 DFM",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-108",desc:"安世与去安世的物料有一个焊盘是否可以兼容，风险评估及结论输出",category:"审核问题",owner:"张帆",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/10 已给出焊盘兼容设计方案",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-109",desc:"既往样件阶段RL400爬锡率未被识别的原因",category:"审核问题",owner:"李晴天",dueDate:"4月10日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/10 和金硕老师确认更改为每季度一次，该问题可以关闭 2026/4/3 增加重要器件清单，后续试产&量产按照要求执行 2026/3/29 已沟通，推迟提供特别零件检查清单--4/7 2026/3/18 附上对应流程图，质量补上特别检查零件清单（CCD检查） 2026/3/12 以前流程缺少人员对焊接质量检查确认，DFM检讨报告里增加了样品生产后，70倍CCD检查焊接确认，CCD检查不; 佐证: BMU 2.0重要器件清单",evidence:"BMU 2.0重要器件清单",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-110",desc:"既往生产一次性直通率数据",category:"审核问题",owner:"张森",dueDate:"2026-03-08",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/20 金硕老师已查看直通率数据，该问题关闭 2026/3/10 汇总已完成; 佐证: BMU2.0 试生产数据（直通率）.xlsx",evidence:"BMU2.0 试生产数据（直通率）.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-111",desc:"AOI不良数据收集分类及提升直通率计划： 现阶段50%，量产要求95%",category:"审核问题",owner:"张森&李晴天",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/05/11 近2次生产直通率达到70%以上，问题关闭 2026/04/21 影响直通率主要因素U2000/U2001助焊剂误判短路问题，已改善，设备供应商韩国原厂优化软件，增加检测算法二值化算法， PPAP阶段直通率目标是70%，现在已达到84.93%， 2026/4/15 生产72pcs，BOT面直通率为84.93%，该问题已改善 2026/4/14 已拉通供应商调整了参数，待4/15",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-112",desc:"一次直通率不满足的原因",category:"审核问题",owner:"张森/张帆",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/10 拉通资源，要求AOI必须检测该项，不能改为x-ray检测。此次试产直通率单独拉出。和上个问题一样，该问题关闭 2026/3/30 此次验证板共8pcs，该问题改善效果不明显，待优化 2026/3/24 预计本月提供最终改善结果 2026/3/20 top1的改善措施未能改善，继续找设备供应商和生技改善该问题 2026/3/10 1.收集一次直通率NG的数据 2.列出TOP5问题",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-113",desc:"AOI偏移设定25%，实际现场抽查一个数据超过25%，查明原因",category:"审核问题",owner:"张森/王荣",dueDate:"2026-03-06",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 现场人员当时未解释清楚AOI参数逻辑，3/18下午已现场和冬生老师解释清楚，该问题可以关闭 2026/3/18 提供计划检查AOI库里的所有元器件参数。 2026/3/16 已排查完毕，建立AOI-标准库，用于IPQC过程稽核 2026/3/10 现有AOI所有物料按照位号进行实际排查，3/12输出最终结果; 佐证: BMU 2.0-AOI库.xlsx",evidence:"BMU 2.0-AOI库.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-114",desc:"提供AOI识别不到的器件类型清单，未拦截到器件其他工位是否能拦截； 基于目前未有AOI-NG样件，提供AOI判定标准和依据佐证，同步横站到其他样件",category:"审核问题",owner:"TEAM",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/25 6/15之前完成所有NG/OK样件 2026/4/9 25号之前完成所有NG/OK样件 2026/4/3 增加重要器件清单，后续试产&量产按照要求执行 2026/3/18 识别不到的器件定义标准判定流程（器件类型库检查项，检测频率等）。 1.提供AOI的测试覆盖率- 张俊 2026/3/12 2.提供AOI未拦截器件在其它工站上拦截汇总表- 张俊 2026/3/12 3.提供A; 佐证: BMU 2.0重要器件清单     BMU2.0全流程覆盖率20260312.xlsx   小米BMU SMT IPQC Check list.xlsx   BMU 2.0-AOI库.xlsx",evidence:"BMU 2.0重要器件清单     BMU2.0全流程覆盖率20260312.xlsx   小米BMU SMT IPQC Check list.xlsx   BMU 2.0-AOI库.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-115",desc:"提供AOI无法识别的清单",category:"审核问题",owner:"张森",dueDate:"3月12日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 2026/3/10 提供AOI识别不到的器件清单; 佐证: BMU2.0全流程覆盖率20260312.xlsx",evidence:"BMU2.0全流程覆盖率20260312.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-116",desc:"1. 梳理所有试产问题点，给出关闭计划--3/4",category:"审核问题",owner:"张森",dueDate:"2026-03-04",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 已添加切片和实物图片链接，该问题可关闭 2026/3/30 快板试板已完成，AOI、X-RAY和CCD均已确认问题已改善，待3/31的切片结果出来后再闭环 2026/3/26 1.干簧管偏移已给改善完毕，待验证追踪闭环，预计4/4完成 2.通孔上锡率改善中，优化工艺参数，预计4/15批次生产确认闭环 3.33777芯片失效，供应商分析报告结论EIPD，预计下周三安排NXP厂商进; 佐证: BMU2.0 试生产问题点汇总.xlsx   C2重要器件切片图",evidence:"BMU2.0 试生产问题点汇总.xlsx   C2重要器件切片图",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-117",desc:"2. 防错样件制作",category:"审核问题",owner:"张森",dueDate:"2026-03-15",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/3 NG样件和上面一条代办重复，该问题点可关闭 2026/3/10 1.总成NG样件已制作。 2.PCBA段待BOM锁定后生产时制作，预计4月15试产时制作",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-118",desc:"AOI+X-RAY+测试的总体测试覆盖率",category:"审核问题",owner:"张俊",dueDate:"2026-03-12",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 测试覆盖率已提供，会议沟通，该问题项可关闭; 佐证: BMU2.0全流程覆盖率20260312.xlsx",evidence:"BMU2.0全流程覆盖率20260312.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-119",desc:"PCN流程： 1. PCN内部评估的流程和责任方，变更流程发给客户",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-05",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 变更流程见附件; 佐证: 变更流程.docx",evidence:"变更流程.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-120",desc:"2. 基于审核，立讯项目组不清楚变更流程，需进行原材料变更培训，并作记录",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-05",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 体系部门已给团队成员做培训; 佐证: 原材料变更流程培训会议.docx",evidence:"原材料变更流程培训会议.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-121",desc:"3. 现阶段已发生的两颗物料的PCN评审，输出材料",category:"审核问题",owner:"崔江红",dueDate:"3月6日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-07",note:"进展: 2026/3/18 如会议沟通，资料已邮箱提供，该问题项可关闭。 2026/3/11 SNP830BNCLE待供应商确认是否变更，立讯评估对工艺无影响 2026/3/10 本周提供AC05AT0001009JAC00-PPAP资料至MI 评审会议记录见附件; 佐证: 两颗物料变更评审记录.docx",evidence:"两颗物料变更评审记录.docx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-122",desc:"4.梳理errata'信息：BOM发给供应商，可以提供勘误表的由立讯提供给小米，不能提供的勘误表需要供应商提供给小米--3/17 立讯物料变更窗口负责人定义为：张俊",category:"审核问题",owner:"牛娜",dueDate:"2026-03-17",createdAt:"2026-03-03",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/13 已更新，待老师确认后关闭 2026/4/7 按照C2-BOM进行更新，预计本周完成 2026/4/2 已提供最新errata sheet 2026/3/17 已提供初版勘误表，持续更新中; 佐证: C2 BOM-Erratasheet进度-电子件.xlsx",evidence:"C2 BOM-Erratasheet进度-电子件.xlsx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-123",desc:"从项目角度，考虑PV时间节点待商讨（成熟度） 测试稳定性（BPS）、 1.需求邮件形式给到商务进行商务沟通； 2. 时间计划拆解-BY周 3. 压缩供应商时间 4. 设备到场之后进行CMK 老化（未固化） PV测试时间需要立讯反馈。",category:"审核问题",owner:"崔江红",dueDate:"2026-03-09",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/31 合并到风险点，该问题关闭 2026/3/17 会议通过 1. BPS方案EOL后，pin检前 2. 安规设备的位置待明天MI反馈 3. 提供批产项目的工序（注意） 2026/3/12 1. 按照按照方案四：来料带麦拉，FCT不测试BPS，涂敷后增加BPS测试机台使用压力罐等设备测试BPS精度（可进行精准压力测试且安规要转到老化后）推进 2. 时间计划见附件 3. PV建议：  ",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-124",desc:"分板应力报告",category:"审核问题",owner:"李晴天",dueDate:"3月11日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"2026-03-09",note:"进展: 2026/3/9 分板应力测试报告MI已认可",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-125",desc:"从项目角度， 提供各个维度质量提升计划",category:"审核问题",owner:"崔江红",dueDate:"2026-03-18",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭; 佐证: 质量提升.pptx",evidence:"质量提升.pptx",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-126",desc:"3. 小米标准对齐：小米与内部的站位管控标准",category:"审核问题",owner:"张森",dueDate:"3月19日",createdAt:"2026-03-03",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/18 会议沟通，该问题项可关闭 2026/3/10 已与金硕老师沟通，按照SOR要求管控",evidence:"",extensions:[],source:"3.3-3.4客户审核"},
+            {id:"OPL-127",desc:"实物封装尺寸与焊盘不匹配，A3/A2/A1需要扩焊盘",category:"审核问题",owner:"张森",dueDate:"2026-03-18",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 1. 找TE要引脚尺寸 2.送实物切片; 进展: 2026/3/20 和冬生老师飞书上确认，可以关闭 2026/3/19 切片已放入小米飞书文档中 2026/3/16 1.切片已送实验室，结果3/18提供。 2.邮件已找TE要引脚尺寸，TE没有尺寸，提供了3D图纸，测量尺寸为：0.3*1.46mm; 佐证: 连接器焊接效果切片     佐证.png",evidence:"连接器焊接效果切片     佐证.png",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-128",desc:"插件花焊盘设计，PTH零件散热快，影响焊接上锡高度",category:"审核问题",owner:"李晴天",dueDate:"2026-03-17",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 1.若满足通流能力，按照推荐修改设计；若通流能力不够，可接受现在设计 2.焊接引脚接触孔壁，通过工艺参数调整，达到焊锡高度要求; 进展: 2026/03/31 优化工艺参数后生产8PCS，无不良，需要批量验证 2026/03/20 参考附件，焊接工艺参数验证报告， 2026/03/16： 安排3/17验证爬锡高度，PIN脚孔壁接触，3/17出结果; 佐证: BMU2.0选择焊参数验证.xlsx",evidence:"BMU2.0选择焊参数验证.xlsx",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-129",desc:"针对测试覆盖率的5种状况存在特殊情况下，通过什么方式监控(切片、目视检测）",category:"审核问题",owner:"张森",dueDate:"2026-03-17",createdAt:"2026-03-13",priority:"中",status:"Closed",closedAt:"",note:"措施: 针对小电容无法检测出错件，与研发拉会讨论; 进展: 2026/3/31 会议沟通可关闭",evidence:"",extensions:[],source:"项目汇报问题点0313"},
+            {id:"OPL-130",desc:"点胶技术图纸中规定了胶水的位置度、面积和高度，但缺少对胶形的要求和约束，以及对固化后胶水的技术要求。要求：拉齐总成件对RTV技术要求。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/21 待米端给总成要求， 2026/4/14 4/13与赵工拉通，待米端总成要求确认后，更新图纸要求 2026/04/08 同赵工会议沟通，将RTV胶水固化后的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认 2026/03/31 已约赵工下周一起过问题点，改善数据收集中",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-131",desc:"三防漆技术图纸中只规定了涂敷区域、面积和厚度，未对固化后涂层提出技术要求。要求：拉齐总成件工况对三防漆术要求，",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/21 待米端给总成要求， 2026/4/14 4/13与赵工拉通，待米端总成要求确认后，更新图纸要求 2026/04/08 同赵工会议沟通，将纳米涂敷固化后涂层技术要求，总成件工况对纳米涂层的技术要求更新到图纸里面，约好赵工4/13下午3点再次会议确认 2026/03/31 已约赵工下周一起过问题点，改善数据收集中",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-132",desc:"三防漆、RTV、导热垫未完成准入流程，需提供技术协议、技术规格书、安全数据说明书、全套报告、封样来完成准入流程。重点提示：关注有机硅类环体含量要求。",category:"审核问题",owner:"崔江红",dueDate:"2026-03-25",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/4/21 需要拉通总成要求后更新技术协议 2026/4/8 技术协议已与赵老师会议沟通，按照赵老师的建议点进一轮更新技术协议； 封样样品已邮寄给赵老师 2026/3/30 已与赵老师沟通，技术协议审核中 2026/3/24 已提供资料：                     1. 三防漆：规格书，COA，MSDS，全套报告                     2. RTV：规格书，",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-133",desc:"Particle管控要求和实际效果",category:"审核问题",owner:"崔江红",dueDate:"2026-03-20",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/30 已与赵老师沟通，该问题可关闭 2026/3/24 已提供内部管控要求，待MI确认 2026/3/19 管控资料已收集，脱敏处理中，实际效果已现场给赵老师展示",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-134",desc:"点胶设备和喷涂设备的CMK报告",category:"审核问题",owner:"李晴天",dueDate:"2026-03-20",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/24 CMK报告已提供MI，可关闭该问题",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-135",desc:"控制计划未提供",category:"审核问题",owner:"张森",dueDate:"2026-03-19",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/3/19 今天内提供控制计划; 佐证: EDCU BMU控制计划 CP-A5  C1  260225",evidence:"EDCU BMU控制计划 CP-A5  C1  260225",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-136",desc:"RTV涂胶工艺，考虑升高温度胶水增加流平效果，改善拖尾（待验证）",category:"审核问题",owner:"李晴天",dueDate:"2026-04-22",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/04/22 RTV胶水管道增加加热功能，改善报告参考附件，  对胶水加热45℃，对RTV点胶改善不明显 2026/04/21 加热带已到，4/21验证 2026/04/14 已购买加热带对出胶管加热，4/17加热带到公司，4/22完成验证 2026/04/08 赵工确认报告不合格，要求用设备点胶，已请RTV工程师重新验证RTV点胶拉丝验证 2026/04/03 胶水加温验证报告，参考附件",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-137",desc:"三防漆喷涂和遮蔽工艺有待提升，关注喷涂参数、利用率和一致性问题。",category:"审核问题",owner:"李晴天",dueDate:"2026-04-15",createdAt:"2026-03-17",priority:"中",status:"Open",closedAt:"",note:"进展: 4/21：多次与赵工确认，未得到答复，参考附件 4/8: 优化报告已给到赵工，确认中 3/31：完成汇总报告，参考附件 3/23: 程序优化完成，DOE验证中预计3/25完成",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-138",desc:"RTV胶需要增加罩子",category:"审核问题",owner:"李晴天",dueDate:"",createdAt:"2026-03-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/2 罩子已经拉到生产线 2026/03/31 参考附件胶桶罩子，立讯统一标准购买的罩子 2026/3/24 3/31罩子可以放在产线上完成该问题。",evidence:"",extensions:[],source:"3.17审核问题点"},
+            {id:"OPL-139",desc:"插件第一站治具上板设计不合理，人员走动多",category:"审核问题",owner:"李晴天",dueDate:"2026-05-08",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/18 5/14验证生产73PCS，AGV满足生产要求，但需持续观察 2026/05/07 生产验证，AGV能满足生产 2026/05/06 5/7生产验证，80PCS 2026/4/29 生产线流动需14个治具，治具总数20个，6个治具用于AGV周转，生产CT 75秒，AGV运送治具往返时间160秒，每次周转3个治具可以满足生产节拍要求， 2026/04/28 生产线运行，速度慢，",evidence:"",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-140",desc:"选择焊治具设计不合理，没法让员工进行双手放板的操作",category:"审核问题",owner:"李晴天",dueDate:"2026-04-28",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 需持续观察 2026/04/29 节后与金硕老师确认 2026/04/25 SOP参考附件，第3步/第4部为SOP新增部分 2026/4/23 治具优化，增加取放位置，双侧对称结构--4/25到工厂，后续更新SOP， 2026/4/20 现有治具，工人放板位置增加开孔，验证有效性，4/21外发治具修改验证，预计4/25治具修改完成; 佐证: DIP治具改善对比图.jpg     DIP治具放PCBA及插件SOP.pdf",evidence:"DIP治具改善对比图.jpg     DIP治具放PCBA及插件SOP.pdf",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-141",desc:"选择焊进板轨道晃动，平整度问题",category:"审核问题",owner:"粟本顺",dueDate:"2026-04-21",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"",note:"进展: 2026/4/23 排查链速，平整度，停靠板的回弹，一圈轨道转动时的稳定性，滑轮本身平整度。 2026/4/20 轨道和机台之间水平存在微差异，水平标志存在微差异，调整轨道和机台的高度，保持水平对齐",evidence:"",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-142",desc:"DIP上板和取板，载具未采用AGV运输，人工运输",category:"审核问题",owner:"李晴天",dueDate:"2026-05-08",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/18 5/14验证生产73PCS满足生产要求，需持续观察 2026/05/07 生产验证，满足生产 2026/05/06 5/7生产80PCS验证， 2026/04/28 生产运行，可以使用，生产数量少，持续跟踪 2026/04/25 AGV验证取板上板可实现，4/28生产投入使用 2026/4/20 1. 生产线前端上板机&翻版机调试完成，验证可以正常生产 2. AGV软件deb",evidence:"",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-143",desc:"DIP段上板人员和下板人员未戴静电环作业",category:"审核问题",owner:"田言欣, 宋天生",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20  1.由于上扳机不能使用，临时增加人力手动投板，工作中导致忘记 佩戴静电环--维修上扳机正常作业，取消人员手动投板 流动人员增加无线静电手环，静电环设置防错报警       2.人员宣贯不到位，集合所有员工培训宣导，作业中及时佩戴静电环; 佐证: 教育培训佐证.jpg",evidence:"教育培训佐证.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-144",desc:"FCT客户未更新测试规范，33777芯片测试试HG",category:"审核问题",owner:"MI",dueDate:"2026-04-17",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-17",note:"进展: 2026/4/17 客户更新测试规范",evidence:"",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-145",desc:"进车间风淋门打不开，需要确认问题点进行更换",category:"审核问题",owner:"田言欣",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20 防止人员从外部打开风淋门，风淋门有安装闭门器，导致开门时可能会锁死打不开--拆除闭门器恢复正常开关门; 佐证: 风淋门佐证.jpg",evidence:"风淋门佐证.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-146",desc:"选焊2个炉子稳定性不同，设备参数如何设置无人可以解释清楚，氮气流 里报警阈值设定是否合理无法可视化，质量如何点检?",category:"审核问题",owner:"李晴天, 周其旭",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/21 5/21生产28pcs样品，观察改善效果 2026/05/18 优化Z轴高度及锡波功率，改善报告参考附加，持续观察 2026/05/14 MI 5/14现场审核再次提出，要改善锡炉1波形，同波峰焊专家探讨改善验证 2026/04/29 节后与金硕老师确认 2026/4/27 IPQC checklist中有体现氮气流量的参数，IPQC根据参数点检实际炉子下方的氮气流量阀 20; 佐证: 选择焊改善锡波1.pptx     小米BMU DIP IPQC Check list.xlsx",evidence:"选择焊改善锡波1.pptx     小米BMU DIP IPQC Check list.xlsx",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-147",desc:"ICT设备看不到实时数据，质里如何点检?线长/班长如何确认?可操作性不强，生产管理运营如何考虑?整体协调性需要改善",category:"审核问题",owner:"韩林虎",dueDate:"2026-04-20",createdAt:"2026-04-17",priority:"中",status:"Closed",closedAt:"2026-04-20",note:"进展: 2026/4/20 设备属于标机，目前厂内的设备均没有UI界面--已在测试界面增加相关测试信息，如备注; 佐证: ICT测试信息佐证.png",evidence:"ICT测试信息佐证.png",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-148",desc:"FMEA细节完全无法符合要求，需要1个月内改善完成",category:"审核问题",owner:"李晴天&丁亚伟",dueDate:"2026-05-15",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/14 PFMEA完成 2026/05/06 已完成初版PFMEA，评审中 2026/04/28 PFMEA培训完成，参考附件 2026/04/25 参考附件PFMEA培训记录 2026/4/23 需提供PFMEA MASTER软件培训的记录 2026/4/20 1. 4/24完成FMEA MASTER软件培训， 2. 4/30完成初版FMEA MASTER系统PFMEA 3. 5/; 佐证: PFMEA案例培训表2.jpg     PFMEA案例培训表1.jpg",evidence:"PFMEA案例培训表2.jpg     PFMEA案例培训表1.jpg",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-149",desc:"分供方管理清单",category:"审核问题",owner:"王建",dueDate:"",createdAt:"2026-04-17",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/4/28 2026/4/21 提出分供方管理的清单（易管理和不易管理）",evidence:"",extensions:[],source:"0417审核问题点"},
+            {id:"OPL-150",desc:"转运Tray的洁净度问题",category:"审核问题",owner:"陈永祥",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 TRAY盘已定义清洁SOP，并按照SOP进行清洁作业; 佐证: TRAY盘清洁SOP.jpg",evidence:"TRAY盘清洁SOP.jpg",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-151",desc:"BMU DIP投板工站的清洁度问题 地面洁净度 投板机洁净度",category:"审核问题",owner:"田言欣",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/18 附件提供整改之后的佐证; 佐证: DIP清洁度.zip",evidence:"DIP清洁度.zip",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-152",desc:"BMU DIP焊接锡波高度漂移 →方向1:不干涉的情况下下探锡嘴高度 >方向2:载具材质(钛合金) (需要考虑焊接温度影响变化，重新制定焊接参数)",category:"审核问题",owner:"李晴天",dueDate:"2026-06-15",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/05/21 5/21生产28pcs样品，观察改善效果 2026/5/18 改善报告参考附件，验证生产10PCS，焊接满足要求，持续观察; 佐证: 选择焊改善锡波1.pptx",evidence:"选择焊改善锡波1.pptx",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-153",desc:"BMU 等离子清洁管路断开",category:"审核问题",owner:"李晴天",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 已整改完毕，佐证见附件",evidence:"",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-154",desc:"BMU coating 工站清洁度问题",category:"审核问题",owner:"冯海东",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 已整改完毕，佐证见附件; 佐证: coating清洁.jpg",evidence:"coating清洁.jpg",extensions:[],source:"0514SIE薛老师审核"},
+            {id:"OPL-155",desc:"BMU下线工序围板箱清洁度问题",category:"审核问题",owner:"刘云",dueDate:"2026-05-20",createdAt:"2026-05-14",priority:"中",status:"Open",closedAt:"",note:"进展: 2026/5/19 周转箱已定义清洁SOP，并按照SOP进行清洁作业; 佐证: 回收周转箱Tray盘清洁SOP-A1.XLS",evidence:"回收周转箱Tray盘清洁SOP-A1.XLS",extensions:[],source:"0514SIE薛老师审核"}
+        ];
+
+        function initSampleData() {
+            store.meetings = [];
+            store.opls = AUDIT_OPL_DATA.map(o => ({
+                id: o.id,
+                desc: o.desc,
+                category: o.category || '审核问题',
+                owner: o.owner || '待分配',
+                dueDate: o.dueDate || '',
+                createdAt: o.createdAt || '',
+                priority: o.priority || '中',
+                status: o.status || 'Open',
+                closedAt: o.closedAt || '',
+                note: o.note || '',
+                extensions: o.extensions || []
+            }));
+            store.activities = [];
+            saveStore();
+        }
+
+        // ==================== Navigation ====================
+        function navigateTo(page) {
+            currentPage = page;
+            document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
+            document.getElementById('page-' + page).style.display = 'block';
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event && event.target && event.target.closest('.nav-item') && event.target.closest('.nav-item').classList.add('active');
+
+            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单' };
+            document.getElementById('pageTitle').textContent = titles[page] || page;
+
+            if (page === 'dashboard') renderDashboard();
+            else if (page === 'meetings') { renderMeetings(); document.getElementById('meetingDetailView').style.display = 'none'; document.getElementById('meetingListGrid').style.display = 'grid'; }
+            else if (page === 'opl') renderOPL();
+        }
+
+        // ==================== Dashboard ====================
+        function renderDashboard() {
+            const openOPL = store.opls.filter(o => o.status !== 'Closed').length;
+            const overdueOPL = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
+            const totalMeetings = store.meetings.reduce((sum, m) => sum + m.followups.length, 0);
+            const thisWeek = store.opls.filter(o => {
+                const d = new Date(o.createdAt);
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
+                return d >= weekAgo;
+            }).length;
+
+            document.getElementById('dashboardStats').innerHTML = `
+                <div class="stat-card info">
+                    <div class="stat-label">待解决问题</div>
+                    <div class="stat-value">${openOPL}</div>
+                    <div class="stat-detail">${store.opls.length} 项总计</div>
+                </div>
+                <div class="stat-card ${overdueOPL > 0 ? 'danger' : 'success'}">
+                    <div class="stat-label">已逾期</div>
+                    <div class="stat-value">${overdueOPL}</div>
+                    <div class="stat-detail">项已超过截止日期</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">会议记录</div>
+                    <div class="stat-value">${totalMeetings}</div>
+                    <div class="stat-detail">${store.meetings.length} 个会议主题</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">本周新增</div>
+                    <div class="stat-value">${thisWeek}</div>
+                    <div class="stat-detail">个新问题项</div>
+                </div>
+            `;
+
+            // Recent activity
+            const actHtml = store.activities.slice(0, 8).map(a => `
+                <div style="display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
+                    <span style="font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:110px;">${a.time}</span>
+                    <span style="font-size:13px;">${a.content}</span>
+                </div>
+            `).join('');
+            document.getElementById('recentActivity').innerHTML = actHtml || '<div class="empty-state"><div class="es-desc">暂无动态</div></div>';
+
+            // Overdue
+            const overdueItems = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
+            const overdueHtml = overdueItems.slice(0, 6).map(item => `
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
+                    <span class="badge badge-overdue">${item.id}</span>
+                    <span style="font-size:13px; flex:1;">${item.desc}</span>
+                    <span class="owner-tag">${item.owner}</span>
+                    <span style="font-size:11px; color:var(--danger);">${item.dueDate}</span>
+                </div>
+            `).join('');
+            document.getElementById('overdueItems').innerHTML = overdueHtml || '<div class="empty-state"><div class="es-desc">暂无逾期项</div></div>';
+
+            updateCounts();
+        }
+
+        function updateCounts() {
+            document.getElementById('meetingCount').textContent = store.meetings.length;
+            document.getElementById('oplCount').textContent = store.opls.filter(o => o.status !== 'Closed').length;
+        }
+
+        // ==================== Meetings ====================
+        function renderMeetings() {
+            const search = (document.getElementById('meetingSearch').value || '').toLowerCase();
+            let filtered = store.meetings;
+            if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search));
+
+            const html = filtered.map(m => `
+                <div class="meeting-card" onclick="showMeetingDetail('${m.id}')">
+                    <div class="mc-title">${m.name}</div>
+                    <div class="mc-meta">
+                        <span>&#128197; ${frequencyCN(m.frequency)}</span>
+                        <span>&#128101; ${(m.depts || []).join(', ')}</span>
+                    </div>
+                    ${m.followups.length > 0 ? `<div class="mc-followups">&#128196; ${m.followups.length} 次会议记录</div>` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('meetingListGrid').innerHTML = html || '<div class="empty-state"><div class="es-icon">&#128197;</div><div class="es-title">暂无会议</div><div class="es-desc">创建会议主题来跟踪代工厂沟通</div></div>';
+        }
+
+        function showMeetingDetail(id) {
+            const m = store.meetings.find(x => x.id === id);
+            if (!m) return;
+            currentMeetingDetail = id;
+
+            document.getElementById('meetingListGrid').style.display = 'none';
+            const detailEl = document.getElementById('meetingDetailView');
+            detailEl.style.display = 'block';
+
+            const followupsHtml = m.followups.length > 0
+                ? `<div class="followup-timeline">${m.followups.map(f => `
+                    <div class="followup-item">
+                        <div class="fi-date">&#128197; ${f.date} ${f.attendees ? ' &nbsp;&#128101; ' + f.attendees : ''}${f.link ? ' &nbsp;<a href="' + escapeHtml(f.link) + '" target="_blank" style="color:var(--primary); font-size:13px;">🔗 飞书文档</a>' : ''}</div>
+                        <div class="minutes-content-box">${escapeHtml(f.notes || '暂无记录')}</div>
+                    </div>
+                `).join('')}</div>`
+                : '<div class="empty-state"><div class="es-desc">暂无会议记录</div></div>';
+
+            detailEl.innerHTML = `
+                <div class="meeting-detail-header">
+                    <button class="btn btn-ghost" onclick="backToMeetingList()">&#8592; 返回</button>
+                    <h3 style="font-size:18px; font-weight:600;">${m.name}</h3>
+                    <span class="badge badge-inprogress">${frequencyCN(m.frequency)}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">会议记录</span>
+                            <button class="btn btn-sm btn-primary" onclick="openFollowupModal('${m.id}')">+ 添加记录</button>
+                        </div>
+                        <div class="card-body">${followupsHtml}</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">会议信息</span></div>
+                        <div class="card-body">
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>频率：</strong> ${frequencyCN(m.frequency)}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>参与部门：</strong> ${(m.depts || []).join(', ') || '未设置'}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>创建时间：</strong> ${m.createdAt}</div>
+                            <div style="font-size:13px; margin-bottom:10px;"><strong>累计记录：</strong> ${m.followups.length} 次</div>
+                            ${m.docUrl ? `<div style="font-size:13px;"><strong>文档：</strong> <a href="${m.docUrl}" target="_blank" style="color:var(--primary);">在飞书中打开</a></div>` : ''}
+                            <hr style="margin:16px 0; border:none; border-top:1px solid var(--border-light);">
+                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.id}')">删除会议</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function backToMeetingList() {
+            document.getElementById('meetingDetailView').style.display = 'none';
+            document.getElementById('meetingListGrid').style.display = 'grid';
+            currentMeetingDetail = null;
+        }
+
+        // ==================== OPL ====================
+        let oplCurrentTab = 'open'; // 'open' or 'closed'
+
+        function switchOPLTab(tab) {
+            oplCurrentTab = tab;
+            const tabOpen = document.getElementById('oplTabOpen');
+            const tabClosed = document.getElementById('oplTabClosed');
+            const cardActive = document.getElementById('oplActiveCard');
+            const cardClosed = document.getElementById('oplClosedCard');
+            if (tab === 'open') {
+                tabOpen.style.borderBottom = '2px solid var(--primary)';
+                tabOpen.style.color = 'var(--primary)';
+                tabOpen.style.fontWeight = '600';
+                tabClosed.style.borderBottom = '2px solid transparent';
+                tabClosed.style.color = 'var(--text-muted)';
+                tabClosed.style.fontWeight = '500';
+                cardActive.style.display = 'block';
+                cardClosed.style.display = 'none';
+            } else {
+                tabClosed.style.borderBottom = '2px solid var(--success)';
+                tabClosed.style.color = '#047857';
+                tabClosed.style.fontWeight = '600';
+                tabOpen.style.borderBottom = '2px solid transparent';
+                tabOpen.style.color = 'var(--text-muted)';
+                tabOpen.style.fontWeight = '500';
+                cardActive.style.display = 'none';
+                cardClosed.style.display = 'block';
+            }
+            renderOPL();
+        }
+
+        function renderOPL() {
+            const search = (document.getElementById('oplSearch').value || '').toLowerCase();
+            const statusFilter = document.getElementById('oplStatusFilter').value;
+            const priorityFilter = document.getElementById('oplPriorityFilter').value;
+            const closedSearch = (document.getElementById('oplClosedSearch')?.value || '').toLowerCase();
+
+            // Split into active and closed
+            const activeOPLs = store.opls.filter(o => o.status !== 'Closed');
+            const closedOPLs = store.opls.filter(o => o.status === 'Closed');
+
+            // Stats (always show totals)
+            const total = store.opls.length;
+            const open = store.opls.filter(o => o.status === 'Open').length;
+            const inProg = store.opls.filter(o => o.status === 'In Progress').length;
+            const closed = closedOPLs.length;
+            const overdue = activeOPLs.filter(o => o.dueDate && new Date(o.dueDate) < new Date()).length;
+            const onTime = closedOPLs.filter(o => o.closedAt && o.dueDate && new Date(o.closedAt) <= new Date(o.dueDate)).length;
+            const onTimeRate = closed > 0 ? Math.round(onTime / closed * 100) : '-';
+
+            document.getElementById('oplStats').innerHTML = `
+                <div class="stat-card"><div class="stat-label">总计</div><div class="stat-value">${total}</div></div>
+                <div class="stat-card warning"><div class="stat-label">待处理</div><div class="stat-value">${open}</div></div>
+                <div class="stat-card info"><div class="stat-label">进行中</div><div class="stat-value">${inProg}</div></div>
+                <div class="stat-card ${overdue > 0 ? 'danger' : 'success'}"><div class="stat-label">已逾期</div><div class="stat-value">${overdue}</div></div>
+                <div class="stat-card success"><div class="stat-label">已关闭</div><div class="stat-value">${closed}</div></div>
+                <div class="stat-card"><div class="stat-label">按时完成率</div><div class="stat-value">${onTimeRate}${onTimeRate !== '-' ? '%' : ''}</div></div>
+            `;
+
+            // Update tab counts
+            document.getElementById('oplTabOpenCount').textContent = activeOPLs.length;
+            document.getElementById('oplTabClosedCount').textContent = closedOPLs.length;
+
+            // ---- Render Active OPL Table ----
+            let filteredActive = activeOPLs;
+            if (search) filteredActive = filteredActive.filter(o => o.desc.toLowerCase().includes(search) || o.owner.toLowerCase().includes(search));
+            if (statusFilter) filteredActive = filteredActive.filter(o => o.status === statusFilter);
+            if (priorityFilter) filteredActive = filteredActive.filter(o => o.priority === priorityFilter);
+
+            const activeRows = filteredActive.map(o => {
+                const statusClass = o.status === 'In Progress' ? 'inprogress' : o.status.toLowerCase();
+                const priorityClass = o.priority.toLowerCase();
+                const isOverdue = o.dueDate && new Date(o.dueDate) < new Date();
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                let dueDateDisplay = '';
+                if (isOverdue) {
+                    const days = Math.ceil((new Date() - new Date(o.dueDate)) / (1000*60*60*24));
+                    dueDateDisplay = `<span style="color:var(--danger); font-weight:600;">${o.dueDate}</span><br><span style="font-size:11px; color:var(--danger);">逾期${days}天</span>`;
+                } else {
+                    dueDateDisplay = o.dueDate || '<span style="color:var(--text-muted);">未设置</span>';
+                }
+                if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">已延期${extCount}次</span>`;
+                const evDisplay = o.evidence ? `<span style="font-size:11px; color:var(--info); display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${o.evidence.replace(/"/g, '&quot;')}">${o.evidence.length > 30 ? o.evidence.substring(0,30)+'...' : o.evidence}</span>` : '<span style="color:var(--text-muted); font-size:11px;">—</span>';
+                return `<tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td style="max-width:280px;">${o.desc}</td>
+                    <td>${categoryCN(o.category)}</td>
+                    <td><span class="owner-tag">${o.owner}</span></td>
+                    <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
+                    <td style="min-width:100px;">${dueDateDisplay}</td>
+                    <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
+                    <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
+                    <td style="max-width:200px;">${evDisplay}</td>
+                    <td>
+                        <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
+                            <option value="" disabled selected>操作</option>
+                            <option value="edit">编辑</option>
+                            <option value="Open">设为待处理</option>
+                            <option value="In Progress">进行中</option>
+                            <option value="Closed">关闭并存档</option>
+                            <option value="延期">申请延期</option>
+                            <option value="delete">删除</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('oplTable').innerHTML = `
+                <table>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>佐证</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                </table>
+            `;
+
+            // ---- Render Closed/Archived OPL Table ----
+            let filteredClosed = closedOPLs;
+            if (closedSearch) filteredClosed = filteredClosed.filter(o => o.desc.toLowerCase().includes(closedSearch) || o.owner.toLowerCase().includes(closedSearch));
+
+            const closedRows = filteredClosed.map(o => {
+                const priorityClass = o.priority.toLowerCase();
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                let dueDateDisplay = '';
+                if (o.closedAt && o.dueDate) {
+                    const onTimeFlag = new Date(o.closedAt) <= new Date(o.dueDate);
+                    dueDateDisplay = `<span style="color:${onTimeFlag?'var(--success)':'var(--text-muted)'};">${o.dueDate}</span>`;
+                    if (onTimeFlag) {
+                        dueDateDisplay += `<br><span style="font-size:11px; color:var(--success);">✓ 按时完成</span>`;
+                    } else {
+                        dueDateDisplay += `<br><span style="font-size:11px; color:var(--warning);">实际完成：${o.closedAt}</span>`;
+                    }
+                } else {
+                    dueDateDisplay = o.dueDate || '-';
+                }
+                if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">延期${extCount}次</span>`;
+                const evDisplay = o.evidence ? `<span style="font-size:11px; color:var(--info); display:inline-block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${o.evidence.replace(/"/g, '&quot;')}">${o.evidence.length > 30 ? o.evidence.substring(0,30)+'...' : o.evidence}</span>` : '<span style="color:var(--text-muted); font-size:11px;">—</span>';
+                return `<tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td style="max-width:280px;">${o.desc}</td>
+                    <td>${categoryCN(o.category)}</td>
+                    <td><span class="owner-tag">${o.owner}</span></td>
+                    <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
+                    <td style="min-width:100px;">${dueDateDisplay}</td>
+                    <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
+                    <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
+                    <td style="max-width:200px;">${evDisplay}</td>
+                    <td>
+                        <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
+                            <option value="" disabled selected>操作</option>
+                            <option value="edit">编辑</option>
+                            <option value="Open">重新打开</option>
+                            <option value="delete">删除</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('oplClosedTable').innerHTML = `
+                <table>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>佐证</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="10"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
+                </table>
+            `;
+        }
+
+        function updateOPLStatus(id, value) {
+            if (value === 'edit') {
+                editOPL(id);
+                return;
+            } else if (value === 'delete') {
+                if (confirm('确定删除此问题项？')) {
+                    store.opls = store.opls.filter(o => o.id !== id);
+                    addActivity(`已删除 ${id}`);
+                }
+            } else if (value === '延期') {
+                requestExtension(id);
+                return;
+            } else {
+                const opl = store.opls.find(o => o.id === id);
+                if (opl) {
+                    const oldStatus = opl.status;
+                    opl.status = value;
+                    if (value === 'Closed') {
+                        opl.closedAt = new Date().toISOString().split('T')[0];
+                        const due = opl.dueDate ? new Date(opl.dueDate) : null;
+                        const closed = new Date(opl.closedAt);
+                        if (due && closed <= due) {
+                            addActivity(`${id} 已按时关闭并存档（完成日期：${opl.closedAt}）`);
+                        } else if (due) {
+                            const days = Math.ceil((closed - due) / (1000*60*60*24));
+                            addActivity(`${id} 已关闭并存档，逾期${days}天（截止：${opl.dueDate}，完成：${opl.closedAt}）`);
+                        } else {
+                            addActivity(`${id} 已关闭并存档（完成日期：${opl.closedAt}）`);
+                        }
+                        showToast(`${id} 已关闭，已移入「已关闭存档」`);
+                    } else {
+                        if (oldStatus === 'Closed') { opl.closedAt = ''; }
+                        addActivity(`${id} 状态变更为${statusCN(value)}`);
+                        if (oldStatus === 'Closed') {
+                            showToast(`${id} 已重新打开，已移回「进行中」`);
+                        }
+                    }
+                }
+            }
+            saveStore();
+            renderOPL();
+            updateCounts();
+        }
+
+        function requestExtension(id) {
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            const reason = prompt(`申请延期 ${id}\n当前截止日期：${opl.dueDate}\n\n请输入延期原因（必填）：`);
+            if (!reason || !reason.trim()) { showToast('延期原因不能为空，已取消'); return; }
+            const newDate = prompt(`请输入新的截止日期（格式：YYYY-MM-DD）：\n例如：2025-08-15`);
+            if (!newDate || !/^\d{4}-\d{2}-\d{2}$/.test(newDate.trim())) { showToast('日期格式不正确，已取消'); return; }
+            if (new Date(newDate) <= new Date(opl.dueDate)) { showToast('新日期必须晚于当前截止日期'); return; }
+            const oldDate = opl.dueDate;
+            opl.dueDate = newDate.trim();
+            if (!opl.extensions) opl.extensions = [];
+            opl.extensions.push({ from: oldDate, to: newDate.trim(), reason: reason.trim(), date: new Date().toISOString().split('T')[0] });
+            addActivity(`${id} 申请延期：${oldDate} → ${newDate.trim()}（原因：${reason.trim()}）`);
+            saveStore();
+            renderOPL();
+            updateCounts();
+            showToast(`${id} 已延期至 ${newDate.trim()}`);
+        }
+
+        // ==================== Create Functions ====================
+        function createMeeting() {
+            const name = document.getElementById('meetingName').value.trim();
+            const frequency = document.getElementById('meetingFrequency').value;
+            const docUrl = document.getElementById('meetingDocUrl').value.trim();
+            const depts = document.getElementById('meetingDepts').value.split(',').map(d => d.trim()).filter(Boolean);
+            if (!name) { showToast('请输入会议名称'); return; }
+
+            const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
+            store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
+            addActivity(`创建了会议主题：${name}`);
+            saveStore();
+            closeModal('meeting');
+            showToast(`会议 "${name}" 已创建`);
+            renderMeetings();
+            updateCounts();
+        }
+
+        function createOPL() {
+            const desc = document.getElementById('oplDesc').value.trim();
+            const category = document.getElementById('oplCategory').value;
+            const owner = document.getElementById('oplOwner').value.trim();
+            const dueDate = document.getElementById('oplDueDate').value;
+            const priority = document.getElementById('oplPriority').value;
+            const action = document.getElementById('oplAction').value.trim();
+            const evidence = document.getElementById('oplEvidence').value.trim();
+            if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
+
+            const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, evidence, note: '', createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
+            addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
+            saveStore();
+            closeModal('opl');
+            showToast(`问题 ${id} 已创建`);
+            if (currentPage === 'opl') renderOPL();
+            updateCounts();
+        }
+
+        function editOPL(id) {
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            document.getElementById('editOPLId').value = opl.id;
+            document.getElementById('editOPLDesc').value = opl.desc || '';
+            document.getElementById('editOPLCategory').value = opl.category || 'Other';
+            document.getElementById('editOPOwner').value = opl.owner || '';
+            document.getElementById('editOPLDueDate').value = opl.dueDate || '';
+            document.getElementById('editOPLPriority').value = opl.priority || 'Medium';
+            document.getElementById('editOPLAction').value = opl.action || '';
+            document.getElementById('editOPLEvidence').value = opl.evidence || '';
+            document.getElementById('editOPLNote').value = opl.note || '';
+            // Show closedAt field only for closed items
+            const closedAtGroup = document.getElementById('editClosedAtGroup');
+            if (opl.status === 'Closed') {
+                closedAtGroup.style.display = 'block';
+                document.getElementById('editOPLClosedAt').value = opl.closedAt || '';
+            } else {
+                closedAtGroup.style.display = 'none';
+            }
+            openModal('editOPL');
+        }
+
+        function saveOPL() {
+            const id = document.getElementById('editOPLId').value;
+            const opl = store.opls.find(o => o.id === id);
+            if (!opl) return;
+            const desc = document.getElementById('editOPLDesc').value.trim();
+            const owner = document.getElementById('editOPOwner').value.trim();
+            if (!desc) { showToast('描述不能为空'); return; }
+            if (!owner) { showToast('负责人不能为空'); return; }
+            opl.desc = desc;
+            opl.category = document.getElementById('editOPLCategory').value;
+            opl.owner = owner;
+            opl.dueDate = document.getElementById('editOPLDueDate').value;
+            opl.priority = document.getElementById('editOPLPriority').value;
+            opl.action = document.getElementById('editOPLAction').value.trim();
+            opl.evidence = document.getElementById('editOPLEvidence').value.trim();
+            opl.note = document.getElementById('editOPLNote').value.trim();
+            if (opl.status === 'Closed') {
+                opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
+            }
+            addActivity(`编辑了 ${id} 的信息`);
+            saveStore();
+            closeModal('editOPL');
+            showToast(`${id} 已更新`);
+            renderOPL();
+            updateCounts();
+        }
+
+        function createFollowup() {
+            const meetingId = document.getElementById('followupMeetingId').value;
+            const date = document.getElementById('followupDate').value;
+            const notes = document.getElementById('followupNotes').value.trim();
+            const attendees = document.getElementById('followupAttendees').value.trim();
+            if (!date) { showToast('请选择日期'); return; }
+
+            const meeting = store.meetings.find(m => m.id === meetingId);
+            if (!meeting) return;
+
+            const fid = 'F' + String(Date.now()).slice(-6);
+            meeting.followups.unshift({ id: fid, date, notes, attendees });
+            addActivity(`添加了会议记录（${meeting.name} ${date}）`);
+            saveStore();
+            closeModal('followup');
+            showToast('会议记录已保存');
+            showMeetingDetail(meetingId);
+        }
+
+        function deleteMeeting(id) {
+            if (!confirm('确定删除此会议及所有记录？')) return;
+            store.meetings = store.meetings.filter(m => m.id !== id);
+            addActivity('删除了一个会议主题');
+            saveStore();
+            backToMeetingList();
+            renderMeetings();
+            updateCounts();
+        }
+
+        // ==================== Modals ====================
+        function openModal(type) {
+            document.getElementById(type + 'Modal').classList.add('active');
+        }
+
+        function closeModal(type) {
+            document.getElementById(type + 'Modal').classList.remove('active');
+        }
+
+        function openFollowupModal(meetingId) {
+            document.getElementById('followupMeetingId').value = meetingId;
+            document.getElementById('followupDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('followupNotes').value = '';
+            document.getElementById('followupAttendees').value = '';
+            openModal('followup');
+        }
+
+        // ==================== Helpers ====================
+        function addActivity(content) {
+            const now = new Date();
+            const time = now.toISOString().replace('T', ' ').substring(0, 16);
+            store.activities.unshift({ time, content });
+            if (store.activities.length > 50) store.activities = store.activities.slice(0, 50);
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function exportCSV() {
+            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,佐证,备注\n';
+            store.opls.forEach(o => {
+                const extCount = (o.extensions && o.extensions.length) || 0;
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}","${(o.evidence||'').replace(/"/g,'""')}","${(o.note||'').replace(/"/g,'""')}"\n`;
+            });
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'OPL_Export.csv';
+            link.click();
+            showToast('问题清单已导出');
+        }
+
+        // ==================== Minutes Upload ====================
+        let extractedOPLs = [];
+        let extractedAttendees = '';
+        let currentFeishuUrl = '';
+
+        function openMinutesUpload() {
+            document.getElementById('minutesStep1').classList.add('active');
+            document.getElementById('minutesStep2').classList.remove('active');
+            const options = store.meetings.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            document.getElementById('minutesMeeting').innerHTML = '<option value="">选择已有会议主题...</option>' + options;
+            document.getElementById('minutesNewMeeting').value = '';
+            document.getElementById('minutesDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('minutesContent').value = '';
+            extractedOPLs = [];
+            extractedAttendees = '';
+            currentFeishuUrl = '';
+            document.getElementById('feishuUrlWarning').style.display = 'none';
+            document.getElementById('feishuLoadSuccess').style.display = 'none';
+            document.getElementById('minutesUploadModal').classList.add('active');
+        }
+
+        // Feishu API proxy endpoints (try in order: local dev server, then Vercel)
+        const FEISHU_API_ENDPOINTS = [
+            'http://localhost:3001/api/feishu-doc',
+            'http://localhost:3000/api/feishu-doc',
+            'https://feishu-proxy-bmu.vercel.app/api/feishu-doc'
+        ];
+
+        // Local cache for fetched documents (session-level, avoids redundant requests)
+        const feishuSessionCache = {};
+
+        // Extract feishu doc token from URL
+        function extractFeishuToken(url) {
+            const m = url.match(/feishu\.cn\/(?:docx|wiki|docs)\/([A-Za-z0-9]+)/);
+            return m ? m[1] : null;
+        }
+
+        // Fetch feishu document content via API proxy (tries multiple endpoints)
+        async function fetchFeishuDocument(url) {
+            const token = extractFeishuToken(url);
+            if (!token) throw new Error('无法从URL中提取文档ID');
+
+            // Check session cache first
+            if (feishuSessionCache[token]) {
+                return feishuSessionCache[token];
+            }
+
+            let lastError = null;
+            for (const endpoint of FEISHU_API_ENDPOINTS) {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 8000);
+                    const response = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeout);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Cache in session
+                        feishuSessionCache[token] = data;
+                        return data;
+                    } else {
+                        lastError = new Error(data.error || '获取文档失败');
+                    }
+                } catch (e) {
+                    lastError = e;
+                    // Try next endpoint
+                    continue;
+                }
+            }
+
+            throw lastError || new Error('所有API端点均不可用，请启动本地代理服务');
+        }
+
+        // Detect feishu URL in textarea and auto-load content
+        document.addEventListener('DOMContentLoaded', function() {
+            const ta = document.getElementById('minutesContent');
+            if (ta) {
+                let fetchTimeout = null;
+                ta.addEventListener('input', function() {
+                    const val = ta.value.trim();
+                    const warning = document.getElementById('feishuUrlWarning');
+                    const success = document.getElementById('feishuLoadSuccess');
+
+                    if (/^https?:\/\/[^\s]*feishu\.cn\//.test(val) && val.split('\n').length <= 3 && val.length < 200) {
+                        // User pasted a feishu URL - auto-fetch content
+                        currentFeishuUrl = val;  // Save the feishu URL
+                        warning.style.display = 'none';
+                        success.style.display = 'none';
+
+                        // Show loading state
+                        warning.innerHTML = '<strong>⏳ 正在从飞书获取文档内容...</strong>';
+                        warning.style.display = 'block';
+                        warning.style.background = '#e0f2fe';
+                        warning.style.borderColor = '#38bdf8';
+                        warning.style.color = '#0369a1';
+
+                        // Debounce the fetch
+                        if (fetchTimeout) clearTimeout(fetchTimeout);
+                        fetchTimeout = setTimeout(async () => {
+                            try {
+                                const data = await fetchFeishuDocument(val);
+                                // Auto-load content into textarea
+                                ta.value = data.content;
+                                warning.style.display = 'none';
+                                success.style.display = 'block';
+                                success.innerHTML = '✅ 已从飞书实时加载文档内容，点击「智能解析」继续';
+
+                                // Auto-fill meeting title
+                                if (data.title) {
+                                    const newMeetingInput = document.getElementById('minutesNewMeeting');
+                                    if (newMeetingInput && !newMeetingInput.value) {
+                                        newMeetingInput.value = data.title;
+                                    }
+                                }
+                            } catch (err) {
+                                warning.innerHTML = `<strong>⚠️ 获取失败：${err.message}</strong><br><br>` +
+                                    '请尝试以下方法：<br>' +
+                                    '1. 确认该文档已对飞书应用授权（至少阅读权限）<br>' +
+                                    '2. 或者手动操作：打开飞书文档 → Ctrl+A全选 → Ctrl+C复制 → 粘贴到此处';
+                                warning.style.display = 'block';
+                                warning.style.background = '#fff3cd';
+                                warning.style.borderColor = '#ffc107';
+                                warning.style.color = '#856404';
+                            }
+                        }, 500);
+                    } else {
+                        warning.style.display = 'none';
+                        success.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        async function parseMinutes() {
+            const meetingId = document.getElementById('minutesMeeting').value;
+            const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
+            const date = document.getElementById('minutesDate').value;
+            let content = document.getElementById('minutesContent').value.trim();
+
+            if (!meetingId && !newMeetingName) { showToast('请选择或输入会议主题'); return; }
+            if (!date) { showToast('请选择会议日期'); return; }
+            if (!content) { showToast('请粘贴会议纪要内容'); return; }
+
+            // Detect if user pasted a feishu URL - fetch content in real-time
+            if (/^https?:\/\/[^\s]*feishu\.cn\//.test(content) && content.split('\n').length <= 3 && content.length < 200) {
+                // Show loading state and fetch
+                currentFeishuUrl = content;  // Save the feishu URL
+                showToast('正在从飞书获取文档内容...');
+                try {
+                    const data = await fetchFeishuDocument(content);
+                    content = data.content;
+                    document.getElementById('minutesContent').value = content;
+                    document.getElementById('feishuLoadSuccess').style.display = 'block';
+                    document.getElementById('feishuLoadSuccess').innerHTML = '✅ 已从飞书实时加载文档内容';
+                    // Auto-fill title
+                    if (data.title && !newMeetingName && !meetingId) {
+                        document.getElementById('minutesNewMeeting').value = data.title;
+                    }
+                    showToast('✅ 文档内容加载成功，正在解析...');
+                } catch (err) {
+                    showToast('⚠️ 获取失败：' + err.message);
+                    document.getElementById('feishuUrlWarning').innerHTML = `<strong>⚠️ 获取失败：${err.message}</strong><br><br>请手动复制文档内容粘贴到此处。`;
+                    document.getElementById('feishuUrlWarning').style.display = 'block';
+                    return;
+                }
+            }
+
+            extractedOPLs = [];
+            let cachedAttendees = extractedAttendees || '';
+            extractedAttendees = '';
+
+            // Extract attendees
+            const attendeesPatterns = [/参会人员[：:]\s*(.+)/, /参会人[：:]\s*(.+)/, /与会人员[：:]\s*(.+)/, /出席[：:]\s*(.+)/];
+            for (const pat of attendeesPatterns) {
+                const m = content.match(pat);
+                if (m) {
+                    let raw = m[1];
+                    const citeNames = [];
+                    const citeRegex = /user-name="([^"]+)"/g;
+                    let cm;
+                    while ((cm = citeRegex.exec(raw)) !== null) citeNames.push(cm[1]);
+                    raw = raw.replace(/<cite[^>]*><\/cite>/g, '').replace(/<[^>]+>/g, '');
+                    const plainNames = raw.split(/[,，、\s]+/).map(n => n.replace(/\(外部\)|\（外部\）/g, '').trim()).filter(n => n && n.length >= 2 && n.length <= 10 && !/^\d/.test(n) && !/其他|名外部/.test(n));
+                    extractedAttendees = [...citeNames, ...plainNames].filter((v, i, a) => a.indexOf(v) === i).join(', ');
+                    break;
+                }
+            }
+            // Fallback to cached attendees if extraction found nothing
+            if (!extractedAttendees && cachedAttendees) extractedAttendees = cachedAttendees;
+
+            // ===== NEW STRATEGY: Format-agnostic parsing =====
+            // Strategy 1: Use regex to find ALL "标题：描述...@人名" patterns in the ENTIRE text
+            // This works regardless of line breaks, formatting, or paste behavior
+            const actionItemRegex = /([一-鿿A-Za-z0-9 .]{2,20}(?:料|获取|完善|补充|更新|整合|优化|报告|排产|催办|确认|跟进|推动|验证|提交|安排|评估|落实|处理|协调|对比|释放|清单))[：:]([^@\n]{5,150})@([一-鿿]{2,4}|说话人\d+|待定)/gm;
+            let match;
+            while ((match = actionItemRegex.exec(content)) !== null) {
+                const title = match[1].trim();
+                const description = match[2].trim();
+                const owner = match[3].trim();
+                const fullDesc = title + '：' + description;
+                const parsed = parseItemContent(fullDesc + '@' + owner);
+                if (parsed) extractedOPLs.push(parsed);
+            }
+
+            // Strategy 2: If Strategy 1 didn't find enough, try checkbox format (- [ ])
+            if (extractedOPLs.length < 3) {
+                const checkboxRegex = /[-*]\s*\[[\sx]*\]\s*(.+)/g;
+                let cbMatch;
+                while ((cbMatch = checkboxRegex.exec(content)) !== null) {
+                    const itemText = cbMatch[1].trim();
+                    if (itemText.length > 5 && !/由.*生成|可能不准确/.test(itemText)) {
+                        const isDup = extractedOPLs.some(r => r.desc.includes(itemText.substring(0, 15)));
+                        if (!isDup) {
+                            const parsed = parseItemContent(itemText);
+                            if (parsed) extractedOPLs.push(parsed);
+                        }
+                    }
+                }
+            }
+
+            // Strategy 3: Section-based parsing (original approach but simplified)
+            if (extractedOPLs.length < 3) {
+                const lines = content.split('\n');
+                let inTodoSection = false;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    // Detect todo section start (very broad)
+                    if (/待办|行动项|Action|TODO/i.test(line) && line.length < 50) {
+                        inTodoSection = true;
+                        continue;
+                    }
+                    // Detect section end
+                    if (inTodoSection && (/^#{1,3}\s/.test(line) || /^[🎉🧾🪜📋⚠️🔥💡📌]/.test(line) || /^(智能章节|补充内容)/.test(line))) {
+                        inTodoSection = false;
+                        continue;
+                    }
+                    if (inTodoSection) {
+                        let itemText = line.replace(/^[-*•·☐□◻◯○]\s*/, '').replace(/^(\[[\sx]*\])\s*/, '').replace(/^\d+[.、)]\s*/, '').trim();
+                        if (itemText.length > 5 && !/由.*生成|可能不准确|人工调整|点击此处|反馈群/.test(itemText)) {
+                            const isDup = extractedOPLs.some(r => r.desc.includes(itemText.substring(0, 15)));
+                            if (!isDup) {
+                                const parsed = parseItemContent(itemText);
+                                if (parsed) extractedOPLs.push(parsed);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Strategy 4: Find all lines with @Chinese_name (universal fallback)
+            if (extractedOPLs.length < 3) {
+                const lines = content.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.length < 10 || line.length > 300) continue;
+                    // Skip obvious headers and metadata
+                    if (/^#{1,3}\s|^>|^会议|^参会|^提醒|^文字记录/.test(line)) continue;
+                    if (/@[一-鿿]{2,4}/.test(line) && /[：:]/.test(line)) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)\[\]x☐□◻\s]*/, '').trim();
+                        if (cleanLine.length > 8) {
+                            const isDup = extractedOPLs.some(r => r.desc.includes(cleanLine.substring(0, 15)));
+                            if (!isDup) {
+                                const parsed = parseItemContent(cleanLine);
+                                if (parsed) extractedOPLs.push(parsed);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Strategy 5: Keyword-based (last resort)
+            if (extractedOPLs.length === 0) {
+                const oplKws = ['需要解决', '待确认', '待解决', '需跟进', '缺失', '缺少', '未完成', '未提供', '催促', '需尽快', '推动', '协助'];
+                const lines = content.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.length < 8 || line.length > 300) continue;
+                    if (/^#{1,3}\s/.test(line)) continue;
+                    if (oplKws.some(kw => line.includes(kw))) {
+                        const cleanLine = line.replace(/^[-*•·\d.、)]\s*/, '').replace(/\*\*/g, '').trim();
+                        if (cleanLine.length > 5) {
+                            const isDup = extractedOPLs.some(r => r.desc.includes(cleanLine.substring(0, 15)));
+                            if (!isDup) {
+                                const parsed = parseItemContent(cleanLine);
+                                if (parsed) extractedOPLs.push(parsed);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Show results
+            renderParsedResults();
+            document.getElementById('minutesStep1').classList.remove('active');
+            document.getElementById('minutesStep2').classList.add('active');
+        }
+
+        function parseItemContent(text) {
+            let desc = text.trim();
+            if (!desc || desc.length < 3) return null;
+
+            desc = desc.replace(/\*\*/g, '');
+            desc = desc.replace(/<cite[^>]*user-name="([^"]+)"[^>]*><\/cite>/g, '@$1');
+            desc = desc.replace(/<[^>]+>/g, '');
+
+            // Extract owner
+            let owner = '';
+            const ownerPatterns = [/@([一-鿿]{2,4})/, /@([^\s@,，;；。.\d]{2,10})/, /负责人[:：]\s*([^\s,，;；。.]+)/];
+            for (const pat of ownerPatterns) {
+                const m = desc.match(pat);
+                if (m) {
+                    owner = m[1];
+                    desc = desc.replace(/@[一-鿿]{2,4}/g, '').replace(/@[^\s@,，;；。.\d]{2,10}/g, '').trim();
+                    break;
+                }
+            }
+
+            // Extract due date
+            let dueDate = '';
+            const datePatterns = [
+                { re: /截止[:：]?\s*(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
+                { re: /(\d{4}-\d{2}-\d{2})/, idx: 1, full: true },
+                { re: /(\d{1,2})月(\d{1,2})[日号]前?/, idx: null, full: false }
+            ];
+            for (const dp of datePatterns) {
+                const m = desc.match(dp.re);
+                if (m) {
+                    if (dp.full) { dueDate = m[dp.idx]; }
+                    else if (m[1] && m[2]) {
+                        const year = new Date().getFullYear();
+                        dueDate = `${year}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+                    }
+                    desc = desc.replace(m[0], '').trim();
+                    break;
+                }
+            }
+
+            // Priority
+            let priority = 'Medium';
+            if (/紧急|重要|高优先|尽快|立即/.test(text)) priority = 'High';
+            else if (/低优先|不紧急|适时/.test(text)) priority = 'Low';
+
+            // Category
+            let category = 'Other';
+            if (/设计|Design|BOM|原理图/i.test(text)) category = 'Design';
+            else if (/工艺|Process|工装|治具|插件|贴片|焊接/i.test(text)) category = 'Process';
+            else if (/材料|Material|物料|备料|来料|导热垫|电容/i.test(text)) category = 'Material';
+            else if (/质量|Quality|AECQ|PPAP|合格/i.test(text)) category = 'Quality';
+            else if (/测试|Test|验证|DVP|DV/i.test(text)) category = 'Test';
+            else if (/生产|Production|排产|量产|产线/i.test(text)) category = 'Production';
+            else if (/供应|供应商|采购|交付/i.test(text)) category = 'Supply Chain';
+
+            desc = desc.replace(/[,，;；。]\s*$/, '').replace(/^\s*[:：]\s*/, '').replace(/\s{2,}/g, ' ').replace(/[。.]\s*$/, '').trim();
+            if (!desc || desc.length < 3) return null;
+
+            return { desc, owner, dueDate, priority, category };
+        }
+
+        function renderParsedResults() {
+            let html = '';
+            html += `<div class="parsed-section-title">识别到的问题项 (OPL) <span class="count-badge">${extractedOPLs.length} 项</span></div>`;
+
+            if (extractedOPLs.length === 0) {
+                const rawContent = document.getElementById('minutesContent').value.trim();
+                const lineCount = rawContent.split('\n').length;
+                const hasAt = /@/.test(rawContent);
+                const hasColon = /[：:]/.test(rawContent);
+                const firstLines = rawContent.split('\n').filter(l => l.trim()).slice(0, 8).map(l => l.substring(0, 80)).join('<br>');
+                html += `<div style="font-size:13px; color:var(--text-muted); margin-bottom:16px; padding:20px; text-align:center;">未识别到问题项。会议纪要内容仍会完整保存为会议记录。<br><br><details><summary style="cursor:pointer;color:#888;">▶ 调试信息</summary><div style="text-align:left;margin-top:8px;font-size:11px;color:#999;word-break:break-all;">内容长度: ${rawContent.length} 字<br>行数: ${lineCount}<br>含@符号: ${hasAt}<br>含中文冒号: ${hasColon}<br>含 ✅: ${/✅/.test(rawContent)}<br>含待办: ${/待办/.test(rawContent)}<br>含 - [ ]: ${/- \\[ \\]/.test(rawContent)}<br><br>前8行内容:<br><code style="font-size:10px;">${firstLines}</code></div></details></div>`;
+            } else {
+                extractedOPLs.forEach((item, idx) => {
+                    html += `
+                    <div class="extracted-card">
+                        <button class="ec-remove" onclick="removeExtractedItem(${idx})" title="移除">&times;</button>
+                        <div class="ec-desc">
+                            <input type="text" value="${escapeHtml(item.desc)}" onchange="extractedOPLs[${idx}].desc=this.value" style="width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:500;">
+                        </div>
+                        <div class="ec-fields">
+                            <div class="ec-field">
+                                <label>负责人</label>
+                                <input type="text" value="${escapeHtml(item.owner)}" onchange="extractedOPLs[${idx}].owner=this.value" placeholder="未指定">
+                            </div>
+                            <div class="ec-field">
+                                <label>截止日期（确认后锁定）</label>
+                                <input type="date" value="${item.dueDate}" onchange="extractedOPLs[${idx}].dueDate=this.value">
+                            </div>
+                            <div class="ec-field">
+                                <label>优先级</label>
+                                <select onchange="extractedOPLs[${idx}].priority=this.value">
+                                    <option value="High" ${item.priority==='High'?'selected':''}>高</option>
+                                    <option value="Medium" ${item.priority==='Medium'?'selected':''}>中</option>
+                                    <option value="Low" ${item.priority==='Low'?'selected':''}>低</option>
+                                </select>
+                            </div>
+                            <div class="ec-field">
+                                <label>类别</label>
+                                <select onchange="extractedOPLs[${idx}].category=this.value">
+                                    <option value="Design" ${item.category==='Design'?'selected':''}>设计</option>
+                                    <option value="Process" ${item.category==='Process'?'selected':''}>工艺</option>
+                                    <option value="Material" ${item.category==='Material'?'selected':''}>材料</option>
+                                    <option value="Quality" ${item.category==='Quality'?'selected':''}>质量</option>
+                                    <option value="Test" ${item.category==='Test'?'selected':''}>测试</option>
+                                    <option value="Production" ${item.category==='Production'?'selected':''}>生产</option>
+                                    <option value="Supply Chain" ${item.category==='Supply Chain'?'selected':''}>供应链</option>
+                                    <option value="Other" ${item.category==='Other'?'selected':''}>其他</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            html += '<div style="margin-top:16px; padding:12px; background:var(--success-light); border-radius:var(--radius-sm); font-size:13px; color:#047857;">&#10003; 会议纪要全文将完整保存为会议记录。</div>';
+
+            document.getElementById('parsedResults').innerHTML = html;
+        }
+
+        function removeExtractedItem(index) {
+            extractedOPLs.splice(index, 1);
+            renderParsedResults();
+        }
+
+        function backToMinutesInput() {
+            document.getElementById('minutesStep2').classList.remove('active');
+            document.getElementById('minutesStep1').classList.add('active');
+        }
+
+        function confirmMinutesImport() {
+            let meetingId = document.getElementById('minutesMeeting').value;
+            const newMeetingName = document.getElementById('minutesNewMeeting').value.trim();
+            const date = document.getElementById('minutesDate').value;
+            const content = document.getElementById('minutesContent').value.trim();
+
+            // Create meeting if needed
+            if (!meetingId && newMeetingName) {
+                meetingId = 'M' + String(store.meetings.length + 1).padStart(3, '0');
+                store.meetings.push({
+                    id: meetingId, name: newMeetingName, docUrl: currentFeishuUrl || '', depts: [],
+                    frequency: 'adhoc', createdAt: new Date().toISOString().split('T')[0], followups: []
+                });
+                addActivity(`创建了会议主题：${newMeetingName}`);
+            }
+
+            if (!meetingId) { showToast('请选择或创建会议主题'); return; }
+
+            let oplCount = 0;
+
+            // Add OPL items
+            extractedOPLs.forEach(item => {
+                if (!item.desc) return;
+                const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
+                store.opls.push({
+                    id, desc: item.desc, category: item.category || 'Other',
+                    owner: item.owner || '待指定', dueDate: item.dueDate || '',
+                    priority: item.priority || 'Medium', status: 'Open',
+                    action: '', createdAt: new Date().toISOString().split('T')[0],
+                    closedAt: '', extensions: [], evidence: '', note: '',
+                    source: '会议纪要导入'
+                });
+                oplCount++;
+            });
+
+            // Save FULL meeting minutes as followup (no truncation!)
+            const meeting = store.meetings.find(m => m.id === meetingId);
+            if (meeting) {
+                const fid = 'F' + String(Date.now()).slice(-6);
+                meeting.followups.unshift({
+                    id: fid,
+                    date: date,
+                    notes: content,  // 全文保存，不截断
+                    attendees: extractedAttendees || '',
+                    link: currentFeishuUrl || ''
+                });
+                // Update meeting's docUrl if it has a feishu link and didn't have one before
+                if (currentFeishuUrl && !meeting.docUrl) {
+                    meeting.docUrl = currentFeishuUrl;
+                }
+            }
+
+            // Activity logs
+            if (oplCount > 0) {
+                addActivity(`从会议纪要导入了 ${oplCount} 个问题项`);
+            }
+            addActivity(`保存了会议记录（${meeting ? meeting.name : ''} ${date}）`);
+
+            saveStore();
+            closeModal('minutesUpload');
+            showToast(`保存成功！会议记录已保存${oplCount > 0 ? '，并添加了 ' + oplCount + ' 个问题项' : ''}`);
+
+            if (currentPage === 'dashboard') renderDashboard();
+            else if (currentPage === 'meetings') renderMeetings();
+            else if (currentPage === 'opl') renderOPL();
+            updateCounts();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML.replace(/"/g, '&quot;');
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+
+        // ==================== Init ====================
+        loadStore();
+        renderDashboard();
+    </script>
+</body>
+</html>
