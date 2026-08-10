@@ -252,6 +252,15 @@
 
         .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
+        /* Evidence rows */
+        .evidence-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+        .evidence-row input { flex: 1; min-width: 100px; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .evidence-row .btn-link { color: var(--danger); font-size: 12px; padding: 4px 8px; cursor: pointer; background: none; border: none; }
+        .evidence-cell { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+        .evidence-cell a { color: var(--primary); text-decoration: none; }
+        .evidence-cell a:hover { text-decoration: underline; }
+        .note-cell { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-secondary); }
+
         /* Meeting cards */
         .meeting-list-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -387,7 +396,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v2.8
+                数据本地保存 &middot; BMU代工厂管理 v3.0
             </div>
         </aside>
 
@@ -557,6 +566,10 @@
                 <label>行动方案</label>
                 <textarea id="oplAction" placeholder="解决方案..."></textarea>
             </div>
+            <div class="form-group">
+                <label>备注（关闭证据/说明）</label>
+                <textarea id="oplNote" placeholder="关闭证据、备注信息..."></textarea>
+            </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('opl')">取消</button>
                 <button class="btn btn-primary" onclick="createOPL()">创建</button>
@@ -610,6 +623,15 @@
                 <label>实际完成日期</label>
                 <input type="date" id="editOPLClosedAt">
                 <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">修改后会影响按时完成率统计</div>
+            </div>
+            <div class="form-group">
+                <label>备注（关闭证据/说明）</label>
+                <textarea id="editOPLNote" placeholder="关闭证据、备注信息..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>佐证文件（多文件链接）</label>
+                <div id="editEvidenceList"></div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addEditEvidence()" style="margin-top:6px;">+ 添加佐证文件</button>
             </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('editOPL')">取消</button>
@@ -701,6 +723,7 @@
 
         let currentPage = 'dashboard';
         let currentMeetingDetail = null;
+        let currentEditingEvidenceList = [];
 
         // ==================== Display Helpers ====================
         function statusCN(s) {
@@ -721,7 +744,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v7-audit-155';
+        const DATA_VERSION = 'v8-evidence';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -733,6 +756,11 @@
             const saved = localStorage.getItem('project-hub-data');
             if (saved) {
                 store = JSON.parse(saved);
+                // Migrate old data: ensure evidenceFiles and note fields exist
+                store.opls.forEach(o => {
+                    if (!o.evidenceFiles) o.evidenceFiles = parseEvidenceFromNote(o.note || '');
+                    if (o.note === undefined) o.note = '';
+                });
             } else {
                 initSampleData();
             }
@@ -913,10 +941,34 @@
                 status: o.status || 'Open',
                 closedAt: o.closedAt || '',
                 note: o.note || '',
-                extensions: o.extensions || []
+                extensions: o.extensions || [],
+                evidenceFiles: parseEvidenceFromNote(o.note || '')
             }));
             store.activities = [];
             saveStore();
+        }
+
+        function parseEvidenceFromNote(note) {
+            const files = [];
+            if (!note) return files;
+            // Try to extract 佐证 section
+            const match = note.match(/佐证[:：]\s*(.+?)(?:$|(?:\s*(?:进展|措施|状态)[:：]))/);
+            if (match) {
+                const evidenceText = match[1].trim();
+                // Split by common separators
+                const items = evidenceText.split(/[,;，；、\s]+/).filter(Boolean);
+                items.forEach(item => {
+                    if (item) {
+                        files.push({
+                            name: item,
+                            type: inferFileType(item),
+                            url: '',
+                            remark: ''
+                        });
+                    }
+                });
+            }
+            return files;
         }
 
         // ==================== Navigation ====================
@@ -1158,13 +1210,15 @@
                 if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">已延期${extCount}次</span>`;
                 return `<tr>
                     <td><strong>${o.id}</strong></td>
-                    <td style="max-width:280px;">${o.desc}</td>
+                    <td style="max-width:200px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
                     <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
-                    <td style="min-width:100px;">${dueDateDisplay}</td>
+                    <td style="min-width:90px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span class="badge badge-${statusClass}">${statusCN(o.status)}</span></td>
+                    <td class="note-cell" title="${escapeHtml(o.note || '')}">${o.note || '-'}</td>
+                    <td class="evidence-cell">${renderEvidenceFilesCell(o)}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -1181,8 +1235,8 @@
 
             document.getElementById('oplTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>${activeRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>状态</th><th>备注</th><th>佐证文件</th><th>操作</th></tr></thead>
+                    <tbody>${activeRows || '<tr><td colspan="11"><div class="empty-state"><div class="es-desc">暂无待处理问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
 
@@ -1208,13 +1262,15 @@
                 if (extCount > 0) dueDateDisplay += `<br><span style="font-size:10px; color:var(--warning);">延期${extCount}次</span>`;
                 return `<tr>
                     <td><strong>${o.id}</strong></td>
-                    <td style="max-width:280px;">${o.desc}</td>
+                    <td style="max-width:200px;">${o.desc}</td>
                     <td>${categoryCN(o.category)}</td>
                     <td><span class="owner-tag">${o.owner}</span></td>
                     <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${o.createdAt || '-'}</td>
-                    <td style="min-width:100px;">${dueDateDisplay}</td>
+                    <td style="min-width:90px;">${dueDateDisplay}</td>
                     <td><span class="badge badge-${priorityClass}">${priorityCN(o.priority)}</span></td>
                     <td><span style="font-size:12px; color:var(--text-muted);">${o.closedAt || '-'}</span></td>
+                    <td class="note-cell" title="${escapeHtml(o.note || '')}">${o.note || '-'}</td>
+                    <td class="evidence-cell">${renderEvidenceFilesCell(o)}</td>
                     <td>
                         <select class="btn btn-sm" onchange="updateOPLStatus('${o.id}', this.value)" style="font-size:11px;padding:3px 6px;">
                             <option value="" disabled selected>操作</option>
@@ -1228,8 +1284,8 @@
 
             document.getElementById('oplClosedTable').innerHTML = `
                 <table>
-                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>操作</th></tr></thead>
-                    <tbody>${closedRows || '<tr><td colspan="9"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
+                    <thead><tr><th>编号</th><th>描述</th><th>类别</th><th>负责人</th><th>创建日期</th><th>截止日期</th><th>优先级</th><th>关闭日期</th><th>备注</th><th>佐证文件</th><th>操作</th></tr></thead>
+                    <tbody>${closedRows || '<tr><td colspan="11"><div class="empty-state"><div class="es-desc">暂无已关闭问题</div></div></td></tr>'}</tbody>
                 </table>
             `;
         }
@@ -1322,10 +1378,11 @@
             const dueDate = document.getElementById('oplDueDate').value;
             const priority = document.getElementById('oplPriority').value;
             const action = document.getElementById('oplAction').value.trim();
+            const note = document.getElementById('oplNote').value.trim();
             if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, evidenceFiles: [], createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
@@ -1344,6 +1401,11 @@
             document.getElementById('editOPLDueDate').value = opl.dueDate || '';
             document.getElementById('editOPLPriority').value = opl.priority || 'Medium';
             document.getElementById('editOPLAction').value = opl.action || '';
+            document.getElementById('editOPLNote').value = opl.note || '';
+            // Init evidenceFiles if not exists
+            if (!opl.evidenceFiles) opl.evidenceFiles = [];
+            currentEditingEvidenceList = opl.evidenceFiles;
+            renderEditEvidenceList();
             // Show closedAt field only for closed items
             const closedAtGroup = document.getElementById('editClosedAtGroup');
             if (opl.status === 'Closed') {
@@ -1369,6 +1431,9 @@
             opl.dueDate = document.getElementById('editOPLDueDate').value;
             opl.priority = document.getElementById('editOPLPriority').value;
             opl.action = document.getElementById('editOPLAction').value.trim();
+            opl.note = document.getElementById('editOPLNote').value.trim();
+            // Save evidence files
+            collectEvidenceFiles(opl);
             if (opl.status === 'Closed') {
                 opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
             }
@@ -1378,6 +1443,69 @@
             showToast(`${id} 已更新`);
             renderOPL();
             updateCounts();
+        }
+
+        // ==================== Evidence Files Helpers ====================
+        function inferFileType(name) {
+            if (!name) return 'other';
+            const lower = name.toLowerCase();
+            if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) return 'excel';
+            if (lower.endsWith('.pdf')) return 'pdf';
+            if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image';
+            if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'doc';
+            if (lower.startsWith('http')) return 'link';
+            return 'other';
+        }
+
+        function renderEvidenceFilesCell(opl) {
+            const files = opl.evidenceFiles || [];
+            if (!files.length) return '-';
+            const countText = `${files.length} 个文件`;
+            const names = files.map(f => f.name || '无名称').join('; ');
+            return `<span title="${escapeHtml(names)}" style="cursor:help;">${countText}</span>`;
+        }
+
+        function renderEditEvidenceList() {
+            const container = document.getElementById('editEvidenceList');
+            if (!container) return;
+            container.innerHTML = '';
+            (currentEditingEvidenceList || []).forEach((file, index) => {
+                const row = document.createElement('div');
+                row.className = 'evidence-row';
+                row.innerHTML = `
+                    <input type="text" class="ev-name" placeholder="文件名称" value="${escapeHtml(file.name || '')}">
+                    <input type="text" class="ev-url" placeholder="文件链接" value="${escapeHtml(file.url || '')}">
+                    <input type="text" class="ev-remark" placeholder="说明（可选）" value="${escapeHtml(file.remark || '')}">
+                    <button type="button" class="btn-link" onclick="removeEditEvidence(${index})">删除</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addEditEvidence() {
+            currentEditingEvidenceList.push({ name: '', type: 'other', url: '', remark: '' });
+            renderEditEvidenceList();
+        }
+
+        function removeEditEvidence(index) {
+            currentEditingEvidenceList.splice(index, 1);
+            renderEditEvidenceList();
+        }
+
+        function collectEvidenceFiles(opl) {
+            const container = document.getElementById('editEvidenceList');
+            if (!container) return;
+            const rows = container.getElementsByClassName('evidence-row');
+            const files = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const name = (row.querySelector('.ev-name')?.value || '').trim();
+                const url = (row.querySelector('.ev-url')?.value || '').trim();
+                const remark = (row.querySelector('.ev-remark')?.value || '').trim();
+                if (!name && !url && !remark) continue;
+                files.push({ name, type: inferFileType(name || url), url, remark });
+            }
+            opl.evidenceFiles = files;
         }
 
         function createFollowup() {
@@ -1442,10 +1570,13 @@
         }
 
         function exportCSV() {
-            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案\n';
+            let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注,佐证文件数量,佐证文件明细\n';
             store.opls.forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
-                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}"\n`;
+                const files = o.evidenceFiles || [];
+                const fileCount = files.length;
+                const fileNames = files.map(f => f.name || '').join('|');
+                csv += `"${o.id}","${o.desc}","${categoryCN(o.category)}","${o.owner}","${o.createdAt || ""}","${o.dueDate}","${o.closedAt || ''}","${extCount}","${priorityCN(o.priority)}","${statusCN(o.status)}","${o.action || ''}","${o.note || ''}","${fileCount}","${fileNames}"\n`;
             });
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -1913,7 +2044,8 @@
                     id, desc: item.desc, category: item.category || 'Other',
                     owner: item.owner || '待指定', dueDate: item.dueDate || '',
                     priority: item.priority || 'Medium', status: 'Open',
-                    action: '', createdAt: new Date().toISOString().split('T')[0],
+                    action: '', note: '', evidenceFiles: [],
+                    createdAt: new Date().toISOString().split('T')[0],
                     closedAt: '', extensions: [],
                     source: '会议纪要导入'
                 });
