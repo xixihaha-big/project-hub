@@ -833,6 +833,7 @@
                 store.meetings.forEach(m => {
                     if (!m.projectId) m.projectId = store.currentProjectId;
                 });
+                saveStore();
             } else {
                 initSampleData();
             }
@@ -1084,7 +1085,6 @@
                 evidenceFiles: parseEvidenceFromNote(o.note || '')
             }));
             store.activities = [];
-            saveStore();
         }
 
         function parseEvidenceFromNote(note) {
@@ -1143,7 +1143,6 @@
 
         function switchProject(projectId) {
             store.currentProjectId = projectId;
-            saveStore();
             refreshCurrentView();
             renderProjectSelector();
         }
@@ -1205,7 +1204,6 @@
             const id = 'proj-' + Date.now();
             store.projects.push({ id: id, name: name, desc: desc, createdAt: new Date().toISOString().split('T')[0], color: '#4f46e5' });
             if (!store.currentProjectId) store.currentProjectId = id;
-            saveStore();
             document.getElementById('newProjectName').value = '';
             document.getElementById('newProjectDesc').value = '';
             renderProjectList();
@@ -1221,9 +1219,9 @@
             const fallbackId = store.projects.find(p => p.id !== projectId).id;
             store.opls.forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
             store.meetings.forEach(m => { if (m.projectId === projectId) m.projectId = fallbackId; });
+                saveStore();
             if (store.currentProjectId === projectId) store.currentProjectId = fallbackId;
             store.projects = store.projects.filter(p => p.id !== projectId);
-            saveStore();
             renderProjectList();
             renderProjectSelector();
             refreshCurrentView();
@@ -1573,7 +1571,6 @@
                     }
                 }
             }
-            saveStore();
             renderOPL();
             updateCounts();
         }
@@ -1590,8 +1587,8 @@
             opl.dueDate = newDate.trim();
             if (!opl.extensions) opl.extensions = [];
             opl.extensions.push({ from: oldDate, to: newDate.trim(), reason: reason.trim(), date: new Date().toISOString().split('T')[0] });
+                saveStore();
             addActivity(`${id} 申请延期：${oldDate} → ${newDate.trim()}（原因：${reason.trim()}）`);
-            saveStore();
             renderOPL();
             updateCounts();
             showToast(`${id} 已延期至 ${newDate.trim()}`);
@@ -1608,7 +1605,6 @@
             const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
             store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [], projectId: store.currentProjectId });
             addActivity(`创建了会议主题：${name}`);
-            saveStore();
             closeModal('meeting');
             showToast(`会议 "${name}" 已创建`);
             renderMeetings();
@@ -1628,7 +1624,6 @@
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
             store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, evidenceFiles: [], createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建', projectId: store.currentProjectId });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
-            saveStore();
             closeModal('opl');
             showToast(`问题 ${id} 已创建`);
             if (currentPage === 'opl') renderOPL();
@@ -1682,7 +1677,6 @@
                 opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
             }
             addActivity(`编辑了 ${id} 的信息`);
-            saveStore();
             closeModal('editOPL');
             showToast(`${id} 已更新`);
             renderOPL();
@@ -1964,7 +1958,6 @@
             const fid = 'F' + String(Date.now()).slice(-6);
             meeting.followups.unshift({ id: fid, date, notes, attendees });
             addActivity(`添加了会议记录（${meeting.name} ${date}）`);
-            saveStore();
             closeModal('followup');
             showToast('会议记录已保存');
             showMeetingDetail(meetingId);
@@ -1974,7 +1967,6 @@
             if (!confirm('确定删除此会议及所有记录？')) return;
             store.meetings = store.meetings.filter(m => m.id !== id);
             addActivity('删除了一个会议主题');
-            saveStore();
             backToMeetingList();
             renderMeetings();
             updateCounts();
@@ -2519,7 +2511,6 @@
             }
             addActivity(`保存了会议记录（${meeting ? meeting.name : ''} ${date}）`);
 
-            saveStore();
             closeModal('minutesUpload');
             showToast(`保存成功！会议记录已保存${oplCount > 0 ? '，并添加了 ' + oplCount + ' 个问题项' : ''}`);
 
