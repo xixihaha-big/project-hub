@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMU代工厂管理</title>
+    <title>项目管理跟踪面板</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -41,6 +41,15 @@
         }
 
         .app-layout { display: flex; min-height: 100vh; }
+
+        
+        .project-selector select { outline: none; }
+        .project-selector select:focus { border-color: var(--primary); }
+        .project-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 6px; margin-bottom: 4px; background: var(--border-light); }
+        .project-item .pi-name { font-weight: 500; font-size: 14px; }
+        .project-item .pi-desc { font-size: 12px; color: var(--text-muted); }
+        .project-item .pi-actions { display: flex; gap: 4px; }
+        .project-item.current { border: 2px solid var(--primary); background: var(--primary-light); }
 
         /* Sidebar */
         .sidebar {
@@ -398,7 +407,13 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1><span class="logo">B</span> BMU代工厂管理</h1>
+                <h1><span class="logo">P</span> 项目管理</h1>
+            </div>
+            <div class="project-selector" style="padding: 12px 16px; border-bottom: 1px solid #334155;">
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">当前项目</label>
+                <select id="projectSelect" onchange="switchProject(this.value)" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#334155; color:#e2e8f0; font-size:13px; cursor:pointer;">
+                </select>
+                <button class="btn btn-sm" onclick="openProjectManager()" style="width:100%; margin-top:6px; font-size:11px; background:#334155; color:#94a3b8; border:1px dashed #475569;">⚙ 管理项目</button>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-item active" onclick="navigateTo('dashboard')">
@@ -414,7 +429,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v3.1
+                数据本地保存 &middot; 项目管理跟踪面板 v3.2
             </div>
         </aside>
 
@@ -539,6 +554,28 @@
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('meeting')">取消</button>
                 <button class="btn btn-primary" onclick="createMeeting()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Manager Modal -->
+    <div class="modal-overlay" id="projectManagerModal">
+        <div class="modal" style="max-width: 550px;">
+            <h3>项目管理</h3>
+            <div id="projectListContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 16px;"></div>
+            <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+                <div class="form-group">
+                    <label>项目名称</label>
+                    <input type="text" id="newProjectName" placeholder="例如：客户审核问题闭环">
+                </div>
+                <div class="form-group">
+                    <label>项目描述（可选）</label>
+                    <input type="text" id="newProjectDesc" placeholder="简要描述这个项目">
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="closeModal('projectManager')">取消</button>
+                    <button class="btn btn-primary" onclick="createProject()">+ 创建项目</button>
+                </div>
             </div>
         </div>
     </div>
@@ -735,6 +772,8 @@
     <script>
         // ==================== Data Store ====================
         let store = {
+            projects: [],
+            currentProjectId: '',
             meetings: [],
             opls: [],
             activities: []
@@ -763,7 +802,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v9-file-upload';
+        const DATA_VERSION = 'v10-multi-project';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -776,10 +815,23 @@
             const saved = localStorage.getItem('project-hub-data');
             if (saved) {
                 store = JSON.parse(saved);
-                // Migrate old data: ensure evidenceFiles and note fields exist
-                store.opls.forEach(o => {
+                // Migrate: ensure projects and currentProjectId exist
+                if (!store.projects) store.projects = [];
+                if (!store.currentProjectId) {
+                    const defaultId = 'proj-bmu';
+                    if (!store.projects.find(p => p.id === defaultId)) {
+                        store.projects.push({ id: defaultId, name: 'BMU代工厂管理', desc: 'BMU代工厂审核与问题跟踪', createdAt: '2026-01-01', color: '#4f46e5' });
+                    }
+                    store.currentProjectId = defaultId;
+                }
+                // Migrate old data
+                getCurrentProjectOPLs().forEach(o => {
                     if (!o.evidenceFiles) o.evidenceFiles = parseEvidenceFromNote(o.note || '');
                     if (o.note === undefined) o.note = '';
+                    if (!o.projectId) o.projectId = store.currentProjectId;
+                });
+                store.meetings.forEach(m => {
+                    if (!m.projectId) m.projectId = store.currentProjectId;
                 });
             } else {
                 initSampleData();
@@ -815,6 +867,10 @@
         }
 
         function saveStore() {
+            // Ensure currentProjectId is set
+            if (!store.currentProjectId && store.projects.length > 0) {
+                store.currentProjectId = store.projects[0].id;
+            }
             // Strip large dataUrls from evidenceFiles before saving to localStorage
             // (actual file data is stored in IndexedDB, dataUrl can be regenerated)
             const storeCopy = JSON.parse(JSON.stringify(store));
@@ -1004,6 +1060,13 @@
         ];
 
         function initSampleData() {
+            // Create default project
+            const defaultProjectId = 'proj-bmu';
+            store.projects = [
+                { id: defaultProjectId, name: 'BMU代工厂管理', desc: 'BMU代工厂审核与问题跟踪', createdAt: '2026-01-01', color: '#4f46e5' }
+            ];
+            store.currentProjectId = defaultProjectId;
+
             store.meetings = [];
             store.opls = AUDIT_OPL_DATA.map(o => ({
                 id: o.id,
@@ -1058,20 +1121,122 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             event && event.target && event.target.closest('.nav-item') && event.target.closest('.nav-item').classList.add('active');
 
-            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单' };
-            document.getElementById('pageTitle').textContent = titles[page] || page;
+            updateTopbarTitle();
 
             if (page === 'dashboard') renderDashboard();
             else if (page === 'meetings') { renderMeetings(); document.getElementById('meetingDetailView').style.display = 'none'; document.getElementById('meetingListGrid').style.display = 'grid'; }
             else if (page === 'opl') renderOPL();
         }
 
+        function getCurrentProject() {
+            return store.projects.find(p => p.id === store.currentProjectId) || store.projects[0] || { id: '', name: '全部项目', desc: '' };
+        }
+
+        function getCurrentProjectOPLs() {
+            return store.opls.filter(o => o.projectId === store.currentProjectId);
+        }
+
+        function getCurrentProjectMeetings() {
+            return store.meetings.filter(m => m.projectId === store.currentProjectId);
+        }
+
+        function switchProject(projectId) {
+            store.currentProjectId = projectId;
+            saveStore();
+            refreshCurrentView();
+            renderProjectSelector();
+        }
+
+        function refreshCurrentView() {
+            if (currentPage === 'dashboard') renderDashboard();
+            else if (currentPage === 'meetings') { renderMeetings(); document.getElementById('meetingDetailView').style.display = 'none'; document.getElementById('meetingListGrid').style.display = 'grid'; }
+            else if (currentPage === 'opl') renderOPL();
+            updateCounts();
+            updateTopbarTitle();
+        }
+
+        function updateTopbarTitle() {
+            const project = getCurrentProject();
+            const titles = { dashboard: '仪表盘', meetings: '会议', opl: '问题清单' };
+            const pageTitle = titles[currentPage] || currentPage;
+            document.getElementById('pageTitle').innerHTML = pageTitle + ' <span style="font-size:12px; color:var(--text-muted); font-weight:400;">&middot; ' + project.name + '</span>';
+        }
+
+        function renderProjectSelector() {
+            const select = document.getElementById('projectSelect');
+            if (!select) return;
+            select.innerHTML = store.projects.map(p =>
+                '<option value="' + p.id + '"' + (p.id === store.currentProjectId ? ' selected' : '') + '>' + p.name + '</option>'
+            ).join('');
+            if (store.projects.length === 0) {
+                select.innerHTML = '<option value="">— 无项目 —</option>';
+            }
+        }
+
+        function openProjectManager() {
+            renderProjectList();
+            openModal('projectManager');
+        }
+
+        function renderProjectList() {
+            const container = document.getElementById('projectListContainer');
+            if (!container) return;
+            const current = store.currentProjectId;
+            container.innerHTML = store.projects.map(p => {
+                const isCurrent = p.id === current;
+                return '<div class="project-item' + (isCurrent ? ' current' : '') + '">' +
+                    '<div>' +
+                        '<div class="pi-name">' + (isCurrent ? '● ' : '') + p.name + '</div>' +
+                        '<div class="pi-desc">' + (p.desc || '') + ' · ' + (p.createdAt || '') + '</div>' +
+                    '</div>' +
+                    '<div class="pi-actions">' +
+                        (isCurrent ? '<span style="font-size:11px; color:var(--primary);">当前</span>' : '<button class="btn btn-sm btn-ghost" onclick="switchProject(&quot;' + p.id + '&quot;); closeModal(&quot;projectManager&quot;);">切换</button>') +
+                        (store.projects.length > 1 ? '<button class="btn btn-sm btn-ghost" style="color:var(--danger);" onclick="deleteProject(&quot;' + p.id + '&quot;)">删除</button>' : '') +
+                    '</div>' +
+                '</div>';
+            }).join('') || '<div style="font-size:13px; color:var(--text-muted); padding:10px;">暂无项目</div>';
+        }
+
+        function createProject() {
+            const name = document.getElementById('newProjectName').value.trim();
+            if (!name) { showToast('请输入项目名称'); return; }
+            const desc = document.getElementById('newProjectDesc').value.trim();
+            const id = 'proj-' + Date.now();
+            store.projects.push({ id: id, name: name, desc: desc, createdAt: new Date().toISOString().split('T')[0], color: '#4f46e5' });
+            if (!store.currentProjectId) store.currentProjectId = id;
+            saveStore();
+            document.getElementById('newProjectName').value = '';
+            document.getElementById('newProjectDesc').value = '';
+            renderProjectList();
+            renderProjectSelector();
+            showToast('项目「' + name + '」已创建');
+        }
+
+        function deleteProject(projectId) {
+            if (store.projects.length <= 1) { showToast('至少保留一个项目'); return; }
+            const project = store.projects.find(p => p.id === projectId);
+            if (!project) return;
+            if (!confirm('确定要删除项目「' + project.name + '」吗？\n该项目的 OPL 和会议记录不会丢失，将归入当前项目。')) return;
+            const fallbackId = store.projects.find(p => p.id !== projectId).id;
+            getCurrentProjectOPLs().forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
+            store.meetings.forEach(m => { if (m.projectId === projectId) m.projectId = fallbackId; });
+            if (store.currentProjectId === projectId) store.currentProjectId = fallbackId;
+            store.projects = store.projects.filter(p => p.id !== projectId);
+            saveStore();
+            renderProjectList();
+            renderProjectSelector();
+            refreshCurrentView();
+            showToast('项目「' + project.name + '」已删除，数据已迁移');
+        }
+
         // ==================== Dashboard ====================
         function renderDashboard() {
-            const openOPL = store.opls.filter(o => o.status !== 'Closed').length;
-            const overdueOPL = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
-            const totalMeetings = store.meetings.reduce((sum, m) => sum + m.followups.length, 0);
-            const thisWeek = store.opls.filter(o => {
+            const projectOPLs = getCurrentProjectOPLs();
+            const projectMeetings = getCurrentProjectMeetings();
+            const openOPL = projectOPLs.filter(o => o.status !== 'Closed').length;
+            const overdueOPL = projectOPLs.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date()).length;
+            const totalMeetings = projectMeetings.reduce((sum, m) => sum + m.followups.length, 0);
+            const thisWeek = projectOPLs.filter(o => {
                 const d = new Date(o.createdAt);
                 const now = new Date();
                 const weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
@@ -1082,7 +1247,7 @@
                 <div class="stat-card info">
                     <div class="stat-label">待解决问题</div>
                     <div class="stat-value">${openOPL}</div>
-                    <div class="stat-detail">${store.opls.length} 项总计</div>
+                    <div class="stat-detail">${projectOPLs.length} 项总计</div>
                 </div>
                 <div class="stat-card ${overdueOPL > 0 ? 'danger' : 'success'}">
                     <div class="stat-label">已逾期</div>
@@ -1092,7 +1257,7 @@
                 <div class="stat-card">
                     <div class="stat-label">会议记录</div>
                     <div class="stat-value">${totalMeetings}</div>
-                    <div class="stat-detail">${store.meetings.length} 个会议主题</div>
+                    <div class="stat-detail">${projectMeetings.length} 个会议主题</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-label">本周新增</div>
@@ -1111,7 +1276,7 @@
             document.getElementById('recentActivity').innerHTML = actHtml || '<div class="empty-state"><div class="es-desc">暂无动态</div></div>';
 
             // Overdue
-            const overdueItems = store.opls.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
+            const overdueItems = projectOPLs.filter(o => o.status !== 'Closed' && new Date(o.dueDate) < new Date());
             const overdueHtml = overdueItems.slice(0, 6).map(item => `
                 <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light);">
                     <span class="badge badge-overdue">${item.id}</span>
@@ -1126,14 +1291,14 @@
         }
 
         function updateCounts() {
-            document.getElementById('meetingCount').textContent = store.meetings.length;
-            document.getElementById('oplCount').textContent = store.opls.filter(o => o.status !== 'Closed').length;
+            document.getElementById('meetingCount').textContent = getCurrentProjectMeetings().length;
+            document.getElementById('oplCount').textContent = getCurrentProjectOPLs().filter(o => o.status !== 'Closed').length;
         }
 
         // ==================== Meetings ====================
         function renderMeetings() {
             const search = (document.getElementById('meetingSearch').value || '').toLowerCase();
-            let filtered = store.meetings;
+            let filtered = getCurrentProjectMeetings();
             if (search) filtered = filtered.filter(m => m.name.toLowerCase().includes(search));
 
             const html = filtered.map(m => `
@@ -1242,13 +1407,13 @@
             const closedSearch = (document.getElementById('oplClosedSearch')?.value || '').toLowerCase();
 
             // Split into active and closed
-            const activeOPLs = store.opls.filter(o => o.status !== 'Closed');
-            const closedOPLs = store.opls.filter(o => o.status === 'Closed');
+            const activeOPLs = getCurrentProjectOPLs().filter(o => o.status !== 'Closed');
+            const closedOPLs = getCurrentProjectOPLs().filter(o => o.status === 'Closed');
 
             // Stats (always show totals)
             const total = store.opls.length;
-            const open = store.opls.filter(o => o.status === 'Open').length;
-            const inProg = store.opls.filter(o => o.status === 'In Progress').length;
+            const open = getCurrentProjectOPLs().filter(o => o.status === 'Open').length;
+            const inProg = getCurrentProjectOPLs().filter(o => o.status === 'In Progress').length;
             const closed = closedOPLs.length;
             const overdue = activeOPLs.filter(o => o.dueDate && new Date(o.dueDate) < new Date()).length;
             const onTime = closedOPLs.filter(o => o.closedAt && o.dueDate && new Date(o.closedAt) <= new Date(o.dueDate)).length;
@@ -1440,7 +1605,7 @@
             if (!name) { showToast('请输入会议名称'); return; }
 
             const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
-            store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [] });
+            store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [], projectId: store.currentProjectId });
             addActivity(`创建了会议主题：${name}`);
             saveStore();
             closeModal('meeting');
@@ -1460,7 +1625,7 @@
             if (!desc || !owner || !dueDate) { showToast('请输入描述、负责人和截止日期'); return; }
 
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
-            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, evidenceFiles: [], createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建' });
+            store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, evidenceFiles: [], createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建', projectId: store.currentProjectId });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
             saveStore();
             closeModal('opl');
@@ -1848,7 +2013,7 @@
 
         function exportCSV() {
             let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注,佐证文件数量,佐证文件明细\n';
-            store.opls.forEach(o => {
+            getCurrentProjectOPLs().forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
                 const files = o.evidenceFiles || [];
                 const fileCount = files.length;
@@ -2304,7 +2469,8 @@
                 meetingId = 'M' + String(store.meetings.length + 1).padStart(3, '0');
                 store.meetings.push({
                     id: meetingId, name: newMeetingName, docUrl: currentFeishuUrl || '', depts: [],
-                    frequency: 'adhoc', createdAt: new Date().toISOString().split('T')[0], followups: []
+                    frequency: 'adhoc', createdAt: new Date().toISOString().split('T')[0], followups: [],
+                    projectId: store.currentProjectId
                 });
                 addActivity(`创建了会议主题：${newMeetingName}`);
             }
@@ -2411,11 +2577,13 @@
 
         // ==================== Init ====================
         loadStore();
+        renderProjectSelector();
         renderDashboard();
         // Restore evidence previews from IndexedDB (async)
         (async function() {
             await EvidenceDB.open();
             await restoreEvidencePreviews();
+            renderProjectSelector();
             renderDashboard();
         })();
     </script>
