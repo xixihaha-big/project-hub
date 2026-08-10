@@ -793,6 +793,8 @@
             for (const opl of store.opls) {
                 const files = opl.evidenceFiles || [];
                 for (const f of files) {
+                    // Clean up marker
+                    if (f._hasDataUrl) { delete f._hasDataUrl; }
                     if (f.type === 'image' && f.fileId && !f.dataUrl) {
                         try {
                             const data = await EvidenceDB.get(f.fileId);
@@ -813,7 +815,34 @@
         }
 
         function saveStore() {
-            localStorage.setItem('project-hub-data', JSON.stringify(store));
+            // Strip large dataUrls from evidenceFiles before saving to localStorage
+            // (actual file data is stored in IndexedDB, dataUrl can be regenerated)
+            const storeCopy = JSON.parse(JSON.stringify(store));
+            storeCopy.opls.forEach(o => {
+                (o.evidenceFiles || []).forEach(f => {
+                    if (f.dataUrl && f.dataUrl.length > 50000) {
+                        // Keep only a small thumbnail marker; full dataUrl is regenerated from IndexedDB
+                        f._hasDataUrl = true;
+                        f.dataUrl = '';
+                    }
+                });
+            });
+            try {
+                localStorage.setItem('project-hub-data', JSON.stringify(storeCopy));
+            } catch (e) {
+                // localStorage full - try stripping all dataUrls
+                storeCopy.opls.forEach(o => {
+                    (o.evidenceFiles || []).forEach(f => {
+                        f._hasDataUrl = !!f.dataUrl;
+                        f.dataUrl = '';
+                    });
+                });
+                try {
+                    localStorage.setItem('project-hub-data', JSON.stringify(storeCopy));
+                } catch (e2) {
+                    showToast('存储空间不足，请清理旧数据');
+                }
+            }
         }
 
         const AUDIT_OPL_DATA = [
