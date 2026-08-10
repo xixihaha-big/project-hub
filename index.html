@@ -802,7 +802,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v10-multi-project';
+        const DATA_VERSION = 'v10-multi-project-v2';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -825,7 +825,7 @@
                     store.currentProjectId = defaultId;
                 }
                 // Migrate old data
-                getCurrentProjectOPLs().forEach(o => {
+                store.opls.forEach(o => {
                     if (!o.evidenceFiles) o.evidenceFiles = parseEvidenceFromNote(o.note || '');
                     if (o.note === undefined) o.note = '';
                     if (!o.projectId) o.projectId = store.currentProjectId;
@@ -1069,6 +1069,7 @@
 
             store.meetings = [];
             store.opls = AUDIT_OPL_DATA.map(o => ({
+                projectId: store.currentProjectId,
                 id: o.id,
                 desc: o.desc,
                 category: o.category || '审核问题',
@@ -1218,7 +1219,7 @@
             if (!project) return;
             if (!confirm('确定要删除项目「' + project.name + '」吗？\n该项目的 OPL 和会议记录不会丢失，将归入当前项目。')) return;
             const fallbackId = store.projects.find(p => p.id !== projectId).id;
-            getCurrentProjectOPLs().forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
+            store.opls.forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
             store.meetings.forEach(m => { if (m.projectId === projectId) m.projectId = fallbackId; });
             if (store.currentProjectId === projectId) store.currentProjectId = fallbackId;
             store.projects = store.projects.filter(p => p.id !== projectId);
@@ -2013,7 +2014,7 @@
 
         function exportCSV() {
             let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注,佐证文件数量,佐证文件明细\n';
-            getCurrentProjectOPLs().forEach(o => {
+            store.opls.forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
                 const files = o.evidenceFiles || [];
                 const fileCount = files.length;
