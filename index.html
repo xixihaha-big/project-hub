@@ -253,9 +253,27 @@
         .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
         /* Evidence rows */
-        .evidence-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
-        .evidence-row input { flex: 1; min-width: 100px; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .evidence-row .btn-link { color: var(--danger); font-size: 12px; padding: 4px 8px; cursor: pointer; background: none; border: none; }
+        .evidence-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; padding: 8px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #fafbfc; }
+        .evidence-row .ev-left { flex: 1; min-width: 0; }
+        .evidence-row .ev-left input { width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 4px; }
+        .evidence-row .ev-left input:last-child { margin-bottom: 0; }
+        .evidence-row .ev-right { display: flex; flex-direction: column; gap: 4px; align-items: center; flex-shrink: 0; }
+        .evidence-row .ev-preview { width: 80px; height: 60px; border-radius: 4px; object-fit: cover; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+        .evidence-row .ev-preview-placeholder { width: 80px; height: 60px; border-radius: 4px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--text-muted); background: #fff; }
+        .evidence-row .ev-file-upload { display: flex; gap: 4px; }
+        .evidence-row .btn-upload { font-size: 11px; padding: 4px 8px; cursor: pointer; background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; white-space: nowrap; }
+        .evidence-row .btn-upload:hover { background: var(--primary); color: #fff; }
+        .evidence-row .btn-remove { color: var(--danger); font-size: 11px; padding: 4px 8px; cursor: pointer; background: none; border: 1px solid var(--danger); border-radius: 4px; white-space: nowrap; }
+        .evidence-row .btn-remove:hover { background: var(--danger); color: #fff; }
+        .evidence-row .ev-file-info { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .evidence-cell { max-width: 120px; }
+        .evidence-cell .ev-thumbs { display: flex; gap: 2px; flex-wrap: wrap; }
+        .evidence-cell .ev-thumb { width: 36px; height: 28px; border-radius: 3px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+        .evidence-cell .ev-file-icon { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; color: var(--text-secondary); margin-right: 4px; }
+        .evidence-cell .ev-download { color: var(--primary); cursor: pointer; font-size: 11px; text-decoration: underline; }
+        /* Evidence lightbox */
+        .ev-lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .ev-lightbox img { max-width: 90%; max-height: 90%; border-radius: 4px; }
         .evidence-cell { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
         .evidence-cell a { color: var(--primary); text-decoration: none; }
         .evidence-cell a:hover { text-decoration: underline; }
@@ -396,7 +414,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; BMU代工厂管理 v3.0
+                数据本地保存 &middot; BMU代工厂管理 v3.1
             </div>
         </aside>
 
@@ -629,9 +647,10 @@
                 <textarea id="editOPLNote" placeholder="关闭证据、备注信息..."></textarea>
             </div>
             <div class="form-group">
-                <label>佐证文件（多文件链接）</label>
+                <label>佐证文件（支持上传图片/文件，或粘贴链接）</label>
                 <div id="editEvidenceList"></div>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="addEditEvidence()" style="margin-top:6px;">+ 添加佐证文件</button>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">支持：粘贴本地图片/文件自动上传，或填写飞书/网盘链接。文件存储在浏览器本地。</div>
             </div>
             <div class="form-actions">
                 <button class="btn" onclick="closeModal('editOPL')">取消</button>
@@ -744,13 +763,14 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v8-evidence';
+        const DATA_VERSION = 'v9-file-upload';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
                 localStorage.removeItem('project-hub-data');
                 localStorage.setItem('project-hub-version', DATA_VERSION);
                 initSampleData();
+                restoreEvidencePreviews();
                 return;
             }
             const saved = localStorage.getItem('project-hub-data');
@@ -763,6 +783,32 @@
                 });
             } else {
                 initSampleData();
+            }
+            restoreEvidencePreviews();
+        }
+
+        async function restoreEvidencePreviews() {
+            // Restore dataUrls for image files from IndexedDB
+            if (!store.opls) return;
+            for (const opl of store.opls) {
+                const files = opl.evidenceFiles || [];
+                for (const f of files) {
+                    if (f.type === 'image' && f.fileId && !f.dataUrl) {
+                        try {
+                            const data = await EvidenceDB.get(f.fileId);
+                            if (data && data.buffer) {
+                                const blob = new Blob([data.buffer], { type: data.type || 'image/png' });
+                                f.dataUrl = await new Promise((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => resolve(reader.result);
+                                    reader.readAsDataURL(blob);
+                                });
+                            }
+                        } catch (e) {
+                            // File not in IndexedDB, skip
+                        }
+                    }
+                }
             }
         }
 
@@ -963,7 +1009,10 @@
                             name: item,
                             type: inferFileType(item),
                             url: '',
-                            remark: ''
+                            remark: '',
+                            fileId: '',
+                            dataUrl: '',
+                            fileSize: 0
                         });
                     }
                 });
@@ -1445,16 +1494,86 @@
             updateCounts();
         }
 
-        // ==================== Evidence Files Helpers ====================
+        // ==================== Evidence Files with IndexedDB Storage ====================
+        const EvidenceDB = (() => {
+            let _db = null;
+            const DB_NAME = 'OPLEvidenceDB';
+            const DB_VER = 1;
+            async function open() {
+                if (_db) return _db;
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(DB_NAME, DB_VER);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('files')) {
+                            db.createObjectStore('files', { keyPath: 'id' });
+                        }
+                    };
+                    req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            async function put(id, data) {
+                const db = await open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('files', 'readwrite');
+                    tx.objectStore('files').put({ id, data });
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+            async function get(id) {
+                const db = await open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('files', 'readonly');
+                    const req = tx.objectStore('files').get(id);
+                    req.onsuccess = () => resolve(req.result ? req.result.data : null);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            async function remove(id) {
+                const db = await open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('files', 'readwrite');
+                    tx.objectStore('files').delete(id);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+            async function removeMany(ids) {
+                const db = await open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('files', 'readwrite');
+                    const store = tx.objectStore('files');
+                    ids.forEach(id => store.delete(id));
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+            return { open, put, get, remove, removeMany };
+        })();
+
         function inferFileType(name) {
             if (!name) return 'other';
             const lower = name.toLowerCase();
             if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) return 'excel';
             if (lower.endsWith('.pdf')) return 'pdf';
-            if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image';
+            if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.bmp') || lower.endsWith('.webp')) return 'image';
             if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'doc';
+            if (lower.endsWith('.zip') || lower.endsWith('.rar') || lower.endsWith('.7z')) return 'archive';
             if (lower.startsWith('http')) return 'link';
             return 'other';
+        }
+
+        function isImageType(type) {
+            return type === 'image' || (type === 'link' && false);
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
         }
 
         function renderEvidenceFilesCell(opl) {
@@ -1462,7 +1581,29 @@
             if (!files.length) return '-';
             const countText = `${files.length} 个文件`;
             const names = files.map(f => f.name || '无名称').join('; ');
-            return `<span title="${escapeHtml(names)}" style="cursor:help;">${countText}</span>`;
+            let html = `<div class="evidence-cell" title="${escapeHtml(names)}">`;
+            // Show thumbnails for images
+            const images = files.filter(f => f.type === 'image' && f.dataUrl);
+            if (images.length > 0) {
+                html += '<div class="ev-thumbs">';
+                images.slice(0, 3).forEach(img => {
+                    html += `<img class="ev-thumb" src="${img.dataUrl}" onclick="showEvidenceLightbox(event, '${img.dataUrl}')" title="${escapeHtml(img.name || '')}">`;
+                });
+                if (images.length > 3) html += `<span style="font-size:11px;">+${images.length-3}</span>`;
+                html += '</div>';
+            }
+            html += `<span style="font-size:12px;">${countText}</span>`;
+            html += '</div>';
+            return html;
+        }
+
+        function showEvidenceLightbox(e, url) {
+            e.stopPropagation();
+            const lb = document.createElement('div');
+            lb.className = 'ev-lightbox';
+            lb.innerHTML = `<img src="${url}" alt="evidence">`;
+            lb.addEventListener('click', () => lb.remove());
+            document.body.appendChild(lb);
         }
 
         function renderEditEvidenceList() {
@@ -1472,39 +1613,146 @@
             (currentEditingEvidenceList || []).forEach((file, index) => {
                 const row = document.createElement('div');
                 row.className = 'evidence-row';
+                const hasPreview = file.type === 'image' && file.dataUrl;
+                const fileSizeText = file.fileSize ? formatFileSize(file.fileSize) : '';
+
                 row.innerHTML = `
-                    <input type="text" class="ev-name" placeholder="文件名称" value="${escapeHtml(file.name || '')}">
-                    <input type="text" class="ev-url" placeholder="文件链接" value="${escapeHtml(file.url || '')}">
-                    <input type="text" class="ev-remark" placeholder="说明（可选）" value="${escapeHtml(file.remark || '')}">
-                    <button type="button" class="btn-link" onclick="removeEditEvidence(${index})">删除</button>
+                    <div class="ev-left">
+                        <input type="text" class="ev-name" placeholder="文件名称" value="${escapeHtml(file.name || '')}" onchange="updateEvidenceField(${index},'name',this.value)">
+                        <input type="text" class="ev-url" placeholder="飞书/网盘链接（可选）" value="${escapeHtml(file.url || '')}" onchange="updateEvidenceField(${index},'url',this.value)">
+                        <input type="text" class="ev-remark" placeholder="说明（可选）" value="${escapeHtml(file.remark || '')}" onchange="updateEvidenceField(${index},'remark',this.value)">
+                        ${fileSizeText ? `<div class="ev-file-info">大小: ${fileSizeText}</div>` : ''}
+                    </div>
+                    <div class="ev-right">
+                        ${hasPreview ? `<img class="ev-preview" src="${file.dataUrl}" title="点击放大" onclick="showEvidenceLightbox(event,'${file.dataUrl}')">` : `<div class="ev-preview-placeholder">${file.type === 'image' ? '🖼' : file.type === 'pdf' ? '📄' : file.type === 'excel' ? '📊' : file.type === 'doc' ? '📝' : file.type === 'archive' ? '📦' : '📎'}</div>`}
+                        <div class="ev-file-upload">
+                            <input type="file" id="evFileInput${index}" style="display:none;" onchange="handleEvidenceFileUpload(${index}, this)">
+                            <button type="button" class="btn-upload" onclick="document.getElementById('evFileInput${index}').click()">📁 上传</button>
+                            <button type="button" class="btn-remove" onclick="removeEditEvidence(${index})">删除</button>
+                        </div>
+                    </div>
                 `;
                 container.appendChild(row);
             });
         }
 
+        function updateEvidenceField(index, field, value) {
+            if (currentEditingEvidenceList && currentEditingEvidenceList[index]) {
+                currentEditingEvidenceList[index][field] = value;
+                if (field === 'name') {
+                    currentEditingEvidenceList[index].type = inferFileType(value);
+                }
+            }
+        }
+
+        async function handleEvidenceFileUpload(index, input) {
+            const file = input.files[0];
+            if (!file || !currentEditingEvidenceList || !currentEditingEvidenceList[index]) return;
+            const ev = currentEditingEvidenceList[index];
+
+            // Generate unique file ID
+            const fileId = 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+            const type = inferFileType(file.name);
+
+            try {
+                // Read file as ArrayBuffer and store in IndexedDB
+                const buffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+
+                // Store in IndexedDB
+                await EvidenceDB.put(fileId, {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    buffer: buffer
+                });
+
+                // For images, also create a data URL for preview
+                let dataUrl = '';
+                if (type === 'image') {
+                    dataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                // Clean up old file from IndexedDB if exists
+                if (ev.fileId) {
+                    await EvidenceDB.remove(ev.fileId).catch(() => {});
+                }
+
+                // Update evidence entry
+                ev.name = ev.name || file.name;
+                ev.type = type;
+                ev.fileId = fileId;
+                ev.fileSize = file.size;
+                ev.dataUrl = dataUrl;
+                if (!ev.url) ev.url = '';
+
+                input.value = ''; // Reset file input
+                renderEditEvidenceList();
+                showToast(`已上传: ${file.name}`);
+            } catch (err) {
+                console.error('File upload error:', err);
+                showToast('文件上传失败: ' + err.message);
+            }
+        }
+
         function addEditEvidence() {
-            currentEditingEvidenceList.push({ name: '', type: 'other', url: '', remark: '' });
+            currentEditingEvidenceList.push({ name: '', type: 'other', url: '', remark: '', fileId: '', dataUrl: '', fileSize: 0 });
             renderEditEvidenceList();
         }
 
-        function removeEditEvidence(index) {
+        async function removeEditEvidence(index) {
+            const ev = currentEditingEvidenceList[index];
+            // Clean up IndexedDB entry
+            if (ev && ev.fileId) {
+                await EvidenceDB.remove(ev.fileId).catch(() => {});
+            }
             currentEditingEvidenceList.splice(index, 1);
             renderEditEvidenceList();
         }
 
-        function collectEvidenceFiles(opl) {
+        async function collectEvidenceFiles(opl) {
             const container = document.getElementById('editEvidenceList');
             if (!container) return;
             const rows = container.getElementsByClassName('evidence-row');
             const files = [];
+            const oldFileIds = (opl.evidenceFiles || []).map(f => f.fileId).filter(Boolean);
+
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 const name = (row.querySelector('.ev-name')?.value || '').trim();
                 const url = (row.querySelector('.ev-url')?.value || '').trim();
                 const remark = (row.querySelector('.ev-remark')?.value || '').trim();
                 if (!name && !url && !remark) continue;
-                files.push({ name, type: inferFileType(name || url), url, remark });
+
+                // Get the in-memory object for fileId/dataUrl
+                const mem = currentEditingEvidenceList[i] || {};
+                files.push({
+                    name,
+                    type: inferFileType(name || url),
+                    url,
+                    remark,
+                    fileId: mem.fileId || '',
+                    dataUrl: mem.dataUrl || '',
+                    fileSize: mem.fileSize || 0
+                });
             }
+
+            // Clean up IndexedDB entries for removed files
+            const newFileIds = files.map(f => f.fileId).filter(Boolean);
+            const toRemove = oldFileIds.filter(id => !newFileIds.includes(id));
+            if (toRemove.length > 0) {
+                await EvidenceDB.removeMany(toRemove).catch(() => {});
+            }
+
             opl.evidenceFiles = files;
         }
 
@@ -2098,9 +2346,49 @@
             });
         });
 
+        // Paste handler for the edit evidence area - supports pasting images
+        document.addEventListener('paste', async function(e) {
+            const editModal = document.getElementById('editOPLModal');
+            if (!editModal || !editModal.classList.contains('active')) return;
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    e.preventDefault();
+                    const blob = items[i].getAsFile();
+                    const fileId = 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                    const buffer = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsArrayBuffer(blob);
+                    });
+                    await EvidenceDB.put(fileId, { name: blob.name || 'pasted.png', type: blob.type, size: blob.size, buffer });
+                    const dataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                    currentEditingEvidenceList.push({
+                        name: '粘贴图片 ' + new Date().toLocaleTimeString(),
+                        type: 'image', url: '', remark: '',
+                        fileId, dataUrl, fileSize: blob.size
+                    });
+                    renderEditEvidenceList();
+                    showToast('图片已粘贴');
+                    break;
+                }
+            }
+        });
+
         // ==================== Init ====================
         loadStore();
         renderDashboard();
+        // Restore evidence previews from IndexedDB (async)
+        (async function() {
+            await EvidenceDB.open();
+            await restoreEvidencePreviews();
+            renderDashboard();
+        })();
     </script>
 </body>
 </html>
