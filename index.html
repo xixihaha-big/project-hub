@@ -414,6 +414,8 @@
                 <select id="projectSelect" onchange="switchProject(this.value)" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#334155; color:#e2e8f0; font-size:13px; cursor:pointer;">
                 </select>
                 <button class="btn btn-sm" onclick="openProjectManager()" style="width:100%; margin-top:6px; font-size:11px; background:#334155; color:#94a3b8; border:1px dashed #475569;">⚙ 管理项目</button>
+                <button class="btn btn-sm" id="btnEvidenceFolder" onclick="selectEvidenceFolder()" style="width:100%; margin-top:6px; font-size:11px; background:#334155; color:#94a3b8; border:1px dashed #475569;">📁 证据文件夹</button>
+                <div id="evidenceFolderPath" style="font-size:10px; color:#64748b; margin-top:4px; text-align:center; display:none;"></div>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-item active" onclick="navigateTo('dashboard')">
@@ -429,7 +431,7 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                数据本地保存 &middot; 项目管理跟踪面板 v3.2
+                数据本地保存 &middot; 项目管理跟踪面板 v3.3
             </div>
         </aside>
 
@@ -802,7 +804,7 @@
         }
 
         // ==================== Persistence ====================
-        const DATA_VERSION = 'v10-multi-project-v2';
+        const DATA_VERSION = 'v11-folder-evidence';
         function loadStore() {
             const ver = localStorage.getItem('project-hub-version');
             if (ver !== DATA_VERSION) {
@@ -825,7 +827,7 @@
                     store.currentProjectId = defaultId;
                 }
                 // Migrate old data
-                store.opls.forEach(o => {
+                getCurrentProjectOPLs().forEach(o => {
                     if (!o.evidenceFiles) o.evidenceFiles = parseEvidenceFromNote(o.note || '');
                     if (o.note === undefined) o.note = '';
                     if (!o.projectId) o.projectId = store.currentProjectId;
@@ -833,7 +835,6 @@
                 store.meetings.forEach(m => {
                     if (!m.projectId) m.projectId = store.currentProjectId;
                 });
-                saveStore();
             } else {
                 initSampleData();
             }
@@ -841,7 +842,7 @@
         }
 
         async function restoreEvidencePreviews() {
-            // Restore dataUrls for image files from IndexedDB
+            // Restore dataUrls for image files from IndexedDB or local folder
             if (!store.opls) return;
             for (const opl of store.opls) {
                 const files = opl.evidenceFiles || [];
@@ -849,18 +850,35 @@
                     // Clean up marker
                     if (f._hasDataUrl) { delete f._hasDataUrl; }
                     if (f.type === 'image' && f.fileId && !f.dataUrl) {
-                        try {
-                            const data = await EvidenceDB.get(f.fileId);
-                            if (data && data.buffer) {
-                                const blob = new Blob([data.buffer], { type: data.type || 'image/png' });
-                                f.dataUrl = await new Promise((resolve) => {
-                                    const reader = new FileReader();
-                                    reader.onload = () => resolve(reader.result);
-                                    reader.readAsDataURL(blob);
-                                });
+                        // Try local folder first
+                        let buffer = null;
+                        let mimeType = 'image/png';
+                        if (f._inFolder) {
+                            const folderData = await EvidenceFolder.readFile(opl.id, f.fileId, f.name || '');
+                            if (folderData) {
+                                buffer = folderData.buffer;
+                                mimeType = folderData.type || 'image/png';
                             }
-                        } catch (e) {
-                            // File not in IndexedDB, skip
+                        }
+                        // Fallback to IndexedDB
+                        if (!buffer) {
+                            try {
+                                const data = await EvidenceDB.get(f.fileId);
+                                if (data && data.buffer) {
+                                    buffer = data.buffer;
+                                    mimeType = data.type || 'image/png';
+                                }
+                            } catch (e) {
+                                // File not in IndexedDB, skip
+                            }
+                        }
+                        if (buffer) {
+                            const blob = new Blob([buffer], { type: mimeType });
+                            f.dataUrl = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
                         }
                     }
                 }
@@ -1070,7 +1088,6 @@
 
             store.meetings = [];
             store.opls = AUDIT_OPL_DATA.map(o => ({
-                projectId: store.currentProjectId,
                 id: o.id,
                 desc: o.desc,
                 category: o.category || '审核问题',
@@ -1085,6 +1102,7 @@
                 evidenceFiles: parseEvidenceFromNote(o.note || '')
             }));
             store.activities = [];
+            saveStore();
         }
 
         function parseEvidenceFromNote(note) {
@@ -1143,6 +1161,7 @@
 
         function switchProject(projectId) {
             store.currentProjectId = projectId;
+            saveStore();
             refreshCurrentView();
             renderProjectSelector();
         }
@@ -1204,6 +1223,7 @@
             const id = 'proj-' + Date.now();
             store.projects.push({ id: id, name: name, desc: desc, createdAt: new Date().toISOString().split('T')[0], color: '#4f46e5' });
             if (!store.currentProjectId) store.currentProjectId = id;
+            saveStore();
             document.getElementById('newProjectName').value = '';
             document.getElementById('newProjectDesc').value = '';
             renderProjectList();
@@ -1217,11 +1237,11 @@
             if (!project) return;
             if (!confirm('确定要删除项目「' + project.name + '」吗？\n该项目的 OPL 和会议记录不会丢失，将归入当前项目。')) return;
             const fallbackId = store.projects.find(p => p.id !== projectId).id;
-            store.opls.forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
+            getCurrentProjectOPLs().forEach(o => { if (o.projectId === projectId) o.projectId = fallbackId; });
             store.meetings.forEach(m => { if (m.projectId === projectId) m.projectId = fallbackId; });
-                saveStore();
             if (store.currentProjectId === projectId) store.currentProjectId = fallbackId;
             store.projects = store.projects.filter(p => p.id !== projectId);
+            saveStore();
             renderProjectList();
             renderProjectSelector();
             refreshCurrentView();
@@ -1571,6 +1591,7 @@
                     }
                 }
             }
+            saveStore();
             renderOPL();
             updateCounts();
         }
@@ -1587,8 +1608,8 @@
             opl.dueDate = newDate.trim();
             if (!opl.extensions) opl.extensions = [];
             opl.extensions.push({ from: oldDate, to: newDate.trim(), reason: reason.trim(), date: new Date().toISOString().split('T')[0] });
-                saveStore();
             addActivity(`${id} 申请延期：${oldDate} → ${newDate.trim()}（原因：${reason.trim()}）`);
+            saveStore();
             renderOPL();
             updateCounts();
             showToast(`${id} 已延期至 ${newDate.trim()}`);
@@ -1605,6 +1626,7 @@
             const id = 'M' + String(store.meetings.length + 1).padStart(3, '0');
             store.meetings.push({ id, name, docUrl, depts, frequency, createdAt: new Date().toISOString().split('T')[0], followups: [], projectId: store.currentProjectId });
             addActivity(`创建了会议主题：${name}`);
+            saveStore();
             closeModal('meeting');
             showToast(`会议 "${name}" 已创建`);
             renderMeetings();
@@ -1624,6 +1646,7 @@
             const id = 'OPL-' + String(store.opls.length + 1).padStart(3, '0');
             store.opls.push({ id, desc, category, owner, dueDate, priority, status: 'Open', action, note, evidenceFiles: [], createdAt: new Date().toISOString().split('T')[0], closedAt: '', extensions: [], source: '手动创建', projectId: store.currentProjectId });
             addActivity(`创建了 ${id}：${desc.substring(0, 40)}`);
+            saveStore();
             closeModal('opl');
             showToast(`问题 ${id} 已创建`);
             if (currentPage === 'opl') renderOPL();
@@ -1677,10 +1700,187 @@
                 opl.closedAt = document.getElementById('editOPLClosedAt').value || opl.closedAt;
             }
             addActivity(`编辑了 ${id} 的信息`);
+            saveStore();
             closeModal('editOPL');
             showToast(`${id} 已更新`);
             renderOPL();
             updateCounts();
+        }
+
+        // ==================== Evidence Folder (Local File System) ====================
+        const EvidenceFolder = (() => {
+            const FOLDER_DB = 'OPLEvidenceFolderDB';
+            let _handle = null;
+
+            // Check if File System Access API is supported
+            function isSupported() {
+                return typeof window.showDirectoryPicker === 'function';
+            }
+
+            async function openFolderDB() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(FOLDER_DB, 1);
+                    req.onupgradeneeded = (e) => {
+                        if (!e.target.result.objectStoreNames.contains('handles')) {
+                            e.target.result.createObjectStore('handles', { keyPath: 'key' });
+                        }
+                    };
+                    req.onsuccess = (e) => resolve(e.target.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async function saveHandle(handle) {
+                const db = await openFolderDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('handles', 'readwrite');
+                    tx.objectStore('handles').put({ key: 'evidenceFolder', handle });
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+
+            async function loadHandle() {
+                try {
+                    const db = await openFolderDB();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction('handles', 'readonly');
+                        const req = tx.objectStore('handles').get('evidenceFolder');
+                        req.onsuccess = async () => {
+                            if (!req.result) { resolve(null); return; }
+                            const handle = req.result.handle;
+                            // Verify permission
+                            const opts = { mode: 'readwrite' };
+                            const ok = await handle.queryPermission(opts);
+                            if (ok === 'granted') {
+                                _handle = handle;
+                                resolve(handle);
+                            } else if (ok === 'prompt') {
+                                try {
+                                    await handle.requestPermission(opts);
+                                    _handle = handle;
+                                    resolve(handle);
+                                } catch (e) {
+                                    resolve(null);
+                                }
+                            } else {
+                                resolve(null);
+                            }
+                        };
+                        req.onerror = () => resolve(null);
+                    });
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async function getHandle() {
+                if (_handle) return _handle;
+                return await loadHandle();
+            }
+
+            async function getOrCreateOPLFolder(oplId) {
+                const root = await getHandle();
+                if (!root) return null;
+                try {
+                    return await root.getDirectoryHandle(oplId, { create: true });
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async function writeFile(oplId, fileId, name, buffer) {
+                const oplFolder = await getOrCreateOPLFolder(oplId);
+                if (!oplFolder) return false;
+                try {
+                    // Use fileId as filename to avoid name collisions
+                    const ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+                    const safeName = fileId + ext;
+                    const fileHandle = await oplFolder.getFileHandle(safeName, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(buffer);
+                    await writable.close();
+                    return true;
+                } catch (e) {
+                    console.error('Evidence folder write error:', e);
+                    return false;
+                }
+            }
+
+            async function readFile(oplId, fileId, name) {
+                const oplFolder = await getOrCreateOPLFolder(oplId);
+                if (!oplFolder) return null;
+                try {
+                    const ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+                    const safeName = fileId + ext;
+                    const fileHandle = await oplFolder.getFileHandle(safeName);
+                    const file = await fileHandle.getFile();
+                    const buffer = await file.arrayBuffer();
+                    return { buffer, type: file.type, size: file.size, name: file.name };
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async function deleteFile(oplId, fileId, name) {
+                const oplFolder = await getOrCreateOPLFolder(oplId);
+                if (!oplFolder) return false;
+                try {
+                    const ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+                    const safeName = fileId + ext;
+                    await oplFolder.removeEntry(safeName);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            async function deleteOPLFolder(oplId) {
+                const root = await getHandle();
+                if (!root) return false;
+                try {
+                    await root.removeEntry(oplId, { recursive: true });
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            return { isSupported, saveHandle, loadHandle, getHandle, writeFile, readFile, deleteFile, deleteOPLFolder };
+        })();
+
+        async function selectEvidenceFolder() {
+            if (!EvidenceFolder.isSupported()) {
+                showToast('当前浏览器不支持本地文件夹功能，请使用 Chrome 或 Edge');
+                return;
+            }
+            try {
+                const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                await EvidenceFolder.saveHandle(handle);
+                document.getElementById('evidenceFolderPath').textContent = '✓ ' + handle.name;
+                document.getElementById('evidenceFolderPath').style.display = 'block';
+                document.getElementById('btnEvidenceFolder').textContent = '📁 ' + handle.name;
+                showToast('证据文件夹已设置: ' + handle.name);
+                // Re-render OPL to show evidence from folder
+                renderOPL();
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    showToast('选择文件夹失败: ' + e.message);
+                }
+            }
+        }
+
+        async function initEvidenceFolder() {
+            if (!EvidenceFolder.isSupported()) {
+                document.getElementById('btnEvidenceFolder').textContent = '📁 证据文件夹（需Chrome）';
+                return;
+            }
+            const handle = await EvidenceFolder.loadHandle();
+            if (handle) {
+                document.getElementById('evidenceFolderPath').textContent = '✓ ' + handle.name;
+                document.getElementById('evidenceFolderPath').style.display = 'block';
+                document.getElementById('btnEvidenceFolder').textContent = '📁 ' + handle.name;
+            }
         }
 
         // ==================== Evidence Files with IndexedDB Storage ====================
@@ -1844,7 +2044,7 @@
             const type = inferFileType(file.name);
 
             try {
-                // Read file as ArrayBuffer and store in IndexedDB
+                // Read file as ArrayBuffer
                 const buffer = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
@@ -1852,13 +2052,20 @@
                     reader.readAsArrayBuffer(file);
                 });
 
-                // Store in IndexedDB
+                // Store in IndexedDB (always, as fallback)
                 await EvidenceDB.put(fileId, {
                     name: file.name,
                     type: file.type,
                     size: file.size,
                     buffer: buffer
                 });
+
+                // Also save to local evidence folder if available
+                const oplId = document.getElementById('editOPLId').value;
+                const savedToFolder = await EvidenceFolder.writeFile(oplId, fileId, file.name, buffer);
+                if (savedToFolder) {
+                    ev._inFolder = true;
+                }
 
                 // For images, also create a data URL for preview
                 let dataUrl = '';
@@ -1871,9 +2078,12 @@
                     });
                 }
 
-                // Clean up old file from IndexedDB if exists
+                // Clean up old file from IndexedDB and folder if exists
                 if (ev.fileId) {
                     await EvidenceDB.remove(ev.fileId).catch(() => {});
+                    if (ev._inFolder) {
+                        await EvidenceFolder.deleteFile(oplId, ev.fileId, ev.name || '').catch(() => {});
+                    }
                 }
 
                 // Update evidence entry
@@ -1886,7 +2096,7 @@
 
                 input.value = ''; // Reset file input
                 renderEditEvidenceList();
-                showToast(`已上传: ${file.name}`);
+                showToast(`已上传: ${file.name}${savedToFolder ? ' (已保存到证据文件夹)' : ''}`);
             } catch (err) {
                 console.error('File upload error:', err);
                 showToast('文件上传失败: ' + err.message);
@@ -1894,15 +2104,19 @@
         }
 
         function addEditEvidence() {
-            currentEditingEvidenceList.push({ name: '', type: 'other', url: '', remark: '', fileId: '', dataUrl: '', fileSize: 0 });
+            currentEditingEvidenceList.push({ name: '', type: 'other', url: '', remark: '', fileId: '', dataUrl: '', fileSize: 0, _inFolder: false });
             renderEditEvidenceList();
         }
 
         async function removeEditEvidence(index) {
             const ev = currentEditingEvidenceList[index];
-            // Clean up IndexedDB entry
+            // Clean up IndexedDB entry and folder file
             if (ev && ev.fileId) {
                 await EvidenceDB.remove(ev.fileId).catch(() => {});
+                if (ev._inFolder) {
+                    const oplId = document.getElementById('editOPLId').value;
+                    await EvidenceFolder.deleteFile(oplId, ev.fileId, ev.name || '').catch(() => {});
+                }
             }
             currentEditingEvidenceList.splice(index, 1);
             renderEditEvidenceList();
@@ -1914,6 +2128,7 @@
             const rows = container.getElementsByClassName('evidence-row');
             const files = [];
             const oldFileIds = (opl.evidenceFiles || []).map(f => f.fileId).filter(Boolean);
+            const oldOplFiles = (opl.evidenceFiles || []);
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
@@ -1931,15 +2146,21 @@
                     remark,
                     fileId: mem.fileId || '',
                     dataUrl: mem.dataUrl || '',
-                    fileSize: mem.fileSize || 0
+                    fileSize: mem.fileSize || 0,
+                    _inFolder: mem._inFolder || false
                 });
             }
 
-            // Clean up IndexedDB entries for removed files
+            // Clean up IndexedDB and folder entries for removed files
             const newFileIds = files.map(f => f.fileId).filter(Boolean);
             const toRemove = oldFileIds.filter(id => !newFileIds.includes(id));
-            if (toRemove.length > 0) {
-                await EvidenceDB.removeMany(toRemove).catch(() => {});
+            for (const id of toRemove) {
+                await EvidenceDB.remove(id).catch(() => {});
+                // Also remove from folder
+                const oldFile = oldOplFiles.find(f => f.fileId === id);
+                if (oldFile && oldFile._inFolder) {
+                    await EvidenceFolder.deleteFile(opl.id, id, oldFile.name || '').catch(() => {});
+                }
             }
 
             opl.evidenceFiles = files;
@@ -1958,6 +2179,7 @@
             const fid = 'F' + String(Date.now()).slice(-6);
             meeting.followups.unshift({ id: fid, date, notes, attendees });
             addActivity(`添加了会议记录（${meeting.name} ${date}）`);
+            saveStore();
             closeModal('followup');
             showToast('会议记录已保存');
             showMeetingDetail(meetingId);
@@ -1967,6 +2189,7 @@
             if (!confirm('确定删除此会议及所有记录？')) return;
             store.meetings = store.meetings.filter(m => m.id !== id);
             addActivity('删除了一个会议主题');
+            saveStore();
             backToMeetingList();
             renderMeetings();
             updateCounts();
@@ -2006,7 +2229,7 @@
 
         function exportCSV() {
             let csv = '编号,描述,类别,负责人,创建日期,截止日期,实际完成日期,延期次数,优先级,状态,行动方案,备注,佐证文件数量,佐证文件明细\n';
-            store.opls.forEach(o => {
+            getCurrentProjectOPLs().forEach(o => {
                 const extCount = (o.extensions && o.extensions.length) || 0;
                 const files = o.evidenceFiles || [];
                 const fileCount = files.length;
@@ -2511,6 +2734,7 @@
             }
             addActivity(`保存了会议记录（${meeting ? meeting.name : ''} ${date}）`);
 
+            saveStore();
             closeModal('minutesUpload');
             showToast(`保存成功！会议记录已保存${oplCount > 0 ? '，并添加了 ' + oplCount + ' 个问题项' : ''}`);
 
@@ -2571,9 +2795,10 @@
         loadStore();
         renderProjectSelector();
         renderDashboard();
-        // Restore evidence previews from IndexedDB (async)
+        // Restore evidence previews from IndexedDB and local folder (async)
         (async function() {
             await EvidenceDB.open();
+            await initEvidenceFolder();
             await restoreEvidencePreviews();
             renderProjectSelector();
             renderDashboard();
